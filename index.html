@@ -1284,7 +1284,7 @@ function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=a
 let tonUI=null,tonConnected=false;
 function initTon(){
   try{
-    tonUI=new TON_CONNECT_UI.TonConnectUI({manifestUrl:'https://crash-app-ocg7.vercel.app/tonconnect-manifest.json',buttonRootId:null});
+    tonUI=new TON_CONNECT_UI.TonConnectUI({manifestUrl: 'https://casino-bot-bn31.vercel.app/tonconnect-manifest.json',buttonRootId:null});
     tonUI.onStatusChange(w=>{tonConnected=!!w;updateWalletUI();if(w)showToast(t('wallet_connected'),'win');});
   }catch(e){}
 }
