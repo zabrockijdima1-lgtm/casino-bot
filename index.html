@@ -471,9 +471,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <h2>🎁 Cases</h2>
   </div>
   <div class="cases-scroll">
-    <div class="cases-section-label">Обмежені <span>Показати всі ›</span></div>
+    <div class="cases-section-label" style="justify-content:center;padding-top:20px">🔥 Доступний кейс</div>
     <div class="cases-featured" id="cases-featured"></div>
-    <div class="cases-section-label">Кейси <span>Показати всі ›</span></div>
     <div class="cases-grid" id="cases-list"></div>
   </div>
 </div>
@@ -1068,8 +1067,20 @@ function sellNFT(id,name,price){
     btnLabel:`${t('confirm_btn_sell')} ${(+price).toFixed(2)} TON`,
     btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
     onOk:()=>{
+      // Видаляємо з локального інвентаря
+      let removed=false;
+      myNFTs=myNFTs.filter(n=>{if(!removed&&n.id===id){removed=true;return false;}return true;});
+      saveNFTs();
+      // Зараховуємо TON на баланс локально
+      balance=+(balance+(+price)).toFixed(4);
+      updBal();saveBal();
+      const cnt=myNFTs.length;
+      document.getElementById('inv-tab-lbl').textContent=cnt?`${t('inv')} (${cnt})`:t('inv');
+      showToast(`✅ Продано за ${(+price).toFixed(2)} TON!`,'win');
+      spawnGems(3,'💰');
+      closeModal();
+      // Також повідомляємо сервер якщо є зв'язок
       if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,price:price,type:'sell'}));
-      else showToast(t('error'));
     }
   });
 }
@@ -1441,58 +1452,35 @@ applyLang();
 setTimeout(()=>{try{initTon();}catch(e){}},300);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
-// Типи призів: isNFT=true — NFT подарунок, isNFT=false — TON на баланс
 const CASES=[
-  {id:'starter',name:'Starter Case',emoji:'📦',price:0.5,
-   previewNFTs:['chillflame','candycane','jesterhat'],
+  {id:'pink',name:'PINK',emoji:'💋',price:4.7,
+   previewNFTs:['snakebox','candycane','jesterhat'],
    items:[
-    {isTon:true,name:'0.1 TON',ton:0.1,rarity:'Common',weight:35},
-    {isTon:true,name:'0.2 TON',ton:0.2,rarity:'Common',weight:28},
-    {isTon:true,name:'0.3 TON',ton:0.3,rarity:'Common',weight:18},
-    {isTon:true,name:'0.5 TON',ton:0.5,rarity:'Rare',weight:10},
-    {isTon:true,name:'1.0 TON',ton:1.0,rarity:'Rare',weight:5},
-    {isTon:true,name:'2.0 TON',ton:2.0,rarity:'Epic',weight:2},
-    {id:'chillflame',name:'Chill Flame',emoji:'🔥',price:2.72,rarity:'Common',weight:1,isNFT:true},
-    {id:'candycane',name:'Candy Cane',emoji:'🍬',price:2.78,rarity:'Common',weight:0.7,isNFT:true},
-    {id:'jesterhat',name:'Jester Hat',emoji:'🎭',price:3.24,rarity:'Rare',weight:0.3,isNFT:true},
-  ]},
-  {id:'rare',name:'Rare Case',emoji:'💎',price:2.0,
-   previewNFTs:['happybrownie','lightsword','skystiletto'],
-   items:[
-    {isTon:true,name:'0.5 TON',ton:0.5,rarity:'Common',weight:32},
-    {isTon:true,name:'1.0 TON',ton:1.0,rarity:'Common',weight:25},
-    {isTon:true,name:'1.5 TON',ton:1.5,rarity:'Common',weight:18},
-    {isTon:true,name:'2.5 TON',ton:2.5,rarity:'Rare',weight:12},
-    {isTon:true,name:'4.0 TON',ton:4.0,rarity:'Rare',weight:7},
-    {isTon:true,name:'8.0 TON',ton:8.0,rarity:'Epic',weight:3},
-    {id:'happybrownie',name:'Happy Brownie',emoji:'💩',price:3.41,rarity:'Rare',weight:0.7,isNFT:true},
-    {id:'lolpop',name:'Lol Pop',emoji:'🍭',price:3.55,rarity:'Rare',weight:0.6,isNFT:true},
-    {id:'gingercookie',name:'Ginger Cookie',emoji:'🍪',price:3.65,rarity:'Rare',weight:0.5,isNFT:true},
-    {id:'stellarrocket',name:'Stellar Rocket',emoji:'🚀',price:4.4,rarity:'Rare',weight:0.4,isNFT:true},
-    {id:'lightsword',name:'Light Sword',emoji:'⚔️',price:5.06,rarity:'Rare',weight:0.35,isNFT:true},
-    {id:'deskcalendar',name:'Desk Calendar',emoji:'📅',price:5.37,rarity:'Rare',weight:0.25,isNFT:true},
-    {id:'evileye',name:'Evil Eye',emoji:'👁️',price:5.98,rarity:'Epic',weight:0.15,isNFT:true},
-    {id:'skystiletto',name:'Sky Stilettos',emoji:'👠',price:12.9,rarity:'Epic',weight:0.05,isNFT:true},
-  ]},
-  {id:'epic',name:'NFT Case',emoji:'🎁',price:5.0,
-   previewNFTs:['chillflame','moonpendant','durovscap'],
-   items:[
-    // Дешеві NFT — часто
-    {id:'chillflame',name:'Chill Flame',emoji:'🔥',price:2.72,rarity:'Common',weight:22,isNFT:true},
-    {id:'candycane',name:'Candy Cane',emoji:'🍬',price:2.78,rarity:'Common',weight:20,isNFT:true},
-    {id:'snakebox',name:'Snake Box',emoji:'🐍',price:2.77,rarity:'Common',weight:18,isNFT:true},
-    {id:'jesterhat',name:'Jester Hat',emoji:'🎭',price:3.24,rarity:'Common',weight:14,isNFT:true},
-    {id:'happybrownie',name:'Happy Brownie',emoji:'💩',price:3.41,rarity:'Common',weight:10,isNFT:true},
-    {id:'lolpop',name:'Lol Pop',emoji:'🍭',price:3.55,rarity:'Common',weight:8,isNFT:true},
-    // Середні — рідше
-    {id:'moonpendant',name:'Moon Pendant',emoji:'🌙',price:4.58,rarity:'Rare',weight:4,isNFT:true},
-    {id:'lightsword',name:'Light Sword',emoji:'⚔️',price:5.06,rarity:'Rare',weight:2,isNFT:true},
-    {id:'evileye',name:'Evil Eye',emoji:'👁️',price:5.98,rarity:'Rare',weight:1,isNFT:true},
-    {id:'skystiletto',name:'Sky Stilettos',emoji:'👠',price:12.9,rarity:'Epic',weight:0.5,isNFT:true},
-    // Дорогі — дуже рідко (0.5%)
-    {id:'diamondring',name:'Diamond Ring',emoji:'💍',price:26.54,rarity:'Epic',weight:0.3,isNFT:true},
-    {id:'voodoodoll',name:'Voodoo Doll',emoji:'🪆',price:30.73,rarity:'Epic',weight:0.15,isNFT:true},
-    {id:'durovscap',name:'Durov Cap',emoji:'🧢',price:605.72,rarity:'Legendary',weight:0.05,isNFT:true},
+    // TON призи (немає в цьому кейсі — тільки NFT як на фото)
+    // NFT призи 1:1 як на скріні (ціни в TON = значення з фото ÷ курс ~1)
+    {id:'snakebox',     name:'Snake Box',            emoji:'🐍', price:2.60,  rarity:'Common',    weight:18, isNFT:true},
+    {id:'candycane',    name:'Candy Cane',           emoji:'🍬', price:2.85,  rarity:'Common',    weight:16, isNFT:true},
+    {id:'jesterhat',    name:'Jester Hat',           emoji:'🎭', price:3.28,  rarity:'Common',    weight:14, isNFT:true},
+    {id:'lolpop',       name:'Lol Pop',              emoji:'🍭', price:3.35,  rarity:'Common',    weight:13, isNFT:true},
+    {id:'spicedwine',   name:'Spiced Wine',          emoji:'🍷', price:3.69,  rarity:'Common',    weight:11, isNFT:true},
+    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Common',    weight:9,  isNFT:true},
+    {id:'lolpopsweetheart', name:'Lol Pop Sweetheart', emoji:'💕',price:5.24, rarity:'Rare',      weight:7,  isNFT:true},
+    {id:'deskcalendar', name:'Desk Calendar',        emoji:'📅', price:5.74,  rarity:'Rare',      weight:6,  isNFT:true},
+    {id:'joyfullbundle',name:'Joyful Bundle',        emoji:'🎁', price:5.83,  rarity:'Rare',      weight:5,  isNFT:true},
+    {id:'bunnymuffin',  name:'Bunny Muffin',         emoji:'🐰', price:5.94,  rarity:'Rare',      weight:5,  isNFT:true},
+    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:4,  isNFT:true},
+    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:3,  isNFT:true},
+    {id:'joyfullbundleteddybears', name:'Joyful Bundle Teddy Bears', emoji:'🧸', price:8.93, rarity:'Rare', weight:2.5, isNFT:true},
+    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:2,  isNFT:true},
+    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:1.5,isNFT:true},
+    {id:'lovepotion',   name:'Love Potion',          emoji:'🧪', price:12.46, rarity:'Epic',      weight:1.2,isNFT:true},
+    {id:'starnotepad',  name:'Star Notepad True Love',emoji:'📓',price:12.60, rarity:'Epic',      weight:1,  isNFT:true},
+    {id:'eternalrose',  name:'Eternal Rose',         emoji:'🌹', price:23.81, rarity:'Epic',      weight:0.6,isNFT:true},
+    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Epic',      weight:0.4,isNFT:true},
+    {id:'sharptongue',  name:'Sharp Tongue Glamour', emoji:'💋', price:40.84, rarity:'Legendary', weight:0.2,isNFT:true},
+    {id:'nekohelmet',   name:'Neko Helmet Princess', emoji:'⛑️', price:89.36, rarity:'Legendary', weight:0.08,isNFT:true},
+    {id:'nailbracelet', name:'Nail Bracelet Neon Tube',emoji:'💜',price:107.10,rarity:'Legendary',weight:0.05,isNFT:true},
+    {id:'astralshard',  name:'Astral Shard Lovestone',emoji:'💎',price:249.10,rarity:'Legendary', weight:0.02,isNFT:true},
   ]},
 ];
 let curCase=null,spinAnim=null,lastWin=null;
@@ -1522,42 +1510,32 @@ function openCases(){
   document.getElementById('cases-screen').classList.add('open');
   const tonSvg=`<svg width="14" height="14" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
 
-  // Featured (перший кейс — великий)
-  const featured = CASES[0];
-  if(featured){
-    const fId = featured.previewNFTs&&featured.previewNFTs[0];
-    const fPh = typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&fId&&NFT_PHOTOS[fId];
-    const fImg = fPh
-      ? `<img class="cf-img" src="${fPh}">`
-      : `<div class="cf-img-ph">${featured.emoji||'🎁'}</div>`;
-    document.getElementById('cases-featured').innerHTML = `
-      <div class="case-card-featured" onclick="openSpin('${featured.id}')">
-        ${fImg}
-        <div class="cf-info">
-          <div class="cf-name">${featured.name}</div>
-          <div class="cf-desc">NFT Gifts · ${featured.items.filter(i=>i.isNFT).length} предметів</div>
-          <div class="cf-price">${tonSvg}<span>${featured.price} TON</span></div>
-        </div>
-      </div>`;
-  }
-
-  // Grid (решта кейсів)
-  document.getElementById('cases-list').innerHTML = CASES.slice(1).map((c,idx)=>{
-    const mainId = c.previewNFTs&&c.previewNFTs[0];
-    const ph = typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&mainId&&NFT_PHOTOS[mainId];
-    const imgHtml = ph
-      ? `<img class="case-card-img" src="${ph}">`
-      : `<div class="case-card-img-placeholder">${c.emoji||'🎁'}</div>`;
-    const badge = idx===0 ? `<div class="case-badge">НОВИЙ NFT</div>` : '';
-    return `<div class="case-card" onclick="openSpin('${c.id}')">
-      ${badge}
-      ${imgHtml}
-      <div class="case-card-body">
-        <div class="case-name">${c.name}</div>
-        <div class="case-price-row">${tonSvg}<span class="cprice">${c.price} TON</span></div>
+  // Єдиний кейс PINK — великий центрований
+  const c = CASES[0];
+  document.getElementById('cases-featured').innerHTML = `
+    <div onclick="openSpin('${c.id}')" style="
+      background:linear-gradient(135deg,#1a0828,#2a0a3a,#1a0828);
+      border:1.5px solid rgba(255,105,180,0.4);
+      border-radius:24px;
+      padding:24px 20px;
+      text-align:center;
+      cursor:pointer;
+      margin:0 16px 20px;
+      box-shadow:0 0 40px rgba(255,0,128,0.15),0 8px 32px rgba(0,0,0,0.4);
+      transition:transform .15s;
+      position:relative;
+      overflow:hidden;
+    " onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,105,180,0.12) 0%,transparent 60%);pointer-events:none"></div>
+      <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(255,0,128,0.5))">💋</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#fff;margin-bottom:6px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,105,180,0.8)">PINK</div>
+      <div style="font-size:12px;color:#cc66aa;margin-bottom:16px;font-family:'Nunito',sans-serif;font-weight:700">NFT Gifts · ${c.items.filter(i=>i.isNFT).length} предметів</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,105,180,0.4);border-radius:20px;padding:8px 20px">
+        ${tonSvg}<span style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff">${c.price} TON</span>
       </div>
     </div>`;
-  }).join('');
+  // Очищаємо грід — він не потрібен
+  document.getElementById('cases-list').innerHTML = '';
 }
 function closeCases(){document.getElementById('cases-screen').classList.remove('open');}
 
@@ -1665,7 +1643,18 @@ function showCaseWin(item){
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
 function caseWinKeep(){
   if(!lastWin||!lastWin.isNFT)return;
-  myNFTs.push({...lastWin,floor:lastWin.price,winTon:lastWin.price,mult:1,ts:Date.now()});
+  const nftEntry={
+    id:lastWin.id,
+    name:lastWin.name,
+    emoji:lastWin.emoji||'🎁',
+    rarity:lastWin.rarity,
+    price:lastWin.price,
+    floor:lastWin.price,
+    winTon:lastWin.price,
+    mult:1,
+    ts:Date.now()
+  };
+  myNFTs.push(nftEntry);
   saveNFTs();const cnt=myNFTs.length;
   document.getElementById('inv-tab-lbl').textContent=cnt?t('inv')+' ('+cnt+')':t('inv');
   if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:lastWin.id,price:lastWin.price}));
