@@ -340,10 +340,11 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <button class="tabn active" id="tab-game" style="position:relative;top:-10px">
       <div style="width:56px;height:56px;background:linear-gradient(135deg,#1a3a12,#0f2a0f,#1d3a14);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(77,143,255,0.5),0 0 40px rgba(77,143,255,0.15),inset 0 1px 0 rgba(255,255,255,0.1);margin-bottom:2px;border:1.5px solid rgba(77,143,255,0.4)">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="5" r="2.5" stroke="white" stroke-width="1.8"/>
-          <line x1="12" y1="7.5" x2="12" y2="22" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M6 11 Q4 11 4 13 Q4 19 12 22 Q20 19 20 13 Q20 11 18 11" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-          <line x1="8" y1="11" x2="16" y2="11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M12 2C12 2 7 6 7 13H17C17 6 12 2 12 2Z" stroke="white" stroke-width="1.8" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+          <path d="M9 13V17L12 22L15 17V13" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M7 13C5.5 13 4 14 4 16L7 15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M17 13C18.5 13 20 14 20 16L17 15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="9" r="1.5" fill="white"/>
         </svg>
       </div>
       <span id="lbl-game" style="margin-top:-2px">Game</span>
@@ -1597,53 +1598,113 @@ function playNote(freq,type,vol,start,dur,ctx,dest){
   return o;
 }
 
-// Фонова музика (мінімальний ембієнт луп)
+// Фонова музика — тихий lo-fi chill вайб
 function startBgMusic(){
   if(_bgStarted)return;
   _bgStarted=true;
   try{
     const ctx=getAudioCtx();
     _bgGain=ctx.createGain();
-    _bgGain.gain.value=0.07;
+    _bgGain.gain.value=0.0;
     _bgGain.connect(ctx.destination);
+    // Плавне fadein
+    _bgGain.gain.linearRampToValueAtTime(0.045,ctx.currentTime+3.0);
 
-    function scheduleBeat(offset){
-      // Бас-нота (пульсує)
-      const bassFreqs=[55,55,55,82,55,55,55,110];
-      bassFreqs.forEach((f,i)=>{
-        const o=ctx.createOscillator();
-        const g=ctx.createGain();
-        o.connect(g);g.connect(_bgGain);
-        o.type='sine';o.frequency.value=f;
-        const t=ctx.currentTime+offset+i*0.5;
-        g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(0.6,t+0.02);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
-        o.start(t);o.stop(t+0.36);
+    // --- Reverb (convolver з шумом) ---
+    const revLen=ctx.sampleRate*2.5;
+    const revBuf=ctx.createBuffer(2,revLen,ctx.sampleRate);
+    for(let c=0;c<2;c++){
+      const d=revBuf.getChannelData(c);
+      for(let i=0;i<revLen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/revLen,2.2);
+    }
+    const rev=ctx.createConvolver();
+    rev.buffer=revBuf;
+    const revGain=ctx.createGain();
+    revGain.gain.value=0.35;
+    rev.connect(revGain);
+    revGain.connect(_bgGain);
+
+    // --- LP фільтр для м'якості ---
+    const lp=ctx.createBiquadFilter();
+    lp.type='lowpass';lp.frequency.value=1800;lp.Q.value=0.7;
+    lp.connect(_bgGain);
+    lp.connect(rev);
+
+    // Акорди Cm7 прогресія: Cm7 → Fm7 → Bb7 → Ebmaj7
+    // Частоти нотаток (октава 3-4, тихо)
+    const chords=[
+      [130.8,155.6,185.0,233.1],  // Cm7
+      [174.6,207.7,246.9,311.1],  // Fm7
+      [116.5,155.6,185.0,220.0],  // Bb7
+      [155.6,185.0,233.1,293.7],  // Ebmaj7
+    ];
+    const CHORD_DUR=8.0; // секунд на акорд
+    const LOOP_DUR=CHORD_DUR*chords.length;
+
+    function scheduleLoop(startTime){
+      chords.forEach((chord,ci)=>{
+        const ct=startTime+ci*CHORD_DUR;
+        // Пад (синтезований рядковий)
+        chord.forEach(freq=>{
+          const o=ctx.createOscillator();
+          const g=ctx.createGain();
+          o.type='sine';
+          o.frequency.value=freq;
+          // Легке детюнування для теплоти
+          o.detune.value=(Math.random()-0.5)*8;
+          o.connect(g);g.connect(lp);
+          g.gain.setValueAtTime(0,ct);
+          g.gain.linearRampToValueAtTime(0.18,ct+1.2);
+          g.gain.setValueAtTime(0.18,ct+CHORD_DUR-1.5);
+          g.gain.linearRampToValueAtTime(0,ct+CHORD_DUR+0.3);
+          o.start(ct);o.stop(ct+CHORD_DUR+0.5);
+          // Другий шар — октава вище, тихіше
+          const o2=ctx.createOscillator();
+          const g2=ctx.createGain();
+          o2.type='triangle';
+          o2.frequency.value=freq*2;
+          o2.detune.value=(Math.random()-0.5)*6;
+          o2.connect(g2);g2.connect(lp);
+          g2.gain.setValueAtTime(0,ct);
+          g2.gain.linearRampToValueAtTime(0.06,ct+1.5);
+          g2.gain.setValueAtTime(0.06,ct+CHORD_DUR-1.5);
+          g2.gain.linearRampToValueAtTime(0,ct+CHORD_DUR+0.3);
+          o2.start(ct);o2.stop(ct+CHORD_DUR+0.5);
+        });
+
+        // Повільний бас (раз на акорд, дуже тихо)
+        const bassFreq=chord[0]*0.5;
+        const ob=ctx.createOscillator();
+        const gb=ctx.createGain();
+        ob.type='sine';ob.frequency.value=bassFreq;
+        ob.connect(gb);gb.connect(_bgGain);
+        gb.gain.setValueAtTime(0,ct);
+        gb.gain.linearRampToValueAtTime(0.22,ct+0.4);
+        gb.gain.linearRampToValueAtTime(0.10,ct+3.0);
+        gb.gain.linearRampToValueAtTime(0,ct+CHORD_DUR);
+        ob.start(ct);ob.stop(ct+CHORD_DUR+0.1);
+
+        // Тиха lo-fi мелодія (одна нотка в середині акорду)
+        if(ci%2===0){
+          const melFreq=chord[2]*1.5;
+          const om=ctx.createOscillator();
+          const gm=ctx.createGain();
+          om.type='sine';om.frequency.value=melFreq;
+          om.connect(gm);gm.connect(lp);
+          const mt=ct+CHORD_DUR*0.4;
+          gm.gain.setValueAtTime(0,mt);
+          gm.gain.linearRampToValueAtTime(0.09,mt+0.15);
+          gm.gain.exponentialRampToValueAtTime(0.001,mt+1.2);
+          om.start(mt);om.stop(mt+1.3);
+        }
       });
-      // Атмосферний пад (тихий акорд)
-      [110,138,165,220].forEach((f,i)=>{
-        const o=ctx.createOscillator();
-        const g=ctx.createGain();
-        const filter=ctx.createBiquadFilter();
-        filter.type='lowpass';filter.frequency.value=600;
-        o.connect(filter);filter.connect(g);g.connect(_bgGain);
-        o.type='sawtooth';o.frequency.value=f;
-        const t=ctx.currentTime+offset;
-        g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(0.12,t+0.5);
-        g.gain.linearRampToValueAtTime(0.08,t+3.5);
-        g.gain.exponentialRampToValueAtTime(0.001,t+4.0);
-        o.start(t);o.stop(t+4.01);
-      });
+
+      // Плануємо наступний луп
+      const tid=setTimeout(()=>scheduleLoop(ctx.currentTime+0.1),( LOOP_DUR-0.5)*1000);
+      _bgNodes.push(tid);
     }
 
-    const loopDur=4.0;
-    function loop(offset){
-      scheduleBeat(offset);
-      _bgNodes.push(setTimeout(()=>loop(0),loopDur*1000-50));
-    }
-    loop(0);
+    scheduleLoop(ctx.currentTime+0.5);
   }catch(e){}
 }
 
