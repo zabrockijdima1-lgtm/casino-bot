@@ -1838,6 +1838,9 @@ function playFlightTick(m){
     o.stop(ctx.currentTime+0.07);
   }catch(e){}
 }
+
+// Звук прокрутки кейса
+function playSpinSound(){
   try{
     const ctx=getAudioCtx();
     const total=7.0;
