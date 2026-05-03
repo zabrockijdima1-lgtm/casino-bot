@@ -1509,7 +1509,7 @@ function renderTrack(items){
       const imgHtml=ph
         ?`<img src="${ph}" style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin-bottom:6px">`
         :`<div style="font-size:48px;margin-bottom:6px">${i.emoji||'🎁'}</div>`;
-      return `<div class="spin-item">${imgHtml}<div class="si-star-row">${starSvg}${Math.round(i.price*100)}</div></div>`;
+      return `<div class="spin-item">${imgHtml}<div class="si-star-row">${tonSvg}${i.price}</div></div>`;
     }
     return `<div class="spin-item">
       <div style="font-size:36px;margin-bottom:6px">💰</div>
