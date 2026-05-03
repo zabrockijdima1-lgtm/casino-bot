@@ -45,9 +45,30 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #sky-ruins-placeholder{position:absolute;bottom:0;left:0;right:0;height:50px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none;z-index:4}
 #gc{position:absolute;inset:0;width:100%;height:100%;z-index:5}
 #mult{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:62px;font-weight:400;color:var(--cream);letter-spacing:1px;pointer-events:none;z-index:10;text-align:center;text-shadow:0 0 30px rgba(77,143,255,.7),0 4px 0 rgba(0,0,0,.5),0 2px 4px rgba(0,0,0,.8)}
-#mult.crashed{color:var(--red);animation:shake .3s;text-shadow:0 0 30px rgba(255,77,109,.7),0 4px 0 rgba(0,0,0,.5)}
+#mult.crashed{color:var(--red);animation:crash-shake .5s cubic-bezier(.36,.07,.19,.97);text-shadow:0 0 30px rgba(255,77,109,.7),0 4px 0 rgba(0,0,0,.5)}
 #mult.waiting{font-size:16px;color:#3a5a8a;text-shadow:none;letter-spacing:1px;font-family:'Nunito',sans-serif;font-weight:600}
-@keyframes shake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(-52%,-50%)}75%{transform:translate(-48%,-50%)}}
+@keyframes crash-shake{
+  0%{transform:translate(-50%,-50%) scale(1)}
+  10%{transform:translate(-54%,-50%) scale(1.08)}
+  20%{transform:translate(-46%,-52%) scale(1.12)}
+  30%{transform:translate(-54%,-48%) scale(1.10)}
+  40%{transform:translate(-46%,-52%) scale(1.08)}
+  50%{transform:translate(-52%,-50%) scale(1.05)}
+  60%{transform:translate(-48%,-50%) scale(1.03)}
+  70%{transform:translate(-51%,-50%) scale(1.01)}
+  100%{transform:translate(-50%,-50%) scale(1)}
+}
+#crash-flash{position:absolute;inset:0;pointer-events:none;z-index:9;opacity:0;background:radial-gradient(ellipse at center,rgba(255,50,50,0.55) 0%,rgba(255,0,0,0.18) 50%,transparent 75%)}
+@keyframes crash-flash-anim{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes crash-shake{
+  0%,100%{transform:translateX(0) translateY(0)}
+  15%{transform:translateX(-6px) translateY(-4px)}
+  30%{transform:translateX(6px) translateY(3px)}
+  45%{transform:translateX(-4px) translateY(-2px)}
+  60%{transform:translateX(4px) translateY(2px)}
+  75%{transform:translateX(-2px) translateY(-1px)}
+  90%{transform:translateX(2px) translateY(1px)}
+}
 #particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8}
 .part{position:absolute;background:rgba(255,255,255,.1);border-radius:50%;animation:pfly linear infinite}
 @keyframes pfly{0%{opacity:.4;transform:translateY(0)}100%{opacity:0;transform:translateY(-100px)}}
@@ -288,6 +309,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     </div>
     <canvas id="gc"></canvas>
     <div id="particles"></div>
+    <div id="crash-flash"></div>
     <div id="mult" class="waiting">...</div>
     <div id="topbar">
       <div id="rlbl">Round #<span id="rid">1</span></div>
@@ -961,9 +983,14 @@ function openModal(type){
     document.getElementById('modal-title').textContent=t('my_nfts');
     if(!myNFTs.length){body.innerHTML=`<div style="text-align:center;color:#334;padding:40px;font-size:13px">${t('no_nfts')}<br><small style="color:#223">${t('win_nft')}</small></div>`;return;}
     body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${
-      myNFTs.slice().reverse().map((nft,i)=>`
+      myNFTs.slice().reverse().map((nft,i)=>{
+        const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
+        const imgHtml=ph
+          ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
+          :`<div style="font-size:52px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+        return `
         <div class="inv-card">
-          <div id="il${i}" style="width:100%;aspect-ratio:1;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:52px">${nft.emoji||'🎁'}</div>
+          <div style="width:100%;aspect-ratio:1;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden">${imgHtml}</div>
           <div class="inv-body">
             <div class="inv-name">${nft.name}</div>
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
@@ -972,14 +999,10 @@ function openModal(type){
             <button class="inv-btn" style="margin-bottom:4px" onclick="withdrawNFT('${nft.id}','${nft.name}',${nft.floor||nft.price||0})">${t('withdraw_btn')}</button>
             <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick="sellNFT('${nft.id}','${nft.name}',${nft.price||nft.floor||0})">${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
-        </div>`).join('')
+        </div>`;
+      }).join('')
     }</div>`;
-    setTimeout(()=>{
-      myNFTs.slice().reverse().forEach((nft,i)=>{
-        const c=document.getElementById(`il${i}`);
-        if(c){const ph=getPhotoById(nft);if(ph){c.innerHTML=`<img src="${ph}" style="width:100%;height:100%;object-fit:cover">`;c.style.fontSize='0';}}
-      });
-    },50);
+    // id-based фото більше не потрібен — вже вставлено напряму
   }else if(type==='ref'){
     document.getElementById('modal-title').textContent='👥 '+t('my_invites');
     body.innerHTML=`
@@ -1208,14 +1231,23 @@ function connect(){
     else if(d.t==='st'){
       phase='flying';startTs=d.ts;document.getElementById('rid').textContent=d.rid;
       ME().className='';ME().textContent='1.00×';points=[];startClientAnim();
-      if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`${t('cashout')} ${betAmt.toFixed(2)} TON`;}
+      if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`${t('cashout')} ${betAmt.toFixed(2)} TON`;startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
     else if(d.t==='tick'){renderPlayers(d.pl);}
     else if(d.t==='cr'){
       cancelAnimationFrame(loopId);loopId=null;
+      stopFlightTicks();
       phase='crashed';mult=d.ca;
       ME().textContent=d.ca.toFixed(2)+'×';ME().className='crashed';
+      // Flash + screen shake
+      const flash=document.getElementById('crash-flash');
+      flash.style.animation='none';flash.offsetHeight; // reflow
+      flash.style.animation='crash-flash-anim 0.7s ease-out forwards';
+      const sky=document.getElementById('sky');
+      sky.style.animation='none';sky.offsetHeight;
+      sky.style.animation='crash-shake 0.5s cubic-bezier(.36,.07,.19,.97)';
+      setTimeout(()=>sky.style.animation='',600);
       document.getElementById('particles').innerHTML='';
       if(points.length>1)drawGraph(true);
       addH(d.ca);
@@ -1227,6 +1259,7 @@ function connect(){
     else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();BB().disabled=true;BB().innerHTML=t('bet_accepted');addBetIndicator();}
     else if(d.t==='your_co'){
       hasBet=false;balance=d.bal;updBal();saveBal();
+      stopFlightTicks();
       playCashoutSound();
       // NFT лише якщо множник >= 1.1
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
@@ -1764,8 +1797,47 @@ function playCaseWinSound(){
   }catch(e){}
 }
 
-// Звук прокрутки кейса
-function playSpinSound(){
+let _tickInterval=null;
+let _lastTickMult=0;
+
+function startFlightTicks(){
+  stopFlightTicks();
+  _lastTickMult=0;
+  function scheduleTick(){
+    if(phase!=='flying'||!hasBet){stopFlightTicks();return;}
+    // Частота тіків росте з множником
+    const m=mult||1;
+    const interval=Math.max(80, 600 - (m-1)*120); // від 600ms при 1x до ~80ms при 5x+
+    _tickInterval=setTimeout(()=>{
+      if(phase!=='flying'||!hasBet){stopFlightTicks();return;}
+      playFlightTick(m);
+      scheduleTick();
+    },interval);
+  }
+  scheduleTick();
+}
+
+function stopFlightTicks(){
+  if(_tickInterval){clearTimeout(_tickInterval);_tickInterval=null;}
+}
+
+function playFlightTick(m){
+  try{
+    const ctx=getAudioCtx();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    // Висота тіку росте з множником — більше напруги
+    const freq=200+Math.min(m-1,8)*55;
+    o.type='sine';
+    o.frequency.value=freq;
+    const vol=0.04+Math.min(m-1,6)*0.008;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.06);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime+0.07);
+  }catch(e){}
+}
   try{
     const ctx=getAudioCtx();
     const total=7.0;
@@ -1882,7 +1954,8 @@ function showCaseWin(item){
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
 function caseWinKeep(){
   if(!lastWin||!lastWin.isNFT)return;
-  // Зберігаємо точну копію виграного NFT з кейсу
+  // Зберігаємо фото напряму з NFT_PHOTOS щоб в інвентарі показувалось правильне зображення
+  const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[lastWin.id])||null;
   const nftEntry={
     id:lastWin.id,
     name:lastWin.name,
@@ -1894,6 +1967,7 @@ function caseWinKeep(){
     mult:1,
     color:'#1a1a2e',
     isNFT:true,
+    photo:photo,
     ts:Date.now()
   };
   myNFTs.push(nftEntry);
