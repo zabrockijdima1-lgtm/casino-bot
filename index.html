@@ -1218,7 +1218,7 @@ function connect(){
       document.getElementById('particles').innerHTML='';
       if(points.length>1)drawGraph(true);
       addH(d.ca);
-      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;}
+      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;playCrashSound();}
       BB().disabled=true;BB().className='';BB().innerHTML=t('place_bet');
       renderPlayers(d.pl);
     }
@@ -1226,6 +1226,7 @@ function connect(){
     else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();BB().disabled=true;BB().innerHTML=t('bet_accepted');addBetIndicator();}
     else if(d.t==='your_co'){
       hasBet=false;balance=d.bal;updBal();saveBal();
+      playCashoutSound();
       // NFT лише якщо множник >= 1.1
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
       if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
@@ -1458,6 +1459,7 @@ if(myNFTs.length)document.getElementById('inv-tab-lbl').textContent=`${t('inv')}
 window.addEventListener('resize',resize);
 resize();
 applyLang();
+initAudio();
 setTimeout(()=>{try{initTon();}catch(e){}},300);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
@@ -1499,17 +1501,16 @@ function wRand(arr){let t=arr.reduce((s,i)=>s+i.weight,0),r=Math.random()*t;for(
 
 function renderTrack(items){
   const tonSvg=`<svg width="12" height="12" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
-  const starSvg=`<svg width="13" height="13" viewBox="0 0 24 24" fill="#FFD700"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
   return items.map(i=>{
     if(i.isNFT){
       const ph=typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[i.id];
       const imgHtml=ph
         ?`<img src="${ph}" style="width:80px;height:80px;object-fit:cover;border-radius:12px;margin-bottom:6px">`
-        :`<div style="font-size:48px;margin-bottom:6px">${i.emoji||'🎁'}</div>`;
+        :`<div style="width:80px;height:80px;border-radius:12px;background:linear-gradient(135deg,#1a1a3a,#2a1a4a);display:flex;align-items:center;justify-content:center;margin-bottom:6px;border:1px solid rgba(255,105,180,0.3)"><svg width="36" height="36" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#2a1a4a"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#cc66aa"/></svg></div>`;
       return `<div class="spin-item">${imgHtml}<div class="si-star-row">${tonSvg}${i.price}</div></div>`;
     }
     return `<div class="spin-item">
-      <div style="font-size:36px;margin-bottom:6px">💰</div>
+      <div style="width:80px;height:80px;border-radius:12px;background:linear-gradient(135deg,#0d2a1a,#0d3a20);display:flex;align-items:center;justify-content:center;margin-bottom:6px;border:1px solid rgba(0,200,100,0.3)"><svg width="36" height="36" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0d3a20"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#4ade80"/></svg></div>
       <div class="si-star-row">${tonSvg}${i.ton}</div>
     </div>`;
   }).join('');
@@ -1572,43 +1573,176 @@ function closeSpin(){
   if(spinAnim){cancelAnimationFrame(spinAnim);spinAnim=null;}
 }
 
+// ── ЗВУКОВА СИСТЕМА ──────────────────────────────────────────────────────
+let _audioCtx=null;
+let _bgGain=null;
+let _bgStarted=false;
+let _bgNodes=[];
+
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playNote(freq,type,vol,start,dur,ctx,dest){
+  const o=ctx.createOscillator();
+  const g=ctx.createGain();
+  o.connect(g);g.connect(dest||ctx.destination);
+  o.frequency.value=freq;o.type=type;
+  g.gain.setValueAtTime(0,ctx.currentTime+start);
+  g.gain.linearRampToValueAtTime(vol,ctx.currentTime+start+0.01);
+  g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
+  o.start(ctx.currentTime+start);
+  o.stop(ctx.currentTime+start+dur+0.01);
+  return o;
+}
+
+// Фонова музика (мінімальний ембієнт луп)
+function startBgMusic(){
+  if(_bgStarted)return;
+  _bgStarted=true;
+  try{
+    const ctx=getAudioCtx();
+    _bgGain=ctx.createGain();
+    _bgGain.gain.value=0.07;
+    _bgGain.connect(ctx.destination);
+
+    function scheduleBeat(offset){
+      // Бас-нота (пульсує)
+      const bassFreqs=[55,55,55,82,55,55,55,110];
+      bassFreqs.forEach((f,i)=>{
+        const o=ctx.createOscillator();
+        const g=ctx.createGain();
+        o.connect(g);g.connect(_bgGain);
+        o.type='sine';o.frequency.value=f;
+        const t=ctx.currentTime+offset+i*0.5;
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(0.6,t+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+        o.start(t);o.stop(t+0.36);
+      });
+      // Атмосферний пад (тихий акорд)
+      [110,138,165,220].forEach((f,i)=>{
+        const o=ctx.createOscillator();
+        const g=ctx.createGain();
+        const filter=ctx.createBiquadFilter();
+        filter.type='lowpass';filter.frequency.value=600;
+        o.connect(filter);filter.connect(g);g.connect(_bgGain);
+        o.type='sawtooth';o.frequency.value=f;
+        const t=ctx.currentTime+offset;
+        g.gain.setValueAtTime(0,t);
+        g.gain.linearRampToValueAtTime(0.12,t+0.5);
+        g.gain.linearRampToValueAtTime(0.08,t+3.5);
+        g.gain.exponentialRampToValueAtTime(0.001,t+4.0);
+        o.start(t);o.stop(t+4.01);
+      });
+    }
+
+    const loopDur=4.0;
+    function loop(offset){
+      scheduleBeat(offset);
+      _bgNodes.push(setTimeout(()=>loop(0),loopDur*1000-50));
+    }
+    loop(0);
+  }catch(e){}
+}
+
+function stopBgMusic(){
+  _bgStarted=false;
+  _bgNodes.forEach(n=>clearTimeout(n));
+  _bgNodes=[];
+  if(_bgGain){try{_bgGain.gain.setValueAtTime(_bgGain.gain.value,getAudioCtx().currentTime);_bgGain.gain.linearRampToValueAtTime(0,getAudioCtx().currentTime+0.5);}catch(e){}}
+  setTimeout(()=>{_bgGain=null;},600);
+}
+
+// Звук програшу (краш)
+function playCrashSound(){
+  try{
+    const ctx=getAudioCtx();
+    // Спадаюча хроматична фраза — відчуття "падіння"
+    const notes=[440,415,392,370,349,330,311,294,220];
+    notes.forEach((f,i)=>{
+      playNote(f,'sawtooth',0.12,i*0.07,0.18,ctx);
+    });
+    // Низький удар
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';
+    o.frequency.setValueAtTime(120,ctx.currentTime+0.3);
+    o.frequency.exponentialRampToValueAtTime(30,ctx.currentTime+0.8);
+    g.gain.setValueAtTime(0.25,ctx.currentTime+0.3);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.8);
+    o.start(ctx.currentTime+0.3);o.stop(ctx.currentTime+0.81);
+  }catch(e){}
+}
+
+// Звук касаута / зняття ставки
+function playCashoutSound(){
+  try{
+    const ctx=getAudioCtx();
+    // Висхідні монети
+    [523,659,784,1047].forEach((f,i)=>{
+      playNote(f,'sine',0.18,i*0.08,0.12,ctx);
+    });
+    // Дзвін перемоги
+    [1047,1319].forEach((f,i)=>{
+      playNote(f,'sine',0.12,0.35+i*0.1,0.4,ctx);
+    });
+  }catch(e){}
+}
+
+// Звук виграшу кейса
+function playCaseWinSound(){
+  try{
+    const ctx=getAudioCtx();
+    [523,659,784,1047,1319,1568].forEach((f,i)=>{
+      playNote(f,'sine',0.15,i*0.07,0.2,ctx);
+    });
+    setTimeout(()=>playCashoutSound(),500);
+  }catch(e){}
+}
+
+// Звук прокрутки кейса
 function playSpinSound(){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    let lastTick=0;
-    function tick(t,freq,vol){
+    const ctx=getAudioCtx();
+    const total=7.0;
+    let t=0,interval=0.04;
+    function tick(time,freq,vol){
       const o=ctx.createOscillator();
       const g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=freq;
-      o.type='square';
-      g.gain.setValueAtTime(vol,ctx.currentTime+t);
-      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.04);
-      o.start(ctx.currentTime+t);
-      o.stop(ctx.currentTime+t+0.05);
+      o.frequency.value=freq;o.type='square';
+      g.gain.setValueAtTime(vol,ctx.currentTime+time);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.04);
+      o.start(ctx.currentTime+time);
+      o.stop(ctx.currentTime+time+0.05);
     }
-    // Швидкі тіки на початку, сповільнення в кінці
-    const total=7.0;
-    let t=0,interval=0.04;
     while(t<total){
       const progress=t/total;
-      // Сповільнення: interval росте
       interval=0.04+progress*progress*0.35;
       const freq=progress>0.85?880:440;
       const vol=progress>0.85?0.15:0.08;
       tick(t,freq,vol);
       t+=interval;
     }
-    // Фінальний акорд
     tick(total+0.1,660,0.2);
     tick(total+0.15,880,0.15);
   }catch(e){}
 }
 
+// Ініціалізація — запускаємо музику після першого торкання
+function initAudio(){
+  document.addEventListener('touchstart',()=>{if(!_bgStarted)startBgMusic();},{once:true,passive:true});
+  document.addEventListener('click',()=>{if(!_bgStarted)startBgMusic();},{once:true});
+}
+
 function spinCase(){
   if(!curCase)return;
-  playSpinSound();
   if(balance<curCase.price){showToast(t('not_enough'));return;}
+  if(spinAnim){return;} // захист від подвійного кліку
+  playSpinSound();
   balance=+(balance-curCase.price).toFixed(4);updBal();saveBal();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
@@ -1681,6 +1815,7 @@ function showCaseWin(item){
     keepBtn.style.display='none';
   }
   document.getElementById('case-win-popup').classList.add('show');
+  playCaseWinSound();
   spawnGems(5,item.isNFT?'🎁':'💰');
 }
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
@@ -1697,6 +1832,7 @@ function caseWinKeep(){
     winTon:lastWin.price,
     mult:1,
     color:'#1a1a2e',
+    isNFT:true,
     ts:Date.now()
   };
   myNFTs.push(nftEntry);
