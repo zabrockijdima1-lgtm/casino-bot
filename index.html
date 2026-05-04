@@ -26,6 +26,123 @@
   --red:#ff4d6d;
   --plush1:#1a2a4a;
   --plush2:#0f1a33;
+  --text-muted:#4a6aaa;
+  --border:rgba(77,143,255,0.12);
+}
+body.light-theme{
+  --bg:#f0f4ff;
+  --bg2:#ffffff;
+  --bg3:#e8eef8;
+  --acc:#2563eb;
+  --acc2:#1d4ed8;
+  --pepe:#2563eb;
+  --pepe-dark:#1d4ed8;
+  --pepe-light:#1d4ed8;
+  --cream:#0f172a;
+  --gold:#b45309;
+  --green:#15803d;
+  --red:#dc2626;
+  --plush1:#dbeafe;
+  --plush2:#bfdbfe;
+  --text-muted:#64748b;
+  --border:rgba(37,99,235,0.15);
+}
+body.light-theme #sky{background:linear-gradient(180deg,#c7d9ff 0%,#dbeafe 40%,#e0ecff 100%)}
+body.light-theme #sky-ruins-placeholder{background:linear-gradient(to top,var(--bg),transparent)}
+body.light-theme #bottomnav{background:#ffffff;border-top:1px solid rgba(37,99,235,0.12)}
+body.light-theme #hist{background:#f0f4ff;border-bottom:1px solid rgba(37,99,235,0.1)}
+body.light-theme .hl{background:#dcfce7;color:#15803d;border-color:#86efac}
+body.light-theme .hm{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+body.light-theme .hh{background:#fef3c7;color:#b45309;border-color:#fcd34d}
+body.light-theme .hmoon{background:#f3e8ff;color:#7c3aed;border-color:#c4b5fd}
+body.light-theme .hbet{background:#dbeafe;color:#1e40af;border-color:#93c5fd;text-shadow:none;box-shadow:none}
+body.light-theme .pr{background:#f8faff;border-color:rgba(37,99,235,0.08)}
+body.light-theme .pr.me{background:#eff6ff;border-color:rgba(37,99,235,0.3)}
+body.light-theme .pr.won{background:#f0fdf4;border-color:rgba(21,128,61,0.2)}
+body.light-theme .pr.lost{background:#fff1f2;border-color:rgba(220,38,38,0.15)}
+body.light-theme .pn{color:#64748b}
+body.light-theme .pn.m{color:#0f172a}
+body.light-theme #mult.waiting{color:#94a3b8}
+body.light-theme .tabn{color:#94a3b8}
+body.light-theme .tabn.active{color:var(--acc)}
+body.light-theme #toast{--red:#dc2626}
+/* Реакції */
+@keyframes react-fly{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  20%{opacity:1;transform:translateY(-12px) scale(1.2)}
+  100%{opacity:0;transform:translateY(-70px) scale(0.7)}
+}
+.react-float{
+  position:absolute;
+  pointer-events:none;
+  font-size:22px;
+  animation:react-fly 1.6s ease-out forwards;
+  z-index:50;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+}
+#react-bar{
+  display:none;
+  gap:6px;
+  padding:6px 12px 4px;
+  flex-shrink:0;
+  justify-content:center;
+}
+#react-bar.visible{display:flex}
+.rbtn{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;
+  padding:5px 12px;
+  font-size:18px;
+  cursor:pointer;
+  transition:transform .12s,background .15s;
+  position:relative;
+  display:flex;align-items:center;gap:4px;
+}
+.rbtn:active{transform:scale(0.88)}
+.rbtn .rcnt{font-size:10px;color:rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;font-weight:700;min-width:10px}
+body.light-theme .rbtn{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.08)}
+body.light-theme .rbtn .rcnt{color:#94a3b8}
+/* ── LIGHT THEME DEEP OVERRIDES ── */
+body.light-theme #rlbl{background:rgba(255,255,255,0.85);color:#64748b;border:1px solid rgba(37,99,235,0.15)}
+body.light-theme #deposit-btn{background:rgba(255,255,255,0.92);border-color:rgba(37,99,235,0.25)}
+body.light-theme #deposit-btn .dep-bal{color:#b45309}
+body.light-theme #hist{background:#e8eef8}
+body.light-theme .card{background:#fff;border-color:rgba(37,99,235,0.12);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+body.light-theme .cl{color:#64748b}
+body.light-theme .inp{background:#f1f5ff;border-color:rgba(37,99,235,0.2);color:#0f172a}
+body.light-theme .inp:focus{border-color:rgba(37,99,235,0.5);box-shadow:0 0 0 2px rgba(37,99,235,0.08)}
+body.light-theme .ai{background:#f1f5ff;border-color:rgba(37,99,235,0.2);color:#0f172a}
+body.light-theme .qb{background:#f1f5ff;border-color:rgba(37,99,235,0.15);color:#64748b}
+body.light-theme .qb:hover{border-color:var(--acc);color:#0f172a}
+body.light-theme .tl{color:#64748b}
+body.light-theme .tog{background:#e2e8f0;border-color:rgba(37,99,235,0.2)}
+body.light-theme #bb{
+  background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 40%,#3b82f6 70%,#2563eb 100%);
+  border-color:rgba(37,99,235,0.6);
+  box-shadow:0 4px 20px rgba(37,99,235,0.35),inset 0 1px 0 rgba(255,255,255,0.25),inset 0 -2px 0 rgba(0,0,0,0.1);
+  text-shadow:0 1px 3px rgba(0,0,0,0.3);
+  color:#fff;
+}
+body.light-theme #bb.co{
+  background:linear-gradient(135deg,#15803d,#16a34a,#15803d);
+  border-color:rgba(21,128,61,0.6);
+  box-shadow:0 4px 20px rgba(21,128,61,0.35),inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow:0 1px 3px rgba(0,0,0,0.2);
+}
+body.light-theme #nft-hint{color:#64748b}
+body.light-theme #nft-hint span{color:#2563eb}
+body.light-theme .st{color:#94a3b8}
+body.light-theme .pc{background:#e2e8f0;color:#64748b}
+body.light-theme #mult{text-shadow:0 0 20px rgba(37,99,235,0.4),0 2px 4px rgba(0,0,0,0.15)}
+body.light-theme #mult.waiting{color:#94a3b8}
+body.light-theme .pr-bet{background:#eff6ff;color:#1d4ed8}
+body.light-theme .pr-win{background:#eff6ff;color:#0f172a}
+body.light-theme #conn{background:rgba(255,255,255,0.8);color:#64748b}
+body.light-theme #game-btn-circle{
+  background:linear-gradient(145deg,#2563eb 0%,#1d4ed8 40%,#3b82f6 70%,#1e40af 100%);
+  border-color:rgba(59,130,246,0.6);
+  box-shadow:0 0 18px rgba(37,99,235,0.5),0 4px 12px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.25);
 }
 html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunito',sans-serif;overflow:hidden}
 #app{display:flex;flex-direction:column;height:100vh;max-height:100vh;position:relative;z-index:1}
@@ -46,7 +163,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #gc{position:absolute;inset:0;width:100%;height:100%;z-index:5}
 #mult{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:62px;font-weight:400;color:var(--cream);letter-spacing:1px;pointer-events:none;z-index:10;text-align:center;text-shadow:0 0 30px rgba(77,143,255,.7),0 4px 0 rgba(0,0,0,.5),0 2px 4px rgba(0,0,0,.8)}
 #mult.crashed{color:var(--red);animation:crash-shake .5s cubic-bezier(.36,.07,.19,.97);text-shadow:0 0 30px rgba(255,77,109,.7),0 4px 0 rgba(0,0,0,.5)}
-#mult.waiting{font-size:16px;color:#3a5a8a;text-shadow:none;letter-spacing:1px;font-family:'Nunito',sans-serif;font-weight:600}
+#mult.waiting{font-size:16px;color:var(--text-muted);text-shadow:none;letter-spacing:1px;font-family:'Nunito',sans-serif;font-weight:600}
 @keyframes crash-shake{
   0%{transform:translate(-50%,-50%) scale(1)}
   10%{transform:translate(-54%,-50%) scale(1.08)}
@@ -73,7 +190,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 .part{position:absolute;background:rgba(255,255,255,.1);border-radius:50%;animation:pfly linear infinite}
 @keyframes pfly{0%{opacity:.4;transform:translateY(0)}100%{opacity:0;transform:translateY(-100px)}}
 #topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
-#rlbl{font-size:9px;color:#4a6aaa;background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700}
+#rlbl{font-size:9px;color:var(--text-muted);background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700}
 #deposit-btn{display:flex;align-items:center;gap:6px;background:rgba(10,15,30,0.85);border:1px solid rgba(77,143,255,0.3);border-radius:20px;padding:5px 10px 5px 8px;cursor:pointer;backdrop-filter:blur(8px)}
 #deposit-btn .dep-bal{font-family:'Fredoka One',cursive;font-size:12px;color:var(--gold)}
 #deposit-btn .dep-plus{width:20px;height:20px;background:var(--pepe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
@@ -93,14 +210,14 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 }
 #ctrls{padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0}
 .card{background:var(--bg2);border:1px solid rgba(77,143,255,0.12);border-radius:16px;padding:10px 12px}
-.cl{font-size:9px;color:#4a6aaa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'Nunito',sans-serif;font-weight:700}
+.cl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'Nunito',sans-serif;font-weight:700}
 .inp{width:100%;background:var(--bg);border:1px solid rgba(77,143,255,0.25);border-radius:10px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:16px;font-weight:400;padding:7px 10px;outline:none}
 .inp:focus{border-color:rgba(77,143,255,0.6);box-shadow:0 0 0 2px rgba(77,143,255,0.1)}
 .qbtns{display:flex;gap:3px;margin-top:6px}
-.qb{background:var(--bg);border:1px solid rgba(77,143,255,0.2);border-radius:8px;color:#4a6aaa;font-size:10px;padding:3px 0;cursor:pointer;flex:1;text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
+.qb{background:var(--bg);border:1px solid rgba(77,143,255,0.2);border-radius:8px;color:var(--text-muted);font-size:10px;padding:3px 0;cursor:pointer;flex:1;text-align:center;font-family:'Nunito',sans-serif;font-weight:700}
 .qb:hover{border-color:var(--acc);color:var(--cream)}
 .ar{display:flex;align-items:center;gap:6px}
-.tl{font-size:12px;color:#4a6aaa;flex:1;font-family:'Nunito',sans-serif;font-weight:600}
+.tl{font-size:12px;color:var(--text-muted);flex:1;font-family:'Nunito',sans-serif;font-weight:600}
 .tog{width:36px;height:20px;background:var(--bg);border-radius:10px;border:1px solid rgba(77,143,255,0.25);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
 .tog.on{background:var(--pepe)}
 .tog::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s}
@@ -151,11 +268,11 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 }
 #bb.co::after{display:none}
 #bb:disabled{opacity:.25;cursor:not-allowed}
-#nft-hint{font-size:10px;color:#3a5a8a;text-align:center;padding:3px 0 2px;flex-shrink:0;font-family:'Nunito',sans-serif;font-weight:700}
+#nft-hint{font-size:10px;color:var(--text-muted);text-align:center;padding:3px 0 2px;flex-shrink:0;font-family:'Nunito',sans-serif;font-weight:700}
 #nft-hint span{color:var(--pepe-light)}
 #pw{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:0 12px;min-height:0}
-.st{font-size:9px;color:#3a5a8a;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-weight:700}
-.pc{background:var(--bg3);border-radius:8px;padding:1px 6px;font-size:9px;color:#4a6aaa}
+.st{font-size:9px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-weight:700}
+.pc{background:var(--bg3);border-radius:8px;padding:1px 6px;font-size:9px;color:var(--text-muted)}
 #pl{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:3px;scrollbar-width:none;padding-bottom:4px}
 #pl::-webkit-scrollbar{display:none}
 .pr{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:8px 12px;flex-shrink:0}
@@ -170,12 +287,20 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 .pi{display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0}
 .pn{font-size:12px;color:#4a6aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Nunito',sans-serif;font-weight:600}
 .pn.m{color:var(--cream);font-weight:700}
-#bottomnav{display:flex;flex-shrink:0;background:#08080f;border-top:1px solid rgba(77,143,255,0.08);padding:4px 0 8px;align-items:flex-end}
-.tabn{flex:1;background:none;border:none;color:#3a5a8a;font-size:10px;padding:4px 4px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .2s;font-family:'Nunito',sans-serif;font-weight:700}
-.tabn.active{color:var(--cream)}
-.tabn svg{opacity:0.5}
-.tabn.active svg{opacity:1}
-#tab-game svg{opacity:1}
+#bottomnav{display:flex;flex-shrink:0;background:#07070e;border-top:1px solid rgba(77,143,255,0.1);padding:4px 0 10px;align-items:flex-end;position:relative}
+#bottomnav::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(77,143,255,0.3),transparent);pointer-events:none}
+.tabn{flex:1;background:none;border:none;color:#3a5080;font-size:9px;padding:4px 4px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .25s,transform .15s;font-family:'Nunito',sans-serif;font-weight:700;position:relative;letter-spacing:0.3px}
+.tabn:active{transform:scale(0.88)}
+.tabn.active{color:var(--acc)}
+.tabn svg{opacity:0.4;transition:opacity .25s,filter .25s}
+.tabn.active svg{opacity:1;filter:drop-shadow(0 0 4px rgba(77,143,255,0.6))}
+.tabn.active::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--acc);border-radius:2px;box-shadow:0 0 6px rgba(77,143,255,0.8)}
+#tab-game{position:relative;top:-10px;flex-shrink:0}
+#tab-game:active #game-btn-circle{transform:scale(0.9)}
+@keyframes game-btn-pulse{0%,100%{box-shadow:0 0 18px rgba(77,143,255,0.5),0 0 40px rgba(77,143,255,0.12),inset 0 1px 0 rgba(255,255,255,0.15)}50%{box-shadow:0 0 28px rgba(77,143,255,0.7),0 0 55px rgba(77,143,255,0.22),inset 0 1px 0 rgba(255,255,255,0.2)}}
+#game-btn-circle{width:58px;height:58px;background:linear-gradient(145deg,#1040c0 0%,#0a2880 40%,#1855d4 70%,#0a2060 100%);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(77,143,255,0.5),0 0 40px rgba(77,143,255,0.12),inset 0 1px 0 rgba(255,255,255,0.15),inset 0 -2px 0 rgba(0,0,0,0.3);margin-bottom:2px;border:1.5px solid rgba(100,160,255,0.5);animation:game-btn-pulse 2.5s ease-in-out infinite;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+#game-btn-circle::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);animation:shimmer 3s ease-in-out infinite;pointer-events:none}
+#tab-game .tabn-lbl{margin-top:-2px;color:var(--acc);font-weight:800;letter-spacing:0.5px;font-size:9px}
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;backdrop-filter:blur(6px)}
 #modal-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid rgba(77,143,255,0.15);max-height:85vh;overflow-y:auto;padding:0 0 20px}
 .inv-card{background:var(--bg3);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden}
@@ -325,7 +450,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 
   <div id="ctrls">
     <div class="card">
-      <div class="cl">СТАВКА TON</div>
+      <div class="cl" id="lbl-bet-card">BET TON</div>
       <input class="inp" id="bi" type="number" value="0.1" min="0.1" step="0.1">
       <div class="qbtns">
         <button class="qb" onclick="sB(.1)">0.1</button>
@@ -336,47 +461,56 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
       </div>
     </div>
     <div class="card">
-      <div class="cl">АВТО-ВИВІД</div>
-      <div class="ar"><span class="tl">Авто</span><div class="tog" id="atog" onclick="toggleAuto()"></div></div>
+      <div class="cl" id="lbl-auto-card">AUTO CASHOUT</div>
+      <div class="ar"><span class="tl" id="lbl-auto-toggle">Auto</span><div class="tog" id="atog" onclick="toggleAuto()"></div></div>
       <input class="ai" id="av" type="number" value="2.0" min="1.1" step="0.1">
     </div>
-    <button id="bb" onclick="handleBet()">🚀 ПОСТАВИТИ</button>
+    <button id="bb" onclick="handleBet()">🚀 PLACE BET</button>
   </div>
 
-  <div id="nft-hint">Виграш ≥2.8 TON → отримаєш <span>Telegram Gift NFT</span></div>
+  <div id="nft-hint">Win ≥2.8 TON → get <span>Telegram Gift NFT</span></div>
+
+  <!-- Панель реакцій — видима тільки під час польоту -->
+  <div id="react-bar">
+    <button class="rbtn" onclick="sendReaction('🚀')">🚀<span class="rcnt" id="rc-0">0</span></button>
+    <button class="rbtn" onclick="sendReaction('🔥')">🔥<span class="rcnt" id="rc-1">0</span></button>
+    <button class="rbtn" onclick="sendReaction('💀')">💀<span class="rcnt" id="rc-2">0</span></button>
+    <button class="rbtn" onclick="sendReaction('💎')">💎<span class="rcnt" id="rc-3">0</span></button>
+    <button class="rbtn" onclick="sendReaction('😱')">😱<span class="rcnt" id="rc-4">0</span></button>
+  </div>
 
   <div id="pw">
-    <div class="st">ГРАВЦІ <span class="pc" id="pcnt">0</span></div>
+    <div class="st" id="lbl-players">PLAYERS <span class="pc" id="pcnt">0</span></div>
     <div id="pl"></div>
   </div>
 
   <div id="bottomnav">
-    <button class="tabn" id="tab-inv" onclick="openModal('inv')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <button class="tabn" id="tab-inv" onclick="navTap(this);openModal('inv')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span id="inv-tab-lbl">Backpack</span>
     </button>
-    <button class="tabn" id="tab-cases" onclick="openCases()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <button class="tabn" id="tab-cases" onclick="navTap(this);openCases()">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="12" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span>Cases</span>
     </button>
-    <button class="tabn active" id="tab-game" style="position:relative;top:-10px">
-      <div style="width:56px;height:56px;background:linear-gradient(135deg,#1a3a12,#0f2a0f,#1d3a14);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(77,143,255,0.5),0 0 40px rgba(77,143,255,0.15),inset 0 1px 0 rgba(255,255,255,0.1);margin-bottom:2px;border:1.5px solid rgba(77,143,255,0.4)">
+    <button class="tabn active" id="tab-game">
+      <div id="game-btn-circle">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-          <path d="M12 2C12 2 7 6 7 13H17C17 6 12 2 12 2Z" stroke="white" stroke-width="1.8" stroke-linejoin="round" fill="rgba(255,255,255,0.15)"/>
+          <path d="M12 2C12 2 7 6 7 13H17C17 6 12 2 12 2Z" stroke="white" stroke-width="1.8" stroke-linejoin="round" fill="rgba(255,255,255,0.18)"/>
           <path d="M9 13V17L12 22L15 17V13" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
           <path d="M7 13C5.5 13 4 14 4 16L7 15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M17 13C18.5 13 20 14 20 16L17 15" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="12" cy="9" r="1.5" fill="white"/>
         </svg>
       </div>
-      <span id="lbl-game" style="margin-top:-2px">Game</span>
+      <span id="lbl-game" class="tabn-lbl">Game</span>
     </button>
-    <button class="tabn" id="tab-ref" onclick="openModal('ref')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <button class="tabn" id="tab-ref" onclick="navTap(this);openModal('ref')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span id="lbl-invite">Invite</span>
     </button>
-    <button class="tabn" id="tab-settings" onclick="openModal('settings')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg>
+    <button class="tabn" id="tab-settings" onclick="navTap(this);openModal('settings')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5"/></svg>
       <span id="lbl-settings">Settings</span>
     </button>
   </div>
@@ -396,8 +530,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 <!-- DEPOSIT -->
 <div id="mbg" onclick="if(event.target===this)closeTopup()">
   <div id="mod">
-    <h3>◈ Поповнення</h3>
-    <p style="font-size:12px;color:#334;margin-bottom:12px">Виграш ≥2.8 TON = Telegram Gift NFT</p>
+    <h3 id="dep-title">◈ Top Up</h3>
+    <p id="dep-subtitle" style="font-size:12px;color:#334;margin-bottom:12px">Win ≥2.8 TON = Telegram Gift NFT</p>
     <!-- TAB SWITCHER -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
       <div id="tab-ton-btn" onclick="switchDepTab('ton')" style="background:#6c4fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;border:1.5px solid #6c4fff">
@@ -413,8 +547,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <div id="dep-ton-tab">
       <div class="wallet-row">
         <div id="ws-dot"></div>
-        <div id="ws-text">Гаманець не підключено</div>
-        <button id="ws-btn" onclick="toggleWallet()">Підключити</button>
+        <div id="ws-text">Not connected</div>
+        <button id="ws-btn" onclick="toggleWallet()">Connect</button>
       </div>
       <div class="sos">
         <div class="so" onclick="pickT(this,.5)"><div class="sa">◈</div><div class="sl">0.5</div></div>
@@ -424,19 +558,19 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
         <div class="so" onclick="pickT(this,50)"><div class="sa">💎💎</div><div class="sl">50</div></div>
         <div class="so" onclick="pickT(this,100)"><div class="sa">💎💎💎</div><div class="sl">100</div></div>
       </div>
-      <input class="inp" id="cton" type="number" min="0.1" step="0.1" placeholder="Інша сума...">
-      <button id="pbtn" onclick="doTonPayment()">Надіслати TON</button>
-      <button id="paid-btn" onclick="confirmPaid()">✅ Вже оплатив — зарахувати</button>
+      <input class="inp" id="cton" type="number" min="0.1" step="0.1" placeholder="Other amount...">
+      <button id="pbtn" onclick="doTonPayment()">Send TON</button>
+      <button id="paid-btn" onclick="confirmPaid()">✅ Already paid — confirm</button>
     </div>
 
     <!-- STARS TAB -->
     <div id="dep-stars-tab" style="display:none">
       <div style="background:#1a1228;border:1px solid #6c4fff33;border-radius:12px;padding:12px;margin-bottom:12px;text-align:center">
-        <div style="font-size:13px;color:#aaa;margin-bottom:4px">Курс обміну</div>
+        <div id="stars-rate-lbl" style="font-size:13px;color:#aaa;margin-bottom:4px">Exchange rate</div>
         <div style="font-family:'Fredoka One',cursive;font-size:15px;color:#ffd700">100 ⭐ ≈ <span id="stars-rate-display">0.84</span> TON</div>
-        <div style="font-size:10px;color:#445;margin-top:3px">Зараховується автоматично</div>
+        <div id="stars-auto-lbl" style="font-size:10px;color:#445;margin-top:3px">Credited automatically</div>
       </div>
-      <div style="font-size:11px;color:#556;margin-bottom:8px">Кількість Stars (10 – 10 000)</div>
+      <div id="stars-amount-lbl" style="font-size:11px;color:#556;margin-bottom:8px">Amount in Stars (10 – 10 000)</div>
       <input class="inp" id="cstars" type="number" min="10" max="10000" step="10" value="100" oninput="updateStarsPreview()">
       <div style="display:flex;gap:5px;margin-top:6px;margin-bottom:10px">
         <button class="qb" onclick="pickStars(50)">+50</button>
@@ -446,10 +580,10 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
         <button class="qb" onclick="pickStars(5000)">+5k</button>
       </div>
       <div style="text-align:center;font-size:11px;color:#445;margin-bottom:10px">≈ <span id="stars-ton-preview">0.84</span> TON</div>
-      <button id="pbtn-stars" onclick="doStarsPayment()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:13px;cursor:pointer;margin-bottom:6px">Поповнити ⭐ <span id="stars-pay-label">100</span> Stars</button>
+      <button id="pbtn-stars" onclick="doStarsPayment()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:13px;cursor:pointer;margin-bottom:6px"><span id="stars-topup-lbl">Top Up ⭐</span> <span id="stars-pay-label">100</span> Stars</button>
     </div>
 
-    <button id="mcl" onclick="closeTopup()">Скасувати</button>
+    <button id="mcl" onclick="closeTopup()">Cancel</button>
   </div>
 </div>
 
@@ -458,10 +592,10 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
   <div id="nft-confirm-box" style="background:linear-gradient(135deg,#111827,#0d1428);border:1px solid #6c4fff55;border-radius:20px;padding:24px 20px;text-align:center;min-width:270px;max-width:320px;margin:16px;box-shadow:0 0 40px #6c4fff22;position:relative">
     <button onclick="closeNFTConfirm()" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#445;font-size:20px;cursor:pointer">×</button>
     <div style="font-size:40px;margin-bottom:10px" id="nft-confirm-icon">🎁</div>
-    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:700;margin-bottom:6px" id="nft-confirm-title">Підтвердження</div>
+    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:700;margin-bottom:6px" id="nft-confirm-title">Confirm</div>
     <div style="font-size:12px;color:#778;margin-bottom:16px;line-height:1.5" id="nft-confirm-desc"></div>
     <button id="nft-confirm-okbtn" onclick="nftConfirmOk()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:13px;cursor:pointer;margin-bottom:8px" id="nft-confirm-action-btn"></button>
-    <button onclick="closeNFTConfirm()" style="width:100%;background:transparent;border:none;color:#334;font-size:12px;padding:8px;cursor:pointer">Скасувати</button>
+    <button onclick="closeNFTConfirm()" style="width:100%;background:transparent;border:none;color:#334;font-size:12px;padding:8px;cursor:pointer" id="nft-confirm-cancel">Cancel</button>
   </div>
 </div>
 
@@ -478,9 +612,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
   <div id="wp-ton-section" style="display:none">
     <div id="wp-ton-mult"></div>
     <div id="wp-ton-val"></div>
-    <div style="font-size:11px;color:#445;margin-top:6px">Виведено TON на баланс</div>
+    <div id="wp-credited-lbl" style="font-size:11px;color:#445;margin-top:6px">Credited to balance</div>
   </div>
-  <button id="wp-close" onclick="document.getElementById('wp').className=''">Закрити</button>
+  <button id="wp-close" onclick="document.getElementById('wp').className=''">Close</button>
 </div>
 
 <!-- CASES LIST SCREEN -->
@@ -494,7 +628,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <h2>🎁 Cases</h2>
   </div>
   <div class="cases-scroll">
-    <div class="cases-section-label" style="justify-content:center;padding-top:20px">🔥 Доступний кейс</div>
+    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:20px">🔥 Available case</div>
     <div class="cases-featured" id="cases-featured"></div>
     <div class="cases-grid" id="cases-list"></div>
   </div>
@@ -516,8 +650,8 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <div id="spin-prize-info"></div>
   </div>
   <div id="spin-btn-row">
-    <button id="spin-btn" onclick="spinCase()">Крутити за <span id="spin-price-lbl"></span></button>
-    <button id="spin-prizes-btn" onclick="showPrizesModal()">🎁 Призи</button>
+    <button id="spin-btn" onclick="spinCase()"><span id="lbl-spin-btn">Spin for</span> <span id="spin-price-lbl"></span></button>
+    <button id="spin-prizes-btn" onclick="showPrizesModal()" id="lbl-prizes-btn">🎁 Prizes</button>
   </div>
 </div>
 
@@ -851,7 +985,7 @@ function startClientAnim(){
     const el=Math.max(0,(Date.now()-t0)/1000);
     mult=calcMult(el);points.push({t:el,m:mult});
     ME().textContent=mult.toFixed(2)+'×';
-    if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`💰 ВИВЕСТИ ${(betAmt*mult).toFixed(3)} TON`;}
+    if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`💰 ${t('cashout')} ${(betAmt*mult).toFixed(3)} TON`;}
     drawGraph(false);
     loopId=requestAnimationFrame(tick);
   }
@@ -883,7 +1017,7 @@ function renderPlayers(list){
   if(!list)return;
   const pl=document.getElementById('pl');
   document.getElementById('pcnt').textContent=list.length;
-  if(!list.length){pl.innerHTML='<div style="color:#1a1a2a;font-size:12px;padding:8px">Немає ставок</div>';return;}
+  if(!list.length){pl.innerHTML=`<div style="color:#1a1a2a;font-size:12px;padding:8px">${t('no_bets')}</div>`;return;}
   pl.innerHTML=list.map(p=>{
     const isMe=p.uid===userId;
     const col=isMe?'#6c4fff':strColor(p.name);
@@ -915,7 +1049,7 @@ function renderPlayers(list){
     } else if(p.bet){
       right=`<span class="pr-win" style="background:#0d1828;color:#778">${TSVG} ${(+p.bet).toFixed(2)}</span>`;
     }
-    const badge=isMe?'<span style="font-size:7px;background:#6c4fff22;color:var(--pepe-light);padding:1px 4px;border-radius:4px;margin-left:4px">ти</span>':'';
+    const badge=isMe?`<span style="font-size:7px;background:#6c4fff22;color:var(--pepe-light);padding:1px 4px;border-radius:4px;margin-left:4px">${t('you_badge')}</span>`:'';
     return `<div class="${rowCls}">
       <div class="pav" style="background:${col}18;color:${col}">${ava}</div>
       <div class="pi"><span class="pn${isMe?' m':''}">${p.name}${badge}</span>${betTag}</div>
@@ -1022,17 +1156,43 @@ function openModal(type){
   }else if(type==='settings'){
     document.getElementById('modal-title').textContent='⚙️ '+t('settings');
     const langs=[['en','🇬🇧 English'],['ru','🇷🇺 Русский']];
+    const togBtn=(on,fn)=>`
+      <button onclick="${fn}()" style="
+        display:flex;align-items:center;gap:6px;padding:6px 14px;border:none;cursor:pointer;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;transition:all .2s;
+        background:${on?'linear-gradient(135deg,#1a4fd6,#2563eb)':'#ffffff12'};
+        color:${on?'#fff':'#6677aa'};
+        box-shadow:${on?'0 0 10px rgba(77,143,255,0.35)':'none'};
+      ">
+        <span style="font-size:14px">${on?'🔊':'🔇'}</span>
+        ${on?t('sound_on'):t('sound_off')}
+      </button>`;
     body.innerHTML=`
       <div style="background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <div style="width:40px;height:40px;background:#6c4fff22;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🌐</div>
-          <div><div style="font-size:14px;font-weight:700">${t('lang_title')}</div><div style="font-size:11px;color:#556">Choose your preferred language</div></div>
+          <div><div style="font-size:14px;font-weight:700">${t('lang_title')}</div><div style="font-size:11px;color:#556">${t('lang_subtitle')}</div></div>
         </div>
         ${langs.map(([code,label])=>`
           <div onclick="setLang('${code}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:${currentLang===code?'#6c4fff22':'var(--bg2)'};border:1px solid ${currentLang===code?'#6c4fff':'#ffffff10'};border-radius:10px;cursor:pointer;margin-bottom:8px">
             <span style="font-size:14px">${label}</span>
             ${currentLang===code?'<span style="color:#6c4fff;font-size:18px">✓</span>':''}
           </div>`).join('')}
+      </div>
+      <div style="background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;background:#1a4fd622;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🎵</div>
+            <div style="font-size:14px;font-weight:700">${t('music_title')}</div>
+          </div>
+          ${togBtn(musicEnabled,'toggleMusic')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;background:#1a4fd622;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🔔</div>
+            <div style="font-size:14px;font-weight:700">${t('sfx_title')}</div>
+          </div>
+          ${togBtn(sfxEnabled,'toggleSfx')}
+        </div>
       </div>`;
   }
 }
@@ -1050,7 +1210,7 @@ function showNFTConfirm({icon,title,desc,btnLabel,btnColor,onOk}){
   document.getElementById('nft-confirm-title').textContent=title||'';
   document.getElementById('nft-confirm-desc').innerHTML=desc||'';
   const btn=document.getElementById('nft-confirm-okbtn');
-  btn.textContent=btnLabel||'Підтвердити';
+  btn.textContent=btnLabel||t('confirm_btn_withdraw');
   btn.style.background=btnColor||'linear-gradient(135deg,#166534,#15803d)';
   _nftConfirmCb=onOk;
   const bg=document.getElementById('nft-confirm-bg');
@@ -1113,7 +1273,7 @@ function sellNFT(id,name,price){
       updBal();saveBal();
       const cnt=myNFTs.length;
       document.getElementById('inv-tab-lbl').textContent=cnt?`${t('inv')} (${cnt})`:t('inv');
-      showToast(`✅ Продано за ${(+price).toFixed(2)} TON!`,'win');
+      showToast(`✅ ${t('nft_sold')} ${(+price).toFixed(2)} TON!`,'win');
       spawnGems(3,'💰');
       closeModal();
       // Також повідомляємо сервер якщо є зв'язок
@@ -1163,7 +1323,7 @@ function pickStars(add){
 
 async function doStarsPayment(){
   const stars=parseInt(document.getElementById('cstars')?.value)||100;
-  if(stars<10||stars>10000){showToast('Stars: від 10 до 10 000');return;}
+  if(stars<10||stars>10000){showToast(t('stars_min_error'));return;}
   if(!tg?.openInvoice){showToast(t('error'));return;}
   try{
     showToast('...','info');
@@ -1265,7 +1425,7 @@ function connect(){
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
       if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
       showWinPopup(d.mx,d.win,nftAllowed?d.nft:null);
-      BB().className='';BB().innerHTML='🚀 ПОСТАВИТИ';
+      BB().className='';BB().innerHTML=t('place_bet');
     }
     else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);}
     else if(d.t==='nft_sold'){
@@ -1314,7 +1474,7 @@ function updateWalletUI(){
   const dot=document.getElementById('ws-dot'),txt=document.getElementById('ws-text'),btn=document.getElementById('ws-btn');
   if(!dot)return;
   if(tonConnected){dot.style.background='var(--green)';txt.textContent=t('wallet_connected_lbl');btn.textContent=t('wallet_disconnect');btn.style.background='#2a0d0d';btn.style.color='var(--red)';}
-  else{dot.style.background='#333';txt.textContent=t('wallet_status');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
+  else{dot.style.background='#333';txt.textContent=t('wallet_not_connected');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
 }
 function toggleWallet(){if(tonConnected)tonUI?.disconnect();else tonUI?.openModal();}
 function openTopup(){document.getElementById('mbg').className='open';updateWalletUI();}
@@ -1388,6 +1548,31 @@ const LANGS = {
     stars_topup:'Top Up',
     withdraw_fee:'Withdrawal fee',
     crash:'CRASH', round:'Round #',
+    music_title:'Background Music', music_desc:'Casino atmosphere soundtrack',
+    sfx_title:'Sound Effects', sfx_desc:'Crash, cashout, flight ticks',
+    sound_on:'On', sound_off:'Off',
+    theme_dark:'Dark theme', theme_light:'Light theme',
+    theme_hint:'Tap to switch',
+    theme_btn_dark:'🌙 Dark', theme_btn_light:'☀️ Light',
+    lang_subtitle:'Choose your preferred language',
+    bet_label_html:'BET TON', auto_label_html:'AUTO CASHOUT', auto_toggle:'Auto',
+    place_bet_html:'🚀 PLACE BET', cashout_html:'💰 CASH OUT',
+    players_label:'PLAYERS', no_bets:'No bets yet',
+    win_popup_close:'Close', win_credited:'Credited to balance',
+    available_case:'🔥 Available case',
+    spin_btn:'Spin for', prizes_btn:'🎁 Prizes',
+    case_sell_nft:'💰 Sell for', case_take:'✅ Take',
+    you_badge:'you',
+    deposit_subtitle:'Win ≥2.8 TON = Telegram Gift NFT',
+    wallet_not_connected:'Wallet not connected',
+    other_amount:'Other amount...',
+    stars_min_error:'Stars: from 10 to 10 000',
+    ton_credited:'credited!',
+    stars_topup_btn:'Top Up ⭐',
+    case_credited:'Added to balance',
+    case_ton_win:'credited!',
+    nft_added:'NFT added to inventory!',
+    nft_sold:'Sold for',
   },
   ru: {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
@@ -1420,6 +1605,31 @@ const LANGS = {
     stars_topup:'Пополнить',
     withdraw_fee:'Комиссия за вывод',
     crash:'КРАШ', round:'Раунд #',
+    music_title:'Фоновая музыка', music_desc:'Атмосферный саундтрек казино',
+    sfx_title:'Звуковые эффекты', sfx_desc:'Краш, вывод, тики полёта',
+    sound_on:'Вкл', sound_off:'Выкл',
+    theme_dark:'Тёмная тема', theme_light:'Светлая тема',
+    theme_hint:'Нажми чтобы изменить',
+    theme_btn_dark:'🌙 Тёмная', theme_btn_light:'☀️ Светлая',
+    lang_subtitle:'Выберите язык интерфейса',
+    bet_label_html:'СТАВКА TON', auto_label_html:'АВТО-ВЫВОД', auto_toggle:'Авто',
+    place_bet_html:'🚀 ПОСТАВИТЬ', cashout_html:'💰 ЗАБРАТЬ',
+    players_label:'ИГРОКИ', no_bets:'Нет ставок',
+    win_popup_close:'Закрыть', win_credited:'Зачисляется на баланс',
+    available_case:'🔥 Доступный кейс',
+    spin_btn:'Крутить за', prizes_btn:'🎁 Призы',
+    case_sell_nft:'💰 Продать за', case_take:'✅ Забрать',
+    you_badge:'ты',
+    deposit_subtitle:'Выигрыш ≥2.8 TON = Telegram Gift NFT',
+    wallet_not_connected:'Кошелёк не подключён',
+    other_amount:'Другая сумма...',
+    stars_min_error:'Stars: от 10 до 10 000',
+    ton_credited:'зачислено!',
+    stars_topup_btn:'Пополнить ⭐',
+    case_credited:'Зачисляется на баланс',
+    case_ton_win:'зачислено!',
+    nft_added:'NFT добавлен в инвентарь!',
+    nft_sold:'Продано за',
   }
 };
 let currentLang = (() => {
@@ -1431,6 +1641,34 @@ let currentLang = (() => {
 })();
 function t(key){ return LANGS[currentLang]?.[key] || LANGS['en'][key] || key; }
 
+// ── НАЛАШТУВАННЯ ЗВУКУ ───────────────────────────────────────────────────
+let musicEnabled = localStorage.getItem('rkt_music') !== 'off';
+let sfxEnabled   = localStorage.getItem('rkt_sfx')   !== 'off';
+
+function toggleMusic(){
+  musicEnabled = !musicEnabled;
+  localStorage.setItem('rkt_music', musicEnabled ? 'on' : 'off');
+  if(musicEnabled){ startBgMusic(); }
+  else { stopBgMusic(); }
+  openModal('settings');
+}
+function toggleSfx(){
+  sfxEnabled = !sfxEnabled;
+  localStorage.setItem('rkt_sfx', sfxEnabled ? 'on' : 'off');
+  openModal('settings');
+}
+// Патч звукових функцій — перевіряють sfxEnabled перед відтворенням
+const _origCrash    = playCrashSound;
+const _origCashout  = playCashoutSound;
+const _origCaseWin  = playCaseWinSound;
+const _origTick     = playFlightTick;
+const _origSpin     = playSpinSound;
+playCrashSound   = ()=>{ if(sfxEnabled) _origCrash(); };
+playCashoutSound = ()=>{ if(sfxEnabled) _origCashout(); };
+playCaseWinSound = ()=>{ if(sfxEnabled) _origCaseWin(); };
+playFlightTick   = (m)=>{ if(sfxEnabled) _origTick(m); };
+playSpinSound    = ()=>{ if(sfxEnabled) _origSpin(); };
+
 function applyLang(){
   document.getElementById('lbl-game').textContent = t('game');
   document.getElementById('lbl-invite').textContent = t('invite');
@@ -1438,15 +1676,52 @@ function applyLang(){
   document.getElementById('nft-hint').innerHTML = `${t('nft_hint')} <span>Telegram Gift NFT</span>`;
   const bb = document.getElementById('bb');
   if(bb && !hasBet) bb.innerHTML = t('place_bet');
-  document.querySelectorAll('.cl')[0] && (document.querySelectorAll('.cl')[0].textContent = t('bet_label'));
-  document.querySelectorAll('.cl')[1] && (document.querySelectorAll('.cl')[1].textContent = t('auto_label'));
-  // Кнопки депозиту
+  // Cards labels
+  const lblBet = document.getElementById('lbl-bet-card');
+  if(lblBet) lblBet.textContent = t('bet_label');
+  const lblAuto = document.getElementById('lbl-auto-card');
+  if(lblAuto) lblAuto.textContent = t('auto_label');
+  const lblAutoToggle = document.getElementById('lbl-auto-toggle');
+  if(lblAutoToggle) lblAutoToggle.textContent = t('auto_toggle');
+  // Players
+  const lblPlayers = document.getElementById('lbl-players');
+  if(lblPlayers) lblPlayers.innerHTML = `${t('players_label')} <span class="pc" id="pcnt">${document.getElementById('pcnt')?.textContent||'0'}</span>`;
+  // Win popup
+  const wpClose = document.getElementById('wp-close');
+  if(wpClose) wpClose.textContent = t('win_popup_close');
+  const wpCredited = document.getElementById('wp-credited-lbl');
+  if(wpCredited) wpCredited.textContent = t('win_credited');
+  // Cases screen
+  const lblAvailCase = document.getElementById('lbl-available-case');
+  if(lblAvailCase) lblAvailCase.textContent = t('available_case');
+  const lblSpinBtn = document.getElementById('lbl-spin-btn');
+  if(lblSpinBtn) lblSpinBtn.textContent = t('spin_btn');
+  const lblPrizesBtn = document.getElementById('spin-prizes-btn');
+  if(lblPrizesBtn) lblPrizesBtn.textContent = t('prizes_btn');
+  // Deposit modal
+  const depTitle = document.getElementById('dep-title');
+  if(depTitle) depTitle.textContent = t('deposit_title');
+  const depSub = document.getElementById('dep-subtitle');
+  if(depSub) depSub.textContent = t('deposit_subtitle');
+  const cton = document.getElementById('cton');
+  if(cton) cton.placeholder = t('other_amount');
   const pbtn = document.getElementById('pbtn');
   if(pbtn) pbtn.textContent = t('send_ton');
   const paidbtn = document.getElementById('paid-btn');
   if(paidbtn) paidbtn.textContent = t('already_paid');
   const mcl = document.getElementById('mcl');
   if(mcl) mcl.textContent = t('cancel');
+  const starsRateLbl = document.getElementById('stars-rate-lbl');
+  if(starsRateLbl) starsRateLbl.textContent = t('stars_rate');
+  const starsAutoLbl = document.getElementById('stars-auto-lbl');
+  if(starsAutoLbl) starsAutoLbl.textContent = t('stars_auto');
+  const starsAmountLbl = document.getElementById('stars-amount-lbl');
+  if(starsAmountLbl) starsAmountLbl.textContent = t('stars_amount');
+  const starsTopupLbl = document.getElementById('stars-topup-lbl');
+  if(starsTopupLbl) starsTopupLbl.textContent = t('stars_topup_btn');
+  // NFT confirm popup
+  const nftCancel = document.getElementById('nft-confirm-cancel');
+  if(nftCancel) nftCancel.textContent = t('cancel');
   // Гаманець
   updateWalletUI();
 }
@@ -1624,14 +1899,14 @@ function playNote(freq,type,vol,start,dur,ctx,dest){
   o.connect(g);g.connect(dest||ctx.destination);
   o.frequency.value=freq;o.type=type;
   g.gain.setValueAtTime(0,ctx.currentTime+start);
-  g.gain.linearRampToValueAtTime(vol,ctx.currentTime+start+0.01);
+  g.gain.linearRampToValueAtTime(vol,ctx.currentTime+start+0.015);
   g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
   o.start(ctx.currentTime+start);
-  o.stop(ctx.currentTime+start+dur+0.01);
+  o.stop(ctx.currentTime+start+dur+0.02);
   return o;
 }
 
-// Фонова музика — тихий lo-fi chill вайб
+// Фонова музика — енергійна казино-тема у мажорі
 function startBgMusic(){
   if(_bgStarted)return;
   _bgStarted=true;
@@ -1640,100 +1915,154 @@ function startBgMusic(){
     _bgGain=ctx.createGain();
     _bgGain.gain.value=0.0;
     _bgGain.connect(ctx.destination);
-    // Плавне fadein
-    _bgGain.gain.linearRampToValueAtTime(0.045,ctx.currentTime+3.0);
+    _bgGain.gain.linearRampToValueAtTime(0.055,ctx.currentTime+2.5);
 
-    // --- Reverb (convolver з шумом) ---
-    const revLen=ctx.sampleRate*2.5;
+    // --- Легкий reverb ---
+    const revLen=ctx.sampleRate*1.5;
     const revBuf=ctx.createBuffer(2,revLen,ctx.sampleRate);
     for(let c=0;c<2;c++){
       const d=revBuf.getChannelData(c);
-      for(let i=0;i<revLen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/revLen,2.2);
+      for(let i=0;i<revLen;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/revLen,3.0);
     }
     const rev=ctx.createConvolver();
     rev.buffer=revBuf;
     const revGain=ctx.createGain();
-    revGain.gain.value=0.35;
+    revGain.gain.value=0.18;
     rev.connect(revGain);
     revGain.connect(_bgGain);
 
-    // --- LP фільтр для м'якості ---
+    // --- BP фільтр — яскравість ---
+    const bp=ctx.createBiquadFilter();
+    bp.type='bandpass';bp.frequency.value=2200;bp.Q.value=0.8;
+
+    // --- LP для м'якості пада ---
     const lp=ctx.createBiquadFilter();
-    lp.type='lowpass';lp.frequency.value=1800;lp.Q.value=0.7;
+    lp.type='lowpass';lp.frequency.value=3500;lp.Q.value=0.6;
     lp.connect(_bgGain);
     lp.connect(rev);
 
-    // Акорди Cm7 прогресія: Cm7 → Fm7 → Bb7 → Ebmaj7
-    // Частоти нотаток (октава 3-4, тихо)
+    // Мажорна прогресія: C → G → Am → F (енергійна казино-тема)
+    // C major: C4=261.6, E4=329.6, G4=392, B4=493.9
     const chords=[
-      [130.8,155.6,185.0,233.1],  // Cm7
-      [174.6,207.7,246.9,311.1],  // Fm7
-      [116.5,155.6,185.0,220.0],  // Bb7
-      [155.6,185.0,233.1,293.7],  // Ebmaj7
+      [261.6, 329.6, 392.0, 523.3],   // C maj
+      [196.0, 246.9, 293.7, 392.0],   // G maj
+      [220.0, 261.6, 329.6, 440.0],   // A min
+      [174.6, 220.0, 261.6, 349.2],   // F maj
     ];
-    const CHORD_DUR=8.0; // секунд на акорд
-    const LOOP_DUR=CHORD_DUR*chords.length;
+    // Мажорна мелодія поверх — весела тема
+    const melody=[
+      [523.3,0.0],[587.3,0.3],[659.3,0.6],[698.5,1.2],
+      [784.0,1.8],[698.5,2.4],[659.3,3.0],[587.3,3.6],
+      [523.3,4.5],[659.3,5.0],[784.0,5.5],[1046.5,6.2],
+      [880.0,6.8],[784.0,7.2],[698.5,7.6],
+    ];
+    const CHORD_DUR=4.0; // швидший ритм — жвавіше
+    const LOOP_DUR=CHORD_DUR*chords.length; // 16 секунд
 
     function scheduleLoop(startTime){
+      // Акорди (пад)
       chords.forEach((chord,ci)=>{
         const ct=startTime+ci*CHORD_DUR;
-        // Пад (синтезований рядковий)
-        chord.forEach(freq=>{
+        chord.forEach((freq,fi)=>{
+          // Основний пад
           const o=ctx.createOscillator();
           const g=ctx.createGain();
           o.type='sine';
           o.frequency.value=freq;
-          // Легке детюнування для теплоти
-          o.detune.value=(Math.random()-0.5)*8;
+          o.detune.value=(Math.random()-0.5)*5;
           o.connect(g);g.connect(lp);
           g.gain.setValueAtTime(0,ct);
-          g.gain.linearRampToValueAtTime(0.18,ct+1.2);
-          g.gain.setValueAtTime(0.18,ct+CHORD_DUR-1.5);
-          g.gain.linearRampToValueAtTime(0,ct+CHORD_DUR+0.3);
-          o.start(ct);o.stop(ct+CHORD_DUR+0.5);
-          // Другий шар — октава вище, тихіше
-          const o2=ctx.createOscillator();
-          const g2=ctx.createGain();
-          o2.type='triangle';
-          o2.frequency.value=freq*2;
-          o2.detune.value=(Math.random()-0.5)*6;
-          o2.connect(g2);g2.connect(lp);
-          g2.gain.setValueAtTime(0,ct);
-          g2.gain.linearRampToValueAtTime(0.06,ct+1.5);
-          g2.gain.setValueAtTime(0.06,ct+CHORD_DUR-1.5);
-          g2.gain.linearRampToValueAtTime(0,ct+CHORD_DUR+0.3);
-          o2.start(ct);o2.stop(ct+CHORD_DUR+0.5);
+          g.gain.linearRampToValueAtTime(fi===0?0.22:0.14,ct+0.2);
+          g.gain.setValueAtTime(fi===0?0.22:0.14,ct+CHORD_DUR-0.5);
+          g.gain.linearRampToValueAtTime(0,ct+CHORD_DUR+0.1);
+          o.start(ct);o.stop(ct+CHORD_DUR+0.2);
+
+          // Блискітка — тонкий шар звуку вище
+          if(fi>0){
+            const os=ctx.createOscillator();
+            const gs=ctx.createGain();
+            os.type='triangle';
+            os.frequency.value=freq*2;
+            os.detune.value=(Math.random()-0.5)*4;
+            os.connect(gs);gs.connect(lp);
+            gs.gain.setValueAtTime(0,ct);
+            gs.gain.linearRampToValueAtTime(0.05,ct+0.3);
+            gs.gain.linearRampToValueAtTime(0,ct+CHORD_DUR);
+            os.start(ct);os.stop(ct+CHORD_DUR+0.1);
+          }
         });
 
-        // Повільний бас (раз на акорд, дуже тихо)
+        // Бас — пружний, ритмічний
         const bassFreq=chord[0]*0.5;
+        // Удар баса на початку акорду
         const ob=ctx.createOscillator();
         const gb=ctx.createGain();
         ob.type='sine';ob.frequency.value=bassFreq;
+        ob.frequency.setValueAtTime(bassFreq*1.4,ct);
+        ob.frequency.exponentialRampToValueAtTime(bassFreq,ct+0.08);
         ob.connect(gb);gb.connect(_bgGain);
-        gb.gain.setValueAtTime(0,ct);
-        gb.gain.linearRampToValueAtTime(0.22,ct+0.4);
-        gb.gain.linearRampToValueAtTime(0.10,ct+3.0);
-        gb.gain.linearRampToValueAtTime(0,ct+CHORD_DUR);
-        ob.start(ct);ob.stop(ct+CHORD_DUR+0.1);
+        gb.gain.setValueAtTime(0.28,ct);
+        gb.gain.exponentialRampToValueAtTime(0.12,ct+0.3);
+        gb.gain.linearRampToValueAtTime(0,ct+CHORD_DUR*0.55);
+        ob.start(ct);ob.stop(ct+CHORD_DUR*0.6);
 
-        // Тиха lo-fi мелодія (одна нотка в середині акорду)
-        if(ci%2===0){
-          const melFreq=chord[2]*1.5;
-          const om=ctx.createOscillator();
-          const gm=ctx.createGain();
-          om.type='sine';om.frequency.value=melFreq;
-          om.connect(gm);gm.connect(lp);
-          const mt=ct+CHORD_DUR*0.4;
-          gm.gain.setValueAtTime(0,mt);
-          gm.gain.linearRampToValueAtTime(0.09,mt+0.15);
-          gm.gain.exponentialRampToValueAtTime(0.001,mt+1.2);
-          om.start(mt);om.stop(mt+1.3);
+        // Другий бас-удар в середині (синкопа — танцювальність)
+        const ob2=ctx.createOscillator();
+        const gb2=ctx.createGain();
+        ob2.type='sine';ob2.frequency.value=bassFreq;
+        const bt2=ct+CHORD_DUR*0.5;
+        ob2.connect(gb2);gb2.connect(_bgGain);
+        gb2.gain.setValueAtTime(0.18,bt2);
+        gb2.gain.exponentialRampToValueAtTime(0.001,bt2+0.25);
+        ob2.start(bt2);ob2.stop(bt2+0.3);
+
+        // Хай-хет (шум, перкусія — ритм)
+        for(let beat=0;beat<8;beat++){
+          const ht=ct+beat*(CHORD_DUR/8);
+          const bufSize=ctx.sampleRate*0.04;
+          const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+          const nd=nBuf.getChannelData(0);
+          for(let k=0;k<bufSize;k++) nd[k]=Math.random()*2-1;
+          const ns=ctx.createBufferSource();
+          ns.buffer=nBuf;
+          const hf=ctx.createBiquadFilter();
+          hf.type='highpass';hf.frequency.value=8000;
+          const hg=ctx.createGain();
+          const isAccent=beat%2===0;
+          hg.gain.setValueAtTime(isAccent?0.035:0.018,ht);
+          hg.gain.exponentialRampToValueAtTime(0.001,ht+0.04);
+          ns.connect(hf);hf.connect(hg);hg.connect(_bgGain);
+          ns.start(ht);ns.stop(ht+0.045);
         }
       });
 
-      // Плануємо наступний луп
-      const tid=setTimeout(()=>scheduleLoop(ctx.currentTime+0.1),( LOOP_DUR-0.5)*1000);
+      // Мелодія — весела, грайлива
+      melody.forEach(([freq,offset])=>{
+        const mt=startTime+offset;
+        if(mt<startTime||mt>startTime+LOOP_DUR+0.1)return;
+        const om=ctx.createOscillator();
+        const gm=ctx.createGain();
+        om.type='triangle';
+        om.frequency.value=freq;
+        om.detune.value=(Math.random()-0.5)*3;
+        om.connect(gm);gm.connect(lp);
+        gm.gain.setValueAtTime(0,mt);
+        gm.gain.linearRampToValueAtTime(0.11,mt+0.04);
+        gm.gain.exponentialRampToValueAtTime(0.001,mt+0.35);
+        om.start(mt);om.stop(mt+0.4);
+        // Відлуння нотки — невеликий ехо
+        const om2=ctx.createOscillator();
+        const gm2=ctx.createGain();
+        om2.type='sine';
+        om2.frequency.value=freq;
+        om2.connect(gm2);gm2.connect(rev);
+        gm2.gain.setValueAtTime(0,mt+0.08);
+        gm2.gain.linearRampToValueAtTime(0.04,mt+0.12);
+        gm2.gain.exponentialRampToValueAtTime(0.001,mt+0.5);
+        om2.start(mt+0.08);om2.stop(mt+0.55);
+      });
+
+      const tid=setTimeout(()=>scheduleLoop(ctx.currentTime+0.1),(LOOP_DUR-0.5)*1000);
       _bgNodes.push(tid);
     }
 
@@ -1749,51 +2078,99 @@ function stopBgMusic(){
   setTimeout(()=>{_bgGain=null;},600);
 }
 
-// Звук програшу (краш)
+// Звук програшу (краш) — різкий, потужний вибух
 function playCrashSound(){
   try{
     const ctx=getAudioCtx();
-    // Спадаюча хроматична фраза — відчуття "падіння"
-    const notes=[440,415,392,370,349,330,311,294,220];
-    notes.forEach((f,i)=>{
-      playNote(f,'sawtooth',0.12,i*0.07,0.18,ctx);
+    // Білий шум — вибух
+    const bufSize=ctx.sampleRate*0.6;
+    const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    const nd=nBuf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) nd[i]=Math.random()*2-1;
+    const ns=ctx.createBufferSource();
+    ns.buffer=nBuf;
+    const nf=ctx.createBiquadFilter();
+    nf.type='lowpass';nf.frequency.value=600;
+    const ng=ctx.createGain();
+    ng.gain.setValueAtTime(0.5,ctx.currentTime);
+    ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+    ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);
+    ns.start(ctx.currentTime);ns.stop(ctx.currentTime+0.55);
+
+    // Спадний свист — "ракета падає"
+    const ow=ctx.createOscillator();
+    const gw=ctx.createGain();
+    ow.connect(gw);gw.connect(ctx.destination);
+    ow.type='sawtooth';
+    ow.frequency.setValueAtTime(600,ctx.currentTime);
+    ow.frequency.exponentialRampToValueAtTime(40,ctx.currentTime+0.6);
+    gw.gain.setValueAtTime(0.2,ctx.currentTime);
+    gw.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+    ow.start(ctx.currentTime);ow.stop(ctx.currentTime+0.62);
+
+    // Глибокий удар
+    const ob=ctx.createOscillator();
+    const gb=ctx.createGain();
+    ob.connect(gb);gb.connect(ctx.destination);
+    ob.type='sine';
+    ob.frequency.setValueAtTime(180,ctx.currentTime+0.05);
+    ob.frequency.exponentialRampToValueAtTime(25,ctx.currentTime+0.4);
+    gb.gain.setValueAtTime(0.45,ctx.currentTime+0.05);
+    gb.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.45);
+    ob.start(ctx.currentTime+0.05);ob.stop(ctx.currentTime+0.46);
+
+    // Додаткова хроматична фраза "аварія"
+    [440,370,311,261,220,185].forEach((f,i)=>{
+      playNote(f,'square',0.07,0.08+i*0.055,0.12,ctx);
     });
-    // Низький удар
-    const o=ctx.createOscillator();
-    const g=ctx.createGain();
-    o.connect(g);g.connect(ctx.destination);
-    o.type='sine';
-    o.frequency.setValueAtTime(120,ctx.currentTime+0.3);
-    o.frequency.exponentialRampToValueAtTime(30,ctx.currentTime+0.8);
-    g.gain.setValueAtTime(0.25,ctx.currentTime+0.3);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.8);
-    o.start(ctx.currentTime+0.3);o.stop(ctx.currentTime+0.81);
   }catch(e){}
 }
 
-// Звук касаута / зняття ставки
+// Звук кешауту — святковий, дзвінкий
 function playCashoutSound(){
   try{
     const ctx=getAudioCtx();
-    // Висхідні монети
-    [523,659,784,1047].forEach((f,i)=>{
-      playNote(f,'sine',0.18,i*0.08,0.12,ctx);
+    // Монети — дзвінкі піки
+    [523,659,784,1047,1319].forEach((f,i)=>{
+      playNote(f,'sine',0.22,i*0.07,0.18,ctx);
     });
-    // Дзвін перемоги
-    [1047,1319].forEach((f,i)=>{
-      playNote(f,'sine',0.12,0.35+i*0.1,0.4,ctx);
+    // Фінальний акорд перемоги — C major
+    [[523,659,784],[1047,1319,1568]].forEach((chord,ci)=>{
+      chord.forEach(f=>{
+        playNote(f,'sine',0.10,0.45+ci*0.1,0.5,ctx);
+      });
     });
+    // Дзвін
+    playNote(2093,'sine',0.08,0.55,0.8,ctx);
   }catch(e){}
 }
 
-// Звук виграшу кейса
+// Звук виграшу кейса — великий святковий феєрверк
 function playCaseWinSound(){
   try{
     const ctx=getAudioCtx();
-    [523,659,784,1047,1319,1568].forEach((f,i)=>{
-      playNote(f,'sine',0.15,i*0.07,0.2,ctx);
+    // Фанфари — висхідний мажорний арпеджіо
+    [392,494,587,698,784,988,1175,1568].forEach((f,i)=>{
+      playNote(f,'sine',0.18,i*0.06,0.25,ctx);
     });
-    setTimeout(()=>playCashoutSound(),500);
+    // Акорд перемоги
+    setTimeout(()=>{
+      [523,659,784,1047].forEach(f=>playNote(f,'triangle',0.12,0,0.7,ctx));
+      // Феєрверк — шум
+      const bufSize=ctx.sampleRate*0.3;
+      const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+      const nd=nBuf.getChannelData(0);
+      for(let i=0;i<bufSize;i++) nd[i]=Math.random()*2-1;
+      const ns=ctx.createBufferSource();
+      ns.buffer=nBuf;
+      const nf=ctx.createBiquadFilter();
+      nf.type='bandpass';nf.frequency.value=3000;nf.Q.value=0.5;
+      const ng=ctx.createGain();
+      ng.gain.setValueAtTime(0.15,ctx.currentTime);
+      ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+      ns.connect(nf);nf.connect(ng);ng.connect(ctx.destination);
+      ns.start(ctx.currentTime);ns.stop(ctx.currentTime+0.32);
+    },480);
   }catch(e){}
 }
 
@@ -1805,9 +2182,8 @@ function startFlightTicks(){
   _lastTickMult=0;
   function scheduleTick(){
     if(phase!=='flying'||!hasBet){stopFlightTicks();return;}
-    // Частота тіків росте з множником
     const m=mult||1;
-    const interval=Math.max(80, 600 - (m-1)*120); // від 600ms при 1x до ~80ms при 5x+
+    const interval=Math.max(60, 500 - (m-1)*100);
     _tickInterval=setTimeout(()=>{
       if(phase!=='flying'||!hasBet){stopFlightTicks();return;}
       playFlightTick(m);
@@ -1824,55 +2200,91 @@ function stopFlightTicks(){
 function playFlightTick(m){
   try{
     const ctx=getAudioCtx();
+    // Два шари тіку — основний + обертон (більш металевий, грайливий звук)
+    const baseFreq=280+Math.min(m-1,9)*60;
+    const vol=0.045+Math.min(m-1,7)*0.009;
+
+    // Основний тік
     const o=ctx.createOscillator();
     const g=ctx.createGain();
     o.connect(g);g.connect(ctx.destination);
-    // Висота тіку росте з множником — більше напруги
-    const freq=200+Math.min(m-1,8)*55;
-    o.type='sine';
-    o.frequency.value=freq;
-    const vol=0.04+Math.min(m-1,6)*0.008;
+    o.type='square';
+    o.frequency.value=baseFreq;
     g.gain.setValueAtTime(vol,ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.06);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.05);
     o.start(ctx.currentTime);
-    o.stop(ctx.currentTime+0.07);
+    o.stop(ctx.currentTime+0.055);
+
+    // Синтетичний клік поверх — відчуття підрахунку монет
+    const o2=ctx.createOscillator();
+    const g2=ctx.createGain();
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.type='sine';
+    o2.frequency.value=baseFreq*2.5;
+    g2.gain.setValueAtTime(vol*0.4,ctx.currentTime);
+    g2.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.03);
+    o2.start(ctx.currentTime);
+    o2.stop(ctx.currentTime+0.035);
   }catch(e){}
 }
 
-// Звук прокрутки кейса
+// Звук прокрутки кейса — механічний тріскіт рулетки
 function playSpinSound(){
   try{
     const ctx=getAudioCtx();
     const total=7.0;
-    let t=0,interval=0.04;
-    function tick(time,freq,vol){
-      const o=ctx.createOscillator();
-      const g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=freq;o.type='square';
-      g.gain.setValueAtTime(vol,ctx.currentTime+time);
-      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.04);
-      o.start(ctx.currentTime+time);
-      o.stop(ctx.currentTime+time+0.05);
+    let t=0;
+    // Клацання як у реальній рулетці — металевий звук
+    function clack(time,vol,pitch){
+      // Шум клацання
+      const bufSize=Math.floor(ctx.sampleRate*0.03);
+      const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+      const nd=nBuf.getChannelData(0);
+      for(let i=0;i<bufSize;i++) nd[i]=Math.random()*2-1;
+      const ns=ctx.createBufferSource();
+      ns.buffer=nBuf;
+      const hf=ctx.createBiquadFilter();
+      hf.type='highpass';hf.frequency.value=pitch||3000;
+      const ng=ctx.createGain();
+      ng.gain.setValueAtTime(vol,ctx.currentTime+time);
+      ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.025);
+      ns.connect(hf);hf.connect(ng);ng.connect(ctx.destination);
+      ns.start(ctx.currentTime+time);
+      ns.stop(ctx.currentTime+time+0.03);
+
+      // Тон клацання
+      const ot=ctx.createOscillator();
+      const gt=ctx.createGain();
+      ot.type='sine';ot.frequency.value=pitch?pitch*0.3:800;
+      ot.connect(gt);gt.connect(ctx.destination);
+      gt.gain.setValueAtTime(vol*0.5,ctx.currentTime+time);
+      gt.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.04);
+      ot.start(ctx.currentTime+time);ot.stop(ctx.currentTime+time+0.045);
     }
+
+    let interval=0.035;
     while(t<total){
       const progress=t/total;
-      interval=0.04+progress*progress*0.35;
-      const freq=progress>0.85?880:440;
-      const vol=progress>0.85?0.15:0.08;
-      tick(t,freq,vol);
+      interval=0.035+progress*progress*0.40;
+      const vol=progress>0.88?0.22:0.10;
+      const pitch=progress>0.88?5000:3200;
+      clack(t,vol,pitch);
       t+=interval;
     }
-    tick(total+0.1,660,0.2);
-    tick(total+0.15,880,0.15);
+    // Фінальний удар — зупинка
+    clack(total+0.05,0.35,6000);
+    clack(total+0.12,0.20,5000);
+    clack(total+0.22,0.10,4000);
   }catch(e){}
 }
 
 // Ініціалізація — запускаємо музику після першого торкання
 function initAudio(){
-  document.addEventListener('touchstart',()=>{if(!_bgStarted)startBgMusic();},{once:true,passive:true});
-  document.addEventListener('click',()=>{if(!_bgStarted)startBgMusic();},{once:true});
+  const startIfEnabled=()=>{ if(musicEnabled && !_bgStarted) startBgMusic(); };
+  document.addEventListener('touchstart', startIfEnabled, {once:true, passive:true});
+  document.addEventListener('click', startIfEnabled, {once:true});
 }
+
 
 function spinCase(){
   if(!curCase)return;
@@ -1887,11 +2299,15 @@ function spinCase(){
   const winner=wRand(curCase.items);
   lastWin=winner;
 
-  // 2. Трек: 80% NFT для краси, позиція 55 — реальний winner
+  // 2. Трек: позиція WINNER_IDX — реальний winner, решта — декор
+  const WINNER_IDX=55;
+  const ITEM_GAP=12; // gap між елементами в #spin-track (з CSS)
+  const ITEM_FULL=ITW+ITEM_GAP; // реальна ширина одного слота включно з gap
+
   const nftItems=curCase.items.filter(i=>i.isNFT);
   const tonItems=curCase.items.filter(i=>i.isTon);
   const items=Array.from({length:120},(_,idx)=>{
-    if(idx===55) return winner; // реальний результат
+    if(idx===WINNER_IDX) return winner; // реальний результат завжди тут
     if(nftItems.length&&tonItems.length){
       return Math.random()<0.75?nftItems[Math.floor(Math.random()*nftItems.length)]:tonItems[Math.floor(Math.random()*tonItems.length)];
     }
@@ -1904,7 +2320,9 @@ function spinCase(){
   tr.style.transform='translateX(0)';
 
   const ww=tr.parentElement.offsetWidth||320;
-  const tx=-(55*ITW-(ww/2-ITW/2))+(Math.random()-.5)*20;
+  // Точне центрування: лівий край winner'а мінус (ширина контейнера - ширина item) / 2
+  // Без рандомного зсуву — щоб підсвічений елемент точно відповідав winner
+  const tx=-(WINNER_IDX*ITEM_FULL-(ww/2-ITW/2));
   const dur=7000,st=performance.now();
 
   function ease(p){
@@ -1919,7 +2337,7 @@ function spinCase(){
       spinAnim=requestAnimationFrame(anim);
     } else {
       spinAnim=null;
-      const el=tr.children[55];
+      const el=tr.children[WINNER_IDX];
       if(el) el.classList.add('winner');
       setTimeout(()=>showCaseWin(lastWin),600);
     }
@@ -1939,15 +2357,15 @@ function showCaseWin(item){
     document.getElementById('case-win-val').textContent='◈ '+item.price+' TON floor';
     document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
-    document.getElementById('cwb-sell').textContent='💰 Продати '+item.price+' TON';
+    document.getElementById('cwb-sell').textContent=t('case_sell_nft')+' '+item.price+' TON';
     keepBtn.style.display='';
   } else {
     emojiEl.innerHTML=`<div style="font-size:48px">💰</div>`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
-    document.getElementById('case-win-val').textContent='Зараховується на баланс';
+    document.getElementById('case-win-val').textContent=t('case_credited');
     document.getElementById('case-win-sub').textContent=item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
-    document.getElementById('cwb-sell').textContent='✅ Забрати';
+    document.getElementById('cwb-sell').textContent=t('case_take');
     keepBtn.style.display='none';
   }
   document.getElementById('case-win-popup').classList.add('show');
@@ -1979,7 +2397,7 @@ function caseWinKeep(){
   document.getElementById('inv-tab-lbl').textContent=cnt?t('inv')+' ('+cnt+')':t('inv');
   // Повідомляємо сервер але не чекаємо відповіді — вже збережено локально
   if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
-  showToast('NFT додано в інвентар!','win');
+  showToast(t('nft_added'),'win');
   closeCaseWin();
 }
 function caseWinSell(){
@@ -1987,11 +2405,11 @@ function caseWinSell(){
   if(lastWin.isNFT){
     balance=+(balance+lastWin.price).toFixed(4);
     if(wsReady)ws.send(JSON.stringify({a:'case_win_sell',nft_id:lastWin.id,price:lastWin.price}));
-    showToast('Продано за '+lastWin.price+' TON!','win');
+    showToast(t('nft_sold')+' '+lastWin.price+' TON!','win');
   } else {
     balance=+(balance+lastWin.ton).toFixed(4);
     if(wsReady)ws.send(JSON.stringify({a:'case_ton_win',amount:lastWin.ton}));
-    showToast('+'+lastWin.ton+' TON зараховано!','win');
+    showToast('+'+lastWin.ton+' TON '+t('case_ton_win'),'win');
   }
   updBal();saveBal();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
@@ -2023,6 +2441,154 @@ function showPrizesModal(){
   document.getElementById('prizes-modal').classList.add('show');
 }
 function closePrizesModal(){document.getElementById('prizes-modal').classList.remove('show');}
+
+// ── NAV ANIMATIONS ──────────────────────────────────────────────────────
+function navTap(btn){
+  document.querySelectorAll('.tabn').forEach(b=>{
+    if(b.id!=='tab-game') b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  btn.animate([
+    {transform:'scale(1)'},
+    {transform:'scale(0.84)'},
+    {transform:'scale(1.1)'},
+    {transform:'scale(1)'}
+  ],{duration:260,easing:'cubic-bezier(.34,1.56,.64,1)'});
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+
+// ── РЕАКЦІЇ ────────────────────────────────────────────────────────────────
+const REACTIONS = ['🚀','🔥','💀','💎','😱'];
+const reactCounts = [0,0,0,0,0];
+let reactCooldown = false;
+
+function sendReaction(emoji){
+  if(phase !== 'flying') return;
+  if(reactCooldown) return;
+  reactCooldown = true;
+  setTimeout(()=>reactCooldown=false, 800);
+  // Відправити на сервер (якщо є підтримка)
+  if(wsReady) ws.send(JSON.stringify({a:'reaction', emoji, uid:userId, name:userName}));
+  // Показати локально одразу
+  spawnReaction(emoji);
+  const idx = REACTIONS.indexOf(emoji);
+  if(idx>=0){ reactCounts[idx]++; updateReactCount(idx); }
+  if(navigator.vibrate) navigator.vibrate(10);
+}
+
+function spawnReaction(emoji){
+  const bar = document.getElementById('react-bar');
+  if(!bar) return;
+  const el = document.createElement('div');
+  el.className = 'react-float';
+  el.textContent = emoji;
+  // Рандомна позиція по ширині списку гравців
+  const pw = document.getElementById('pw');
+  const pw_rect = pw ? pw.getBoundingClientRect() : {left:40, width:200};
+  el.style.left = (pw_rect.left + 10 + Math.random() * Math.max(60, pw_rect.width - 60)) + 'px';
+  el.style.bottom = (window.innerHeight - pw_rect.top + 8) + 'px';
+  el.style.position = 'fixed';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1700);
+}
+
+function updateReactCount(idx){
+  const el = document.getElementById('rc-'+idx);
+  if(el) el.textContent = reactCounts[idx] > 99 ? '99+' : reactCounts[idx];
+}
+
+function resetReactCounts(){
+  for(let i=0;i<5;i++){ reactCounts[i]=0; updateReactCount(i); }
+}
+
+// Показувати/ховати панель залежно від фази
+const _origStartClientAnim = startClientAnim;
+startClientAnim = function(){
+  _origStartClientAnim();
+  const rb = document.getElementById('react-bar');
+  if(rb) rb.classList.add('visible');
+};
+
+// Патч ws onmessage — обробка реакцій від інших і скидання при новому раунді
+const _origConnect = connect;
+connect = function(){
+  _origConnect();
+};
+
+// Перехоплюємо ws після connect()
+setTimeout(()=>{
+  const _patchWs = ()=>{
+    if(!ws){ setTimeout(_patchWs, 500); return; }
+    const _origOnMsg = ws.onmessage;
+    ws.onmessage = function(e){
+      try{
+        const d = JSON.parse(e.data);
+        // Реакція від іншого гравця
+        if(d.t === 'reaction'){
+          spawnReaction(d.emoji);
+          const idx = REACTIONS.indexOf(d.emoji);
+          if(idx>=0){ reactCounts[idx]++; updateReactCount(idx); }
+          return;
+        }
+        // Скидаємо лічильники на початку нового раунду
+        if(d.t === 'st'){ resetReactCounts(); }
+        // Ховаємо панель після краша
+        if(d.t === 'cr' || d.t === 'cd'){
+          const rb = document.getElementById('react-bar');
+          if(rb) rb.classList.remove('visible');
+        }
+      }catch(err){}
+      if(_origOnMsg) _origOnMsg.call(ws, e);
+    };
+  };
+  _patchWs();
+}, 600);
+
+// ── ТЕМА ───────────────────────────────────────────────────────────────────
+let lightTheme = localStorage.getItem('rkt_theme') === 'light';
+
+function applyTheme(){
+  document.body.classList.toggle('light-theme', lightTheme);
+}
+
+function toggleTheme(){
+  lightTheme = !lightTheme;
+  localStorage.setItem('rkt_theme', lightTheme ? 'light' : 'dark');
+  applyTheme();
+  openModal('settings'); // перемалювати кнопку
+}
+
+applyTheme();
+
+// Патч openModal('settings') — додаємо блок теми
+const _origOpenModal = openModal;
+openModal = function(type){
+  _origOpenModal(type);
+  if(type === 'settings'){
+    const body = document.getElementById('modal-body');
+    if(!body) return;
+    const themeBlock = `
+      <div style="background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;background:#6c4fff22;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">${lightTheme?'☀️':'🌙'}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--cream)">${lightTheme ? t('theme_light') : t('theme_dark')}</div>
+              <div style="font-size:11px;color:var(--text-muted)">${t('theme_hint')}</div>
+            </div>
+          </div>
+          <button onclick="toggleTheme()" style="
+            display:flex;align-items:center;gap:6px;padding:7px 16px;border:none;cursor:pointer;border-radius:20px;
+            font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;transition:all .2s;
+            background:${lightTheme ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'linear-gradient(135deg,#1a2a4a,#2a3a6a)'};
+            color:#fff;
+            box-shadow:${lightTheme ? '0 0 10px rgba(245,158,11,0.4)' : '0 0 10px rgba(77,143,255,0.25)'};
+          ">${lightTheme ? t('theme_btn_light') : t('theme_btn_dark')}</button>
+        </div>
+      </div>`;
+    body.insertAdjacentHTML('afterbegin', themeBlock);
+  }
+};
 
 connect();
 </script>
