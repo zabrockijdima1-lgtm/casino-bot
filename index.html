@@ -2413,6 +2413,7 @@ function setLang(lang){
 // Клієнтський список — тільки для UI, НЕ для авторизації
 const ADMIN_IDS_CLIENT = new Set([1256452126, 6479535975]);
 if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
+  // ── Стара адмін кнопка (відкриває серверну сторінку) ──
   const adminBtn = document.createElement('button');
   adminBtn.innerHTML = '🐙 Admin';
   adminBtn.style.cssText = [
@@ -2433,8 +2434,36 @@ if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
     'text-shadow:0 0 10px #b44fff',
     'letter-spacing:0.5px'
   ].join(';');
-  adminBtn.onclick = () => { openAdminPanel(); };
+  adminBtn.onclick = () => {
+    // SECURITY: передаємо initData — сервер верифікує підпис Telegram
+    const initDataEncoded = encodeURIComponent(tg?.initData||'');
+    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}&initData=${initDataEncoded}`;
+    if(tg?.openLink) tg.openLink(url);
+    else window.open(url,'_blank');
+  };
   document.body.appendChild(adminBtn);
+
+  // ── Додаткова локальна кнопка (швидкі дії без сервера) ──
+  const localBtn = document.createElement('button');
+  localBtn.innerHTML = '🎛';
+  localBtn.title = 'Local quick actions';
+  localBtn.style.cssText = [
+    'position:fixed',
+    'bottom:75px',
+    'right:90px',
+    'background:linear-gradient(135deg,#0a2a44,#0a1a3a)',
+    'border:1px solid #4d8fff66',
+    'border-radius:20px',
+    'color:#fff',
+    'font-size:14px',
+    'font-weight:700',
+    'padding:6px 12px',
+    'cursor:pointer',
+    'z-index:100',
+    'box-shadow:0 0 10px rgba(77,143,255,0.35),inset 0 1px 0 rgba(255,255,255,0.1)'
+  ].join(';');
+  localBtn.onclick = () => { openAdminPanel(); };
+  document.body.appendChild(localBtn);
 }
 
 // ── ЛОКАЛЬНА АДМІН ПАНЕЛЬ ────────────────────────────────────────
@@ -3518,28 +3547,15 @@ let plinkoState = {
   particles: [],
 };
 
-function plinkoSeedFakeBets(){
-  const items = CASES[0].items.filter(i=>i.isNFT);
-  const names = ['DaVasePohu','TOT_SUS','Dimariksex','vlad_iikk','xneuro','crypto_king','tonmaster','nft_lover'];
-  const mults = [0,0,0,0,0,1.2,1.5,2,2.5,5];
-  const now = Date.now();
-  const seeded = [];
-  for(let i=0;i<8;i++){
-    const nft = items[Math.floor(Math.random()*items.length)];
-    const m = mults[Math.floor(Math.random()*mults.length)];
-    const name = names[Math.floor(Math.random()*names.length)];
-    seeded.push({
-      name, nft, mult: m, payout: +(nft.price*m).toFixed(2),
-      ts: now - i*60000 - Math.random()*30000,
-      win: m>=1
-    });
-  }
-  plinkoState.recentBets = seeded;
-}
-
 function openPlinko(){
   document.getElementById('plinko-screen').classList.add('open');
-  if(plinkoState.recentBets.length===0) plinkoSeedFakeBets();
+  // Load saved bets from localStorage
+  if(plinkoState.recentBets.length===0){
+    try{
+      const saved = localStorage.getItem('plinko_bets_'+userId);
+      if(saved) plinkoState.recentBets = JSON.parse(saved);
+    }catch(e){}
+  }
   document.getElementById('plinko-online-count').textContent = (12000+Math.floor(Math.random()*4000)).toLocaleString();
   setTimeout(()=>{
     initPlinkoBoard();
@@ -3639,13 +3655,37 @@ function drawPlinkoStatic(){
   ctx.fill();
 
   if(!plinkoState.rolling && !plinkoState.ball){
-    ctx.fillStyle = '#cccccc';
+    const px = launcherX, py = launcherY+22, pr = 11;
+    // Glow shadow
+    ctx.save();
+    ctx.shadowColor = '#ff7833';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#222';
     ctx.beginPath();
-    ctx.arc(launcherX, launcherY+18, 6, 0, Math.PI*2);
+    ctx.arc(px, py, pr, 0, Math.PI*2);
     ctx.fill();
-    ctx.strokeStyle = '#aaa';
-    ctx.lineWidth = 0.5;
+    ctx.shadowBlur = 0;
+    if(_plkAvatarImg){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(px, py, pr-1.5, 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(_plkAvatarImg, px-pr+1, py-pr+1, (pr-1)*2, (pr-1)*2);
+      ctx.restore();
+    } else {
+      const letter = (userName||'?')[0].toUpperCase();
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.floor(pr*1.1)}px Nunito, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(letter, px, py+0.5);
+    }
+    ctx.strokeStyle = '#ff7833';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(px, py, pr, 0, Math.PI*2);
     ctx.stroke();
+    ctx.restore();
   }
 
   for(const p of plinkoState.pegs){
@@ -3678,11 +3718,20 @@ function renderPlinkoBets(){
   const list = document.getElementById('plinko-bets-list');
   if(!list) return;
   const bets = plinkoState.recentBets.slice().sort((a,b)=>b.ts-a.ts).slice(0,15);
+  if(bets.length === 0){
+    list.innerHTML = `<div style="padding:24px 20px;text-align:center;color:#aa8866;font-size:12px;font-family:'Nunito',sans-serif;font-weight:600">
+      <div style="font-size:32px;margin-bottom:8px;opacity:0.7">📜</div>
+      No bets yet — be the first to play!
+    </div>`;
+    return;
+  }
   list.innerHTML = bets.map(b=>{
-    const ph = b.nft && (b.nft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[b.nft.id]));
+    // Show won NFT (rewardNft) if present, else show the bet NFT
+    const displayedNft = b.rewardNft || b.nft;
+    const ph = displayedNft && (displayedNft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[displayedNft.id]));
     const nftHtml = ph
       ? `<div class="plk-bet-nft"><img src="${ph}"></div>`
-      : `<div class="plk-bet-nft">${b.nft?.emoji||'🎁'}</div>`;
+      : `<div class="plk-bet-nft">${displayedNft?.emoji||'🎁'}</div>`;
     const time = new Date(b.ts);
     const timeStr = String(time.getDate()).padStart(2,'0')+' '+
                     ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][time.getMonth()]+' '+
@@ -3690,9 +3739,12 @@ function renderPlinkoBets(){
     const multTxt = b.mult === 0 ? '0×' : (b.mult+'×');
     const payTxt = b.payout > 0 ? `▽ ${b.payout.toFixed(2)}` : '';
     const safeName = (b.name||'?').replace(/</g,'&lt;');
+    const avatarHtml = b.photo
+      ? `<div class="plk-bet-avatar"><img src="${b.photo}"></div>`
+      : `<div class="plk-bet-avatar">${safeName[0].toUpperCase()}</div>`;
     return `
       <div class="plk-bet-row ${b.win?'win':''}">
-        <div class="plk-bet-avatar">${safeName[0].toUpperCase()}</div>
+        ${avatarHtml}
         <div style="flex:1;min-width:0">
           <div class="plk-bet-name">@${safeName}</div>
           <div style="font-size:10px;color:#999">${timeStr}</div>
@@ -3780,20 +3832,133 @@ function confirmPlinkoBet(){
   startPlinkoBall(betNFT);
 }
 
+// Pre-load user avatar as Image (for canvas drawing)
+let _plkAvatarImg = null;
+function _plkLoadAvatar(){
+  if(_plkAvatarImg || !userPhoto) return;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    _plkAvatarImg = img;
+    // If Plinko screen is open and not rolling, redraw to show avatar in preview
+    if(document.getElementById('plinko-screen')?.classList.contains('open')
+       && !plinkoState.rolling && plinkoState.ctx){
+      drawPlinkoStatic();
+    }
+  };
+  img.onerror = () => { _plkAvatarImg = null; };
+  img.src = userPhoto;
+}
+_plkLoadAvatar();
+
+// Seedable RNG (mulberry32) — replays trajectory exactly
+function _plkMakeRng(seed){
+  let t = seed >>> 0;
+  return function(){
+    t = (t + 0x6D2B79F5) >>> 0;
+    let r = t;
+    r = Math.imul(r ^ (r>>>15), r | 1);
+    r ^= r + Math.imul(r ^ (r>>>7), r | 61);
+    return ((r ^ (r>>>14)) >>> 0) / 4294967296;
+  };
+}
+
+// One physics step. PURE — no target steering, no artificial pulls.
+// Same code path used for Monte Carlo and live render → no end-game "snap".
+function _plkStep(ball, pegs, W, bottomY, slotW, rng){
+  const gravity = 0.32;
+  const restitution = 0.55;
+  const friction = 0.998;
+  const noise = 0.45;
+
+  ball.vy += gravity;
+  ball.vx *= friction;
+  if(ball.vx > 4.5) ball.vx = 4.5;
+  if(ball.vx < -4.5) ball.vx = -4.5;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  const hits = [];
+  for(const p of pegs){
+    const dx = ball.x - p.x;
+    const dy = ball.y - p.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    const minD = ball.r + p.r;
+    if(d < minD && d > 0){
+      const ov = minD - d;
+      const nx = dx/d, ny = dy/d;
+      ball.x += nx*ov;
+      ball.y += ny*ov;
+      const dot = ball.vx*nx + ball.vy*ny;
+      ball.vx -= 2*dot*nx*restitution;
+      ball.vy -= 2*dot*ny*restitution;
+      ball.vx += (rng()-0.5)*noise;
+      hits.push({x:p.x, y:p.y});
+    }
+  }
+  if(ball.x < ball.r){ ball.x = ball.r; ball.vx = Math.abs(ball.vx)*0.6; }
+  if(ball.x > W - ball.r){ ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx)*0.6; }
+
+  if(ball.y >= bottomY){
+    const slot = Math.max(0, Math.min(PLINKO_MULTIPLIERS.length-1, Math.floor(ball.x / slotW)));
+    return {finished:true, slot, hits};
+  }
+  return {finished:false, slot:null, hits};
+}
+
+// Try many seeds + start params; return one that lands in target slot.
+function _plkFindSeed(targetSlot){
+  const W = plinkoState.W;
+  const bottomY = plinkoState.bottomY;
+  const slotW = plinkoState.slotW;
+  const pegs = plinkoState.pegs;
+  const TRIES = 1500;
+  const MAX_STEPS = 1200;
+
+  let best = null;
+  let bestDist = Infinity;
+  const ballR = 11;
+
+  for(let a=0; a<TRIES; a++){
+    const seed = (Math.random()*0xFFFFFFFF) >>> 0;
+    const rng = _plkMakeRng(seed);
+    const startX = W/2 + (rng()-0.5)*10;
+    const startVx = (rng()-0.5)*0.5;
+    const ball = { x:startX, y:8, vx:startVx, vy:0, r:ballR };
+    let res = null;
+    for(let s=0; s<MAX_STEPS; s++){
+      const r = _plkStep(ball, pegs, W, bottomY, slotW, rng);
+      if(r.finished){ res = r; break; }
+    }
+    if(!res) continue;
+    if(res.slot === targetSlot){
+      return {seed, startX, startVx};
+    }
+    const dist = Math.abs(res.slot - targetSlot);
+    if(dist < bestDist){
+      bestDist = dist;
+      best = {seed, startX, startVx};
+    }
+  }
+  return best || {seed: (Math.random()*0xFFFFFFFF)>>>0, startX: plinkoState.W/2, startVx: 0};
+}
+
 function startPlinkoBall(betNFT){
   plinkoState.rolling = true;
   plinkoState.currentBet = betNFT;
+
+  // Find honest physics seed that lands in target slot
+  const params = _plkFindSeed(plinkoState.targetSlot);
+  plinkoState.liveRng = _plkMakeRng(params.seed);
+
   plinkoState.ball = {
-    x: plinkoState.W/2 + (Math.random()-0.5)*4,
+    x: params.startX,
     y: 8,
-    vx: (Math.random()-0.5)*0.3,
+    vx: params.startVx,
     vy: 0,
-    r: 7,
-    photo: betNFT.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[betNFT.id]) || null,
-    emoji: betNFT.emoji || '🎁'
+    r: 11
   };
   plinkoState.particles = [];
-  plinkoState.targetX = plinkoState.slotXs[plinkoState.targetSlot];
   plinkoAnimate();
 }
 
@@ -3803,54 +3968,24 @@ function plinkoAnimate(){
   const W = plinkoState.W, H = plinkoState.H;
   const ball = plinkoState.ball;
   const bottomY = plinkoState.bottomY;
+  const slotW = plinkoState.slotW;
 
-  const gravity = 0.32;
-  ball.vy += gravity;
+  // Honest physics — same RNG as Monte Carlo simulation
+  const result = _plkStep(ball, plinkoState.pegs, W, bottomY, slotW, plinkoState.liveRng);
 
-  if(ball.y < bottomY - 30){
-    const dx = plinkoState.targetX - ball.x;
-    const progress = ball.y / bottomY;
-    const pull = dx * 0.0009 * progress;
-    ball.vx += pull;
-  }
-  ball.vx *= 0.995;
-  if(ball.vx > 4) ball.vx = 4;
-  if(ball.vx < -4) ball.vx = -4;
-
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-
-  for(const p of plinkoState.pegs){
-    const dx = ball.x - p.x;
-    const dy = ball.y - p.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const minDist = ball.r + p.r;
-    if(dist < minDist && dist > 0){
-      const overlap = minDist - dist;
-      const nx = dx/dist, ny = dy/dist;
-      ball.x += nx * overlap;
-      ball.y += ny * overlap;
-      const dot = ball.vx*nx + ball.vy*ny;
-      ball.vx -= 2*dot*nx*0.55;
-      ball.vy -= 2*dot*ny*0.55;
-      ball.vx += (Math.random()-0.5)*0.4;
-      const targetPull = (plinkoState.targetX - ball.x) * 0.012;
-      ball.vx += targetPull;
-      for(let i=0;i<3;i++){
-        plinkoState.particles.push({
-          x: p.x, y: p.y,
-          vx: (Math.random()-0.5)*2,
-          vy: (Math.random()-0.5)*2 - 0.5,
-          life: 1,
-        });
-      }
+  for(const h of result.hits){
+    for(let i=0;i<3;i++){
+      plinkoState.particles.push({
+        x: h.x, y: h.y,
+        vx: (Math.random()-0.5)*2,
+        vy: (Math.random()-0.5)*2 - 0.5,
+        life: 1,
+      });
     }
   }
 
-  if(ball.x < ball.r){ ball.x = ball.r; ball.vx = Math.abs(ball.vx)*0.6; }
-  if(ball.x > W - ball.r){ ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx)*0.6; }
-
-  if(ball.y >= bottomY){
+  if(result.finished){
+    plinkoState.targetSlot = result.slot;
     finishPlinko();
     return;
   }
@@ -3876,18 +4011,39 @@ function plinkoAnimate(){
     ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI*2);
     ctx.fill();
   }
+
+  // Draw ball with avatar (circular clip) + orange glow
   ctx.save();
+  // Glow
+  ctx.shadowColor = '#ff7833';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#222';
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
-  ctx.fillStyle = '#222';
   ctx.fill();
+  ctx.shadowBlur = 0;
+  // Avatar inside
+  if(_plkAvatarImg){
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r-1.5, 0, Math.PI*2);
+    ctx.clip();
+    ctx.drawImage(_plkAvatarImg, ball.x-ball.r+1, ball.y-ball.r+1, (ball.r-1)*2, (ball.r-1)*2);
+    ctx.restore();
+  } else {
+    // Fallback: first letter of name
+    const letter = (userName||'?')[0].toUpperCase();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.floor(ball.r*1.1)}px Nunito, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, ball.x, ball.y+0.5);
+  }
+  // Border ring
   ctx.strokeStyle = '#ff7833';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.shadowColor = '#ff7833';
-  ctx.shadowBlur = 8;
+  ctx.lineWidth = 1.8;
   ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.r-1, 0, Math.PI*2);
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
   ctx.stroke();
   ctx.restore();
 
@@ -3899,7 +4055,24 @@ function finishPlinko(){
   const slot = plinkoState.targetSlot;
   const mult = PLINKO_MULTIPLIERS[slot];
   const bet = plinkoState.currentBet;
-  const payout = +(bet.price * mult).toFixed(2);
+  const targetTonValue = +(bet.price * mult).toFixed(2);
+
+  // Find NFT closest to target value (only when mult > 0)
+  let rewardNFT = null;
+  if(mult > 0){
+    const allNFTs = CASES[0].items.filter(i=>i.isNFT);
+    let bestNFT = null, bestScore = Infinity;
+    for(const n of allNFTs){
+      const diff = Math.abs(n.price - targetTonValue);
+      // Penalty for over-reward (don't give an NFT pricier than user "earned")
+      const penalty = n.price > targetTonValue * 1.05 ? diff * 3 : diff;
+      if(penalty < bestScore){
+        bestScore = penalty;
+        bestNFT = n;
+      }
+    }
+    rewardNFT = bestNFT || allNFTs[0];
+  }
 
   const slotEl = document.getElementById('plk-mult-'+slot);
   if(slotEl){ slotEl.classList.add('flash'); setTimeout(()=>slotEl.classList.remove('flash'),700); }
@@ -3907,23 +4080,26 @@ function finishPlinko(){
   plinkoState.recentBets.unshift({
     name: userNick || userName || 'you',
     nft: bet,
+    rewardNft: rewardNFT,
     mult,
-    payout,
+    payout: rewardNFT ? rewardNFT.price : 0,
     ts: Date.now(),
     win: mult >= 1,
-    isMe: true
+    isMe: true,
+    photo: userPhoto || null
   });
   if(plinkoState.recentBets.length > 30) plinkoState.recentBets.length = 30;
+  // Persist bets
+  try{ localStorage.setItem('plinko_bets_'+userId, JSON.stringify(plinkoState.recentBets)); }catch(e){}
   renderPlinkoBets();
 
-  if(mult > 0){
-    balance = +(balance + payout).toFixed(4);
-    updBal(); saveBal();
+  // Award the reward NFT to inventory (if any)
+  if(rewardNFT){
+    addNFTToInventory(rewardNFT, rewardNFT.price, mult);
   }
 
   setTimeout(()=>{
-    showPlinkoResult(mult, payout, bet);
-    setTimeout(()=>{ plinkoAddFakeBet(); },1200);
+    showPlinkoResult(mult, rewardNFT, bet, targetTonValue);
   },350);
 
   setTimeout(()=>{
@@ -3934,52 +4110,42 @@ function finishPlinko(){
   },800);
 }
 
-function showPlinkoResult(mult, payout, bet){
+function showPlinkoResult(mult, rewardNFT, bet, targetTonValue){
   const popup = document.getElementById('plinko-win-popup');
   const emoji = document.getElementById('plinko-win-emoji');
   const multEl = document.getElementById('plinko-win-mult');
   const text = document.getElementById('plinko-win-text');
+
   if(mult === 0){
-    emoji.textContent = '😢';
+    emoji.innerHTML = '😢';
+    emoji.style.fontSize = '60px';
     multEl.textContent = '0×';
     multEl.style.color = '#888';
-    text.textContent = `${bet.name} lost · better luck next time`;
-  } else if(mult < 1){
-    emoji.textContent = '😐';
-    multEl.textContent = mult+'×';
-    multEl.style.color = '#888';
-    text.textContent = `Refunded ${payout.toFixed(2)} TON`;
-  } else if(mult < 3){
-    emoji.textContent = '🎉';
-    multEl.textContent = mult+'×';
-    multEl.style.color = '#ff7833';
-    text.textContent = `You won ${payout.toFixed(2)} TON!`;
+    text.innerHTML = `<b>${bet.name}</b> lost · better luck next time`;
   } else {
-    emoji.textContent = '🔥';
+    // Won an NFT — show its image
+    const ph = rewardNFT.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[rewardNFT.id]);
+    emoji.style.fontSize = '';
+    emoji.innerHTML = ph
+      ? `<img src="${ph}" style="width:84px;height:84px;border-radius:14px;object-fit:cover;box-shadow:0 4px 20px rgba(255,120,30,0.45);margin-bottom:6px">`
+      : `<div style="font-size:60px;margin-bottom:6px">${rewardNFT.emoji||'🎁'}</div>`;
     multEl.textContent = mult+'×';
-    multEl.style.color = '#dc2626';
-    text.textContent = `BIG WIN! ${payout.toFixed(2)} TON!`;
-    if(typeof spawnConfetti==='function') spawnConfetti(80);
+    if(mult < 2){
+      multEl.style.color = '#ff7833';
+      text.innerHTML = `You won <b>${rewardNFT.name}</b><br><span style="color:#ff7833;font-size:13px">▽ ${rewardNFT.price.toFixed(2)} TON</span>`;
+    } else if(mult < 5){
+      multEl.style.color = '#ea580c';
+      text.innerHTML = `🎉 You won <b>${rewardNFT.name}</b><br><span style="color:#ff7833;font-size:13px">▽ ${rewardNFT.price.toFixed(2)} TON</span>`;
+    } else {
+      multEl.style.color = '#dc2626';
+      text.innerHTML = `🔥 BIG WIN! <b>${rewardNFT.name}</b><br><span style="color:#dc2626;font-size:13px">▽ ${rewardNFT.price.toFixed(2)} TON</span>`;
+      if(typeof spawnConfetti==='function') spawnConfetti(80);
+    }
   }
   popup.classList.add('open');
 }
 function closePlinkoWin(){
   document.getElementById('plinko-win-popup').classList.remove('open');
-}
-
-function plinkoAddFakeBet(){
-  const items = CASES[0].items.filter(i=>i.isNFT);
-  const names = ['DaVasePohu','TOT_SUS','Dimariksex','vlad_iikk','xneuro','crypto_king','tonmaster','nft_lover','degen42','dropper'];
-  const mults = [0,0,0,0,0,0,1.2,1.5,2,2.5];
-  const nft = items[Math.floor(Math.random()*items.length)];
-  const m = mults[Math.floor(Math.random()*mults.length)];
-  const name = names[Math.floor(Math.random()*names.length)];
-  plinkoState.recentBets.unshift({
-    name, nft, mult: m, payout: +(nft.price*m).toFixed(2),
-    ts: Date.now(), win: m>=1
-  });
-  if(plinkoState.recentBets.length > 30) plinkoState.recentBets.length = 30;
-  renderPlinkoBets();
 }
 
 window.addEventListener('resize', ()=>{
