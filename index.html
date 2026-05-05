@@ -814,7 +814,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <h2>🎁 Cases</h2>
   </div>
   <div class="cases-scroll">
-    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:20px">🔥 Available case</div>
+    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:20px">🔥 Available games</div>
     <div class="cases-featured" id="cases-featured"></div>
     <div class="cases-grid" id="cases-list"></div>
   </div>
@@ -867,6 +867,132 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
   </div>
 </div>
 
+<!-- PLINKO SCREEN -->
+<style>
+#plinko-screen{display:none;position:fixed;inset:0;background:linear-gradient(180deg,#fff5ed 0%,#ffeadc 100%);z-index:160;flex-direction:column;overflow:hidden}
+#plinko-screen.open{display:flex}
+body.dark-on-plinko #plinko-screen{background:linear-gradient(180deg,#0d1020 0%,#0a0a1a 100%)}
+#plinko-header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,140,40,0.15)}
+#plinko-header h2{font-family:'Fredoka One',cursive;font-size:24px;font-weight:400;flex:1;color:#ff7833;text-align:center;letter-spacing:1px}
+#plinko-online-pill{background:linear-gradient(135deg,#ff7833,#f97316);color:#fff;padding:6px 12px;border-radius:14px;font-family:'Fredoka One',cursive;font-size:12px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(255,120,30,0.3)}
+#plinko-online-pill::before{content:'';width:6px;height:6px;background:#4ade80;border-radius:50%;box-shadow:0 0 6px #4ade80;animation:pulse-dot 1.6s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+#plinko-about-btn{background:#fff;border:1px solid #e5d4c4;color:#666;padding:6px 12px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:'Nunito',sans-serif}
+#plinko-board-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 8px 0;overflow:hidden;min-height:0}
+#plinko-canvas-box{position:relative;width:100%;max-width:460px;aspect-ratio:1.05/1;flex-shrink:0}
+#plinko-canvas{width:100%;height:100%;display:block}
+#plinko-multipliers{display:flex;gap:2px;width:100%;max-width:460px;padding:0 4px;margin-top:-4px;flex-shrink:0}
+.plk-mult{flex:1;text-align:center;padding:5px 0 7px;font-family:'Fredoka One',cursive;font-size:11px;font-weight:700;color:#fff;border-radius:0 0 6px 6px;position:relative;text-shadow:0 1px 2px rgba(0,0,0,0.3);transition:transform .2s}
+.plk-mult.flash{animation:plkFlash 0.6s ease}
+@keyframes plkFlash{0%,100%{transform:translateY(0) scale(1);box-shadow:none}50%{transform:translateY(-6px) scale(1.15);box-shadow:0 6px 20px rgba(0,0,0,0.4),0 0 20px currentColor}}
+#plinko-bets-section{width:100%;max-width:460px;margin:8px auto 0;flex:1;min-height:0;display:flex;flex-direction:column}
+#plinko-bets-list{flex:1;overflow-y:auto;padding:0 8px 8px;scrollbar-width:thin}
+#plinko-bets-list::-webkit-scrollbar{width:4px}
+#plinko-bets-list::-webkit-scrollbar-thumb{background:#ff783355;border-radius:2px}
+.plk-bet-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border-radius:14px;margin-bottom:5px;font-family:'Nunito',sans-serif;font-size:12px;border:1px solid #f0e0d0;animation:plkBetIn 0.4s ease}
+.plk-bet-row.win{border:1.5px solid #ff7833;background:linear-gradient(90deg,#fff,#fff8f0)}
+@keyframes plkBetIn{0%{transform:translateX(20px);opacity:0}100%{transform:translateX(0);opacity:1}}
+.plk-bet-avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#ff7833,#fbbf24);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;overflow:hidden}
+.plk-bet-avatar img{width:100%;height:100%;object-fit:cover}
+.plk-bet-name{font-weight:700;color:#333;flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plk-bet-mult{background:#f0f0f0;color:#444;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;font-family:'Fredoka One',cursive}
+.plk-bet-payout{color:#666;font-size:11px;font-weight:700;font-family:'Fredoka One',cursive;display:flex;align-items:center;gap:3px}
+.plk-bet-nft{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#1a1a3a,#2a1a4a);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.plk-bet-nft img{width:100%;height:100%;object-fit:cover}
+#plinko-action-row{flex-shrink:0;display:flex;gap:8px;padding:10px 12px 14px;background:linear-gradient(180deg,transparent,#ffeadc 30%);position:relative}
+.plk-emoji-btn{width:42px;height:42px;border-radius:50%;background:#fff;border:1px solid #f0e0d0;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.plk-emoji-btn:active{transform:scale(0.9)}
+#plinko-fastbuy-btn{flex:0 0 auto;padding:0 18px;height:46px;background:#fff;border:1px solid #f0e0d0;border-radius:23px;color:#333;font-family:'Fredoka One',cursive;font-size:14px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+#plinko-bet-btn{flex:1;height:46px;background:linear-gradient(135deg,#ff7833,#f97316);border:none;border-radius:23px;color:#fff;font-family:'Fredoka One',cursive;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.5px;box-shadow:0 4px 14px rgba(255,120,30,0.35)}
+#plinko-bet-btn:disabled{opacity:0.6}
+#plinko-bet-btn .plus-icon{width:20px;height:20px;background:rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700}
+
+/* NFT pick modal for Plinko */
+#plinko-pick-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)}
+#plinko-pick-bg.open{display:flex}
+#plinko-pick-sheet{width:100%;max-width:460px;max-height:80vh;background:#fff;border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:pickSlide 0.3s ease}
+@keyframes pickSlide{0%{transform:translateY(100%)}100%{transform:translateY(0)}}
+#plinko-pick-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid #f0e0d0;flex-shrink:0}
+#plinko-pick-header h3{font-family:'Fredoka One',cursive;font-size:17px;color:#ff7833;letter-spacing:0.5px}
+#plinko-pick-grid{padding:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow-y:auto;flex:1}
+.plk-pick-card{background:#fff8f0;border:1.5px solid #f0e0d0;border-radius:14px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.plk-pick-card:active{transform:scale(0.95)}
+.plk-pick-card.selected{border-color:#ff7833;background:#fff0e0;box-shadow:0 0 0 3px #ff783333}
+.plk-pick-img{width:100%;aspect-ratio:1;border-radius:10px;background:linear-gradient(135deg,#1a1a3a,#2a1a4a);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:36px}
+.plk-pick-img img{width:100%;height:100%;object-fit:cover}
+.plk-pick-name{font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plk-pick-price{font-family:'Fredoka One',cursive;font-size:11px;color:#ff7833;margin-top:2px}
+
+#plinko-pick-empty{padding:40px 20px;text-align:center;color:#999;font-size:13px}
+#plinko-pick-confirm{padding:14px;border-top:1px solid #f0e0d0;flex-shrink:0}
+#plinko-pick-confirm-btn{width:100%;height:48px;background:linear-gradient(135deg,#ff7833,#f97316);border:none;border-radius:24px;color:#fff;font-family:'Fredoka One',cursive;font-size:15px;cursor:pointer;letter-spacing:0.5px}
+#plinko-pick-confirm-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Win popup for Plinko */
+#plinko-win-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:20px}
+#plinko-win-popup.open{display:flex}
+#plinko-win-box{background:linear-gradient(160deg,#fff8f0,#ffe8d0);border:2px solid #ff7833;border-radius:24px;padding:30px 24px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 50px rgba(255,120,30,0.5);animation:winPop 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes winPop{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+#plinko-win-emoji{font-size:60px;margin-bottom:10px}
+#plinko-win-mult{font-family:'Fredoka One',cursive;font-size:42px;color:#ff7833;letter-spacing:1px;text-shadow:0 2px 8px rgba(255,120,30,0.3)}
+#plinko-win-text{font-family:'Nunito',sans-serif;font-size:14px;color:#666;margin:8px 0 18px;font-weight:700}
+#plinko-win-close{width:100%;height:44px;background:linear-gradient(135deg,#ff7833,#f97316);border:none;border-radius:22px;color:#fff;font-family:'Fredoka One',cursive;font-size:14px;cursor:pointer}
+</style>
+
+<div id="plinko-screen">
+  <div id="plinko-header">
+    <button onclick="closePlinko()" style="background:#fff;border:1px solid #f0e0d0;color:#666;font-size:18px;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">←</button>
+    <h2>Plinko</h2>
+    <button id="plinko-about-btn" onclick="showPlinkoAbout()">ⓘ About</button>
+  </div>
+  <div style="display:flex;justify-content:flex-start;padding:0 16px 8px;gap:8px">
+    <span id="plinko-online-pill"><span id="plinko-online-count">14427</span> online</span>
+  </div>
+  <div id="plinko-board-wrap">
+    <div id="plinko-canvas-box">
+      <canvas id="plinko-canvas"></canvas>
+    </div>
+    <div id="plinko-multipliers"></div>
+    <div id="plinko-bets-section">
+      <div id="plinko-bets-list"></div>
+    </div>
+  </div>
+  <div id="plinko-action-row">
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('💩')">💩</button>
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('🤡')">🤡</button>
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('😂')">😂</button>
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('🔥')">🔥</button>
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('🎉')">🎉</button>
+    <button id="plinko-bet-btn" onclick="openPlinkoPicker()">
+      Add gifts
+      <span class="plus-icon">+</span>
+    </button>
+  </div>
+</div>
+
+<!-- Plinko NFT Picker -->
+<div id="plinko-pick-bg" onclick="if(event.target===this)closePlinkoPicker()">
+  <div id="plinko-pick-sheet">
+    <div id="plinko-pick-header">
+      <h3>🎁 Pick NFT to bet</h3>
+      <button onclick="closePlinkoPicker()" style="background:#f0f0f0;border:none;color:#666;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px">×</button>
+    </div>
+    <div id="plinko-pick-grid"></div>
+    <div id="plinko-pick-confirm">
+      <button id="plinko-pick-confirm-btn" disabled onclick="confirmPlinkoBet()">Select NFT to play</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plinko Win Popup -->
+<div id="plinko-win-popup">
+  <div id="plinko-win-box">
+    <div id="plinko-win-emoji">🎯</div>
+    <div id="plinko-win-mult">0×</div>
+    <div id="plinko-win-text"></div>
+    <button id="plinko-win-close" onclick="closePlinkoWin()">Continue</button>
+  </div>
+</div>
 
 
 <script>
@@ -2307,14 +2433,189 @@ if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
     'text-shadow:0 0 10px #b44fff',
     'letter-spacing:0.5px'
   ].join(';');
-  adminBtn.onclick = () => {
-    // SECURITY: передаємо initData — сервер верифікує підпис Telegram
-    const initDataEncoded = encodeURIComponent(tg?.initData||'');
-    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}&initData=${initDataEncoded}`;
-    if(tg?.openLink) tg.openLink(url);
-    else window.open(url,'_blank');
-  };
+  adminBtn.onclick = () => { openAdminPanel(); };
   document.body.appendChild(adminBtn);
+}
+
+// ── ЛОКАЛЬНА АДМІН ПАНЕЛЬ ────────────────────────────────────────
+function openAdminPanel(){
+  let bg = document.getElementById('admin-panel-bg');
+  if(!bg){
+    bg = document.createElement('div');
+    bg.id = 'admin-panel-bg';
+    bg.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:16px';
+    bg.onclick = (e)=>{ if(e.target===bg) closeAdminPanel(); };
+    bg.innerHTML = `
+      <div style="
+        width:100%;max-width:420px;max-height:90vh;overflow-y:auto;
+        background:linear-gradient(160deg,#1a0a44 0%,#0d0528 50%,#1e0c50 100%);
+        border:1px solid #7b3fff66;border-radius:20px;
+        box-shadow:0 0 40px #7b3fff44, 0 20px 60px rgba(0,0,0,0.6);
+        padding:0;
+      ">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid #7b3fff33;position:sticky;top:0;background:linear-gradient(180deg,#1a0a44,#1a0a44 70%,rgba(26,10,68,0.95));backdrop-filter:blur(10px);z-index:2">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:22px">🐙</div>
+            <div>
+              <div style="font-family:'Fredoka One',cursive;font-size:16px;color:#fff;letter-spacing:0.5px">Admin Panel</div>
+              <div style="font-size:10px;color:#b48fff;font-weight:600">UID: ${userId}</div>
+            </div>
+          </div>
+          <button onclick="closeAdminPanel()" style="background:#ffffff15;border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">×</button>
+        </div>
+
+        <div style="padding:18px 20px 22px">
+
+          <!-- Current balance -->
+          <div style="background:linear-gradient(135deg,#0d0528,#1a0a44);border:1px solid #7b3fff44;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:10px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700">Current Balance</div>
+              <div id="admin-current-bal" style="font-family:'Fredoka One',cursive;font-size:24px;color:#fff;margin-top:4px">${balance.toFixed(2)} TON</div>
+            </div>
+            <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)">◈</div>
+          </div>
+
+          <!-- TON amount input -->
+          <div style="margin-bottom:14px">
+            <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Amount (TON)</div>
+            <input id="admin-ton-input" type="number" step="0.01" min="0" placeholder="0.00" style="
+              width:100%;box-sizing:border-box;padding:14px 16px;
+              background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:20px;
+              outline:none;transition:border .2s;
+            " onfocus="this.style.borderColor='#b44fff'" onblur="this.style.borderColor='#7b3fff66'">
+            <!-- Quick amounts -->
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+              ${[1,5,10,50,100,500,1000].map(v=>`
+                <button onclick="document.getElementById('admin-ton-input').value=${v}" style="
+                  flex:1;min-width:50px;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;
+                  padding:6px 8px;border-radius:8px;cursor:pointer;font-family:'Fredoka One',cursive;font-size:12px;
+                ">+${v}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Add / Remove buttons -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+            <button onclick="adminAddBalance()" style="
+              background:linear-gradient(135deg,#1a6228,#15803d);border:1px solid #4ade8044;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;
+              box-shadow:0 0 14px rgba(74,222,128,0.25);
+            ">➕ Add TON</button>
+            <button onclick="adminRemoveBalance()" style="
+              background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:1px solid #ef444444;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;
+              box-shadow:0 0 14px rgba(239,68,68,0.25);
+            ">➖ Remove TON</button>
+          </div>
+
+          <!-- Set exact balance -->
+          <div style="background:#7b3fff10;border:1px solid #7b3fff33;border-radius:12px;padding:12px;margin-bottom:18px">
+            <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Set Exact Balance</div>
+            <div style="display:flex;gap:8px">
+              <input id="admin-set-input" type="number" step="0.01" min="0" placeholder="0.00" style="
+                flex:1;padding:10px 12px;background:#0d0528;border:1px solid #7b3fff44;border-radius:10px;
+                color:#fff;font-family:'Fredoka One',cursive;font-size:14px;outline:none;
+              ">
+              <button onclick="adminSetBalance()" style="
+                background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;
+                color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:0 18px;cursor:pointer;
+              ">Set</button>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Quick Actions</div>
+          <div style="display:grid;gap:8px">
+            <button onclick="adminAddNFT()" style="
+              background:linear-gradient(135deg,#3a1a4a,#5a1a6a);border:1px solid #ff66cc44;border-radius:10px;
+              color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">🎁</span> Add Random NFT to Inventory</button>
+            <button onclick="adminClearNFTs()" style="
+              background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;
+              color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">🗑️</span> Clear All NFTs (${myNFTs.length})</button>
+            <button onclick="adminResetAll()" style="
+              background:#ffffff08;border:1px solid #ef444433;border-radius:10px;
+              color:#ef9999;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">⚠️</span> Reset Everything</button>
+          </div>
+
+          <div style="font-size:10px;color:#7755aa;text-align:center;margin-top:16px;line-height:1.5">
+            Local admin panel · changes apply only on this device
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(bg);
+  } else {
+    bg.style.display = 'flex';
+    document.getElementById('admin-current-bal').textContent = balance.toFixed(2)+' TON';
+  }
+}
+function closeAdminPanel(){
+  const bg = document.getElementById('admin-panel-bg');
+  if(bg) bg.style.display = 'none';
+}
+function adminRefreshBal(){
+  const el = document.getElementById('admin-current-bal');
+  if(el) el.textContent = balance.toFixed(2)+' TON';
+}
+function adminAddBalance(){
+  const v = parseFloat(document.getElementById('admin-ton-input').value);
+  if(!v || v<=0){ showToast('Enter valid amount'); return; }
+  balance = +(balance + v).toFixed(4);
+  updBal(); saveBal();
+  adminRefreshBal();
+  showToast(`✅ Added ${v.toFixed(2)} TON`,'win');
+  document.getElementById('admin-ton-input').value = '';
+}
+function adminRemoveBalance(){
+  const v = parseFloat(document.getElementById('admin-ton-input').value);
+  if(!v || v<=0){ showToast('Enter valid amount'); return; }
+  balance = +Math.max(0, balance - v).toFixed(4);
+  updBal(); saveBal();
+  adminRefreshBal();
+  showToast(`➖ Removed ${v.toFixed(2)} TON`,'info');
+  document.getElementById('admin-ton-input').value = '';
+}
+function adminSetBalance(){
+  const v = parseFloat(document.getElementById('admin-set-input').value);
+  if(isNaN(v) || v<0){ showToast('Enter valid amount'); return; }
+  balance = +v.toFixed(4);
+  updBal(); saveBal();
+  adminRefreshBal();
+  showToast(`✅ Balance set to ${v.toFixed(2)} TON`,'win');
+  document.getElementById('admin-set-input').value = '';
+}
+function adminAddNFT(){
+  // Add random NFT from CASES[0]
+  const items = CASES[0].items.filter(i=>i.isNFT);
+  const nft = items[Math.floor(Math.random()*items.length)];
+  addNFTToInventory(nft, nft.price, 1);
+  showToast(`🎁 Added ${nft.name} (${nft.price} TON)`,'win');
+  // Refresh NFT count in admin
+  closeAdminPanel(); openAdminPanel();
+}
+function adminClearNFTs(){
+  if(!myNFTs.length){ showToast('Inventory is empty'); return; }
+  if(!confirm(`Delete all ${myNFTs.length} NFTs?`)) return;
+  myNFTs = []; saveNFTs();
+  document.getElementById('inv-tab-lbl').textContent = t('inv');
+  showToast('🗑️ Inventory cleared','info');
+  closeAdminPanel(); openAdminPanel();
+}
+function adminResetAll(){
+  if(!confirm('This will reset balance to 0 and clear all NFTs. Continue?')) return;
+  balance = 0; updBal(); saveBal();
+  myNFTs = []; saveNFTs();
+  document.getElementById('inv-tab-lbl').textContent = t('inv');
+  showToast('🔄 Everything reset','info');
+  closeAdminPanel(); openAdminPanel();
 }
 if(myNFTs.length)document.getElementById('inv-tab-lbl').textContent=`${t('inv')} (${myNFTs.length})`;
 window.addEventListener('resize',resize);
@@ -2392,7 +2693,7 @@ function openCases(){
       padding:24px 20px;
       text-align:center;
       cursor:pointer;
-      margin:0 16px 20px;
+      margin:0 16px 14px;
       box-shadow:0 0 40px rgba(255,0,128,0.15),0 8px 32px rgba(0,0,0,0.4);
       transition:transform .15s;
       position:relative;
@@ -2404,6 +2705,48 @@ function openCases(){
       <div style="font-size:12px;color:#cc66aa;margin-bottom:16px;font-family:'Nunito',sans-serif;font-weight:700">NFT Gifts · ${c.items.filter(i=>i.isNFT).length} предметів</div>
       <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,105,180,0.4);border-radius:20px;padding:8px 20px">
         ${tonSvg}<span style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff">${c.price} TON</span>
+      </div>
+    </div>
+
+    <!-- Plinko card -->
+    <div onclick="openPlinko()" style="
+      background:linear-gradient(135deg,#1a1410,#3a1f10,#1a1410);
+      border:1.5px solid rgba(255,140,40,0.45);
+      border-radius:24px;
+      padding:22px 20px;
+      text-align:center;
+      cursor:pointer;
+      margin:0 16px 20px;
+      box-shadow:0 0 40px rgba(255,120,30,0.18),0 8px 32px rgba(0,0,0,0.4);
+      transition:transform .15s;
+      position:relative;
+      overflow:hidden;
+    " onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,140,40,0.15) 0%,transparent 60%);pointer-events:none"></div>
+      <!-- Mini plinko visual -->
+      <svg width="90" height="64" viewBox="0 0 90 64" style="margin-bottom:6px;filter:drop-shadow(0 0 12px rgba(255,140,40,0.5))">
+        <g fill="#ffffff55">
+          <circle cx="45" cy="8" r="2"/>
+          <circle cx="38" cy="18" r="2"/><circle cx="52" cy="18" r="2"/>
+          <circle cx="31" cy="28" r="2"/><circle cx="45" cy="28" r="2"/><circle cx="59" cy="28" r="2"/>
+          <circle cx="24" cy="38" r="2"/><circle cx="38" cy="38" r="2"/><circle cx="52" cy="38" r="2"/><circle cx="66" cy="38" r="2"/>
+          <circle cx="17" cy="48" r="2"/><circle cx="31" cy="48" r="2"/><circle cx="45" cy="48" r="2"/><circle cx="59" cy="48" r="2"/><circle cx="73" cy="48" r="2"/>
+        </g>
+        <circle cx="45" cy="4" r="3" fill="#ff7833"/>
+        <rect x="6" y="56" width="78" height="6" rx="2" fill="url(#plinkoGrad)"/>
+        <defs>
+          <linearGradient id="plinkoGrad" x1="0" x2="1">
+            <stop offset="0" stop-color="#dc2626"/>
+            <stop offset="0.5" stop-color="#fbbf24"/>
+            <stop offset="1" stop-color="#dc2626"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#fff;margin-bottom:6px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,140,40,0.8)">PLINKO</div>
+      <div style="font-size:12px;color:#cc9966;margin-bottom:14px;font-family:'Nunito',sans-serif;font-weight:700">Bet NFT · Win up to 20×</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,140,40,0.4);border-radius:20px;padding:8px 20px">
+        <span style="font-size:14px">🎯</span>
+        <span style="font-family:'Fredoka One',cursive;font-size:14px;color:#fff">Play Now</span>
       </div>
     </div>`;
   // Очищаємо грід — він не потрібен
@@ -3152,6 +3495,498 @@ openModal = function(type){
     body.insertAdjacentHTML('afterbegin', themeBlock);
   }
 };
+
+// ── PLINKO GAME ──────────────────────────────────────────────────────────
+const PLINKO_MULTIPLIERS = [20, 10, 5, 2.5, 2, 1.5, 1.2, 0, 1.2, 1.5, 2, 2.5, 5, 10, 20];
+const PLINKO_SLOT_COLORS = [
+  '#dc2626','#ea580c','#f97316','#fb923c','#fbbf24','#fde047','#fef08a',
+  '#fde047', // 0 - yellow center
+  '#fef08a','#fde047','#fbbf24','#fb923c','#f97316','#ea580c','#dc2626'
+];
+const PLINKO_ROWS = 12;
+let plinkoState = {
+  selectedNFT: null,
+  ball: null,
+  pegs: [],
+  slotXs: [],
+  rolling: false,
+  recentBets: [],
+  targetSlot: null,
+  canvas: null,
+  ctx: null,
+  W: 0, H: 0,
+  particles: [],
+};
+
+function plinkoSeedFakeBets(){
+  const items = CASES[0].items.filter(i=>i.isNFT);
+  const names = ['DaVasePohu','TOT_SUS','Dimariksex','vlad_iikk','xneuro','crypto_king','tonmaster','nft_lover'];
+  const mults = [0,0,0,0,0,1.2,1.5,2,2.5,5];
+  const now = Date.now();
+  const seeded = [];
+  for(let i=0;i<8;i++){
+    const nft = items[Math.floor(Math.random()*items.length)];
+    const m = mults[Math.floor(Math.random()*mults.length)];
+    const name = names[Math.floor(Math.random()*names.length)];
+    seeded.push({
+      name, nft, mult: m, payout: +(nft.price*m).toFixed(2),
+      ts: now - i*60000 - Math.random()*30000,
+      win: m>=1
+    });
+  }
+  plinkoState.recentBets = seeded;
+}
+
+function openPlinko(){
+  document.getElementById('plinko-screen').classList.add('open');
+  if(plinkoState.recentBets.length===0) plinkoSeedFakeBets();
+  document.getElementById('plinko-online-count').textContent = (12000+Math.floor(Math.random()*4000)).toLocaleString();
+  setTimeout(()=>{
+    initPlinkoBoard();
+    renderPlinkoMultipliers();
+    renderPlinkoBets();
+  },50);
+}
+
+function closePlinko(){
+  document.getElementById('plinko-screen').classList.remove('open');
+  plinkoState.rolling = false;
+  plinkoState.ball = null;
+}
+
+function showPlinkoAbout(){
+  showToast('🎯 Plinko: drop your NFT, watch it bounce, win up to 20× the price!','info');
+}
+
+function plinkoSendReaction(emoji){
+  const el = document.createElement('div');
+  el.textContent = emoji;
+  el.style.cssText = 'position:fixed;left:50%;bottom:80px;transform:translateX(-50%);font-size:42px;z-index:500;pointer-events:none;animation:plkReactFly 1.2s ease-out forwards';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+if(!document.getElementById('plk-react-keyframes')){
+  const _s = document.createElement('style');
+  _s.id = 'plk-react-keyframes';
+  _s.textContent = '@keyframes plkReactFly{0%{transform:translateX(-50%) translateY(0) scale(0.5);opacity:0}20%{opacity:1;transform:translateX(-50%) translateY(-30px) scale(1.3)}100%{transform:translateX(-50%) translateY(-280px) scale(1);opacity:0}}';
+  document.head.appendChild(_s);
+}
+
+function initPlinkoBoard(){
+  const canvas = document.getElementById('plinko-canvas');
+  if(!canvas) return;
+  plinkoState.canvas = canvas;
+  plinkoState.ctx = canvas.getContext('2d');
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  plinkoState.ctx.setTransform(1,0,0,1,0,0);
+  plinkoState.ctx.scale(dpr, dpr);
+  plinkoState.W = rect.width;
+  plinkoState.H = rect.height;
+
+  buildPlinkoPegs();
+  drawPlinkoStatic();
+}
+
+function buildPlinkoPegs(){
+  const W = plinkoState.W, H = plinkoState.H;
+  const pegs = [];
+  const slotCount = PLINKO_MULTIPLIERS.length;
+  const topY = H * 0.10;
+  const bottomY = H * 0.82;
+  const pegRows = PLINKO_ROWS;
+  const bottomPegs = slotCount - 1;
+  const topPegs = bottomPegs - (pegRows - 1);
+
+  const slotW = W / slotCount;
+  const pegSpacingX = slotW;
+
+  for(let r=0; r<pegRows; r++){
+    const pegsInRow = topPegs + r;
+    const y = topY + (bottomY - topY) * (r/(pegRows-1));
+    const totalRowW = (pegsInRow-1) * pegSpacingX;
+    const startX = (W - totalRowW) / 2;
+    for(let c=0; c<pegsInRow; c++){
+      pegs.push({ x: startX + c*pegSpacingX, y, r: 2.5 });
+    }
+  }
+  plinkoState.pegs = pegs;
+  const slotXs = [];
+  for(let s=0; s<slotCount; s++) slotXs.push(slotW*(s+0.5));
+  plinkoState.slotXs = slotXs;
+  plinkoState.slotW = slotW;
+  plinkoState.bottomY = bottomY;
+  plinkoState.topY = topY;
+}
+
+function drawPlinkoStatic(){
+  const ctx = plinkoState.ctx;
+  const W = plinkoState.W, H = plinkoState.H;
+  ctx.clearRect(0,0,W,H);
+
+  // Top arrow
+  const launcherX = W/2;
+  const launcherY = (plinkoState.topY||30) - 22;
+  ctx.fillStyle = '#ff8855';
+  ctx.beginPath();
+  ctx.moveTo(launcherX-8, launcherY);
+  ctx.lineTo(launcherX+8, launcherY);
+  ctx.lineTo(launcherX, launcherY+10);
+  ctx.closePath();
+  ctx.fill();
+
+  if(!plinkoState.rolling && !plinkoState.ball){
+    ctx.fillStyle = '#cccccc';
+    ctx.beginPath();
+    ctx.arc(launcherX, launcherY+18, 6, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = '#aaa';
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  for(const p of plinkoState.pegs){
+    ctx.fillStyle = '#d8d8d8';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function renderPlinkoMultipliers(){
+  const wrap = document.getElementById('plinko-multipliers');
+  wrap.innerHTML = PLINKO_MULTIPLIERS.map((m,i)=>{
+    const color = PLINKO_SLOT_COLORS[i];
+    const txt = m === 0 ? '0' : (m+'').replace(/\.0+$/,'');
+    return `<div class="plk-mult" id="plk-mult-${i}" style="background:linear-gradient(180deg,${color},${plkShade(color,-15)})">${txt}</div>`;
+  }).join('');
+}
+
+function plkShade(col,amt){
+  let c = col.replace('#','');
+  let num = parseInt(c,16);
+  let r = (num>>16)+amt; r = Math.min(255,Math.max(0,r));
+  let g = ((num>>8)&0xff)+amt; g = Math.min(255,Math.max(0,g));
+  let b = (num&0xff)+amt; b = Math.min(255,Math.max(0,b));
+  return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+
+function renderPlinkoBets(){
+  const list = document.getElementById('plinko-bets-list');
+  if(!list) return;
+  const bets = plinkoState.recentBets.slice().sort((a,b)=>b.ts-a.ts).slice(0,15);
+  list.innerHTML = bets.map(b=>{
+    const ph = b.nft && (b.nft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[b.nft.id]));
+    const nftHtml = ph
+      ? `<div class="plk-bet-nft"><img src="${ph}"></div>`
+      : `<div class="plk-bet-nft">${b.nft?.emoji||'🎁'}</div>`;
+    const time = new Date(b.ts);
+    const timeStr = String(time.getDate()).padStart(2,'0')+' '+
+                    ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][time.getMonth()]+' '+
+                    String(time.getHours()).padStart(2,'0')+':'+String(time.getMinutes()).padStart(2,'0')+':'+String(time.getSeconds()).padStart(2,'0');
+    const multTxt = b.mult === 0 ? '0×' : (b.mult+'×');
+    const payTxt = b.payout > 0 ? `▽ ${b.payout.toFixed(2)}` : '';
+    const safeName = (b.name||'?').replace(/</g,'&lt;');
+    return `
+      <div class="plk-bet-row ${b.win?'win':''}">
+        <div class="plk-bet-avatar">${safeName[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div class="plk-bet-name">@${safeName}</div>
+          <div style="font-size:10px;color:#999">${timeStr}</div>
+        </div>
+        ${b.mult>0?`<div class="plk-bet-mult">${multTxt}</div>`:''}
+        ${b.payout>0?`<div class="plk-bet-payout">${payTxt}</div>`:''}
+        ${nftHtml}
+      </div>`;
+  }).join('');
+}
+
+function openPlinkoPicker(){
+  if(plinkoState.rolling) return;
+  const grid = document.getElementById('plinko-pick-grid');
+  if(!myNFTs.length){
+    grid.innerHTML = `<div id="plinko-pick-empty" style="grid-column:1/-1">
+      <div style="font-size:48px;margin-bottom:12px">🎒</div>
+      <div style="font-weight:700;color:#666;margin-bottom:6px">No NFTs yet</div>
+      <div style="font-size:12px;color:#999">Open a case first to get NFT gifts</div>
+    </div>`;
+    document.getElementById('plinko-pick-confirm-btn').disabled = true;
+    document.getElementById('plinko-pick-confirm-btn').textContent = 'No NFTs to bet';
+  } else {
+    grid.innerHTML = myNFTs.map((nft,i)=>{
+      const ph = nft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[nft.id]);
+      const imgHtml = ph
+        ? `<img src="${ph}">`
+        : `<span>${nft.emoji||'🎁'}</span>`;
+      return `
+        <div class="plk-pick-card" data-idx="${i}" onclick="selectPlinkoNFT(${i})">
+          <div class="plk-pick-img">${imgHtml}</div>
+          <div class="plk-pick-name">${nft.name}</div>
+          <div class="plk-pick-price">▽ ${(+(nft.price||nft.floor||0)).toFixed(2)}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('plinko-pick-confirm-btn').disabled = true;
+    document.getElementById('plinko-pick-confirm-btn').textContent = 'Pick an NFT';
+  }
+  plinkoState.selectedNFT = null;
+  document.getElementById('plinko-pick-bg').classList.add('open');
+}
+function closePlinkoPicker(){
+  document.getElementById('plinko-pick-bg').classList.remove('open');
+}
+function selectPlinkoNFT(idx){
+  plinkoState.selectedNFT = idx;
+  document.querySelectorAll('.plk-pick-card').forEach((c,i)=>{
+    c.classList.toggle('selected', i===idx);
+  });
+  const nft = myNFTs[idx];
+  const btn = document.getElementById('plinko-pick-confirm-btn');
+  btn.disabled = false;
+  btn.textContent = `Drop ${nft.name} (▽ ${(+(nft.price||nft.floor||0)).toFixed(2)})`;
+}
+function confirmPlinkoBet(){
+  if(plinkoState.selectedNFT === null) return;
+  const idx = plinkoState.selectedNFT;
+  const nft = myNFTs[idx];
+  if(!nft) return;
+  closePlinkoPicker();
+  const betNFT = {...nft};
+  myNFTs.splice(idx,1);
+  saveNFTs();
+  document.getElementById('inv-tab-lbl').textContent = myNFTs.length ? `${t('inv')} (${myNFTs.length})` : t('inv');
+
+  let targetSlot;
+  if(Math.random() < 0.9){
+    targetSlot = 7;
+  } else {
+    const nonZeroIdx = [];
+    for(let i=0;i<PLINKO_MULTIPLIERS.length;i++) if(i!==7) nonZeroIdx.push(i);
+    const weights = nonZeroIdx.map(i=>{
+      const dist = Math.abs(i-7);
+      return 1 / Math.pow(dist, 1.6);
+    });
+    const sum = weights.reduce((a,b)=>a+b,0);
+    let r = Math.random()*sum;
+    targetSlot = nonZeroIdx[0];
+    for(let i=0;i<nonZeroIdx.length;i++){
+      r -= weights[i];
+      if(r<=0){ targetSlot = nonZeroIdx[i]; break; }
+    }
+  }
+  plinkoState.targetSlot = targetSlot;
+  startPlinkoBall(betNFT);
+}
+
+function startPlinkoBall(betNFT){
+  plinkoState.rolling = true;
+  plinkoState.currentBet = betNFT;
+  plinkoState.ball = {
+    x: plinkoState.W/2 + (Math.random()-0.5)*4,
+    y: 8,
+    vx: (Math.random()-0.5)*0.3,
+    vy: 0,
+    r: 7,
+    photo: betNFT.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[betNFT.id]) || null,
+    emoji: betNFT.emoji || '🎁'
+  };
+  plinkoState.particles = [];
+  plinkoState.targetX = plinkoState.slotXs[plinkoState.targetSlot];
+  plinkoAnimate();
+}
+
+function plinkoAnimate(){
+  if(!plinkoState.rolling) return;
+  const ctx = plinkoState.ctx;
+  const W = plinkoState.W, H = plinkoState.H;
+  const ball = plinkoState.ball;
+  const bottomY = plinkoState.bottomY;
+
+  const gravity = 0.32;
+  ball.vy += gravity;
+
+  if(ball.y < bottomY - 30){
+    const dx = plinkoState.targetX - ball.x;
+    const progress = ball.y / bottomY;
+    const pull = dx * 0.0009 * progress;
+    ball.vx += pull;
+  }
+  ball.vx *= 0.995;
+  if(ball.vx > 4) ball.vx = 4;
+  if(ball.vx < -4) ball.vx = -4;
+
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  for(const p of plinkoState.pegs){
+    const dx = ball.x - p.x;
+    const dy = ball.y - p.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const minDist = ball.r + p.r;
+    if(dist < minDist && dist > 0){
+      const overlap = minDist - dist;
+      const nx = dx/dist, ny = dy/dist;
+      ball.x += nx * overlap;
+      ball.y += ny * overlap;
+      const dot = ball.vx*nx + ball.vy*ny;
+      ball.vx -= 2*dot*nx*0.55;
+      ball.vy -= 2*dot*ny*0.55;
+      ball.vx += (Math.random()-0.5)*0.4;
+      const targetPull = (plinkoState.targetX - ball.x) * 0.012;
+      ball.vx += targetPull;
+      for(let i=0;i<3;i++){
+        plinkoState.particles.push({
+          x: p.x, y: p.y,
+          vx: (Math.random()-0.5)*2,
+          vy: (Math.random()-0.5)*2 - 0.5,
+          life: 1,
+        });
+      }
+    }
+  }
+
+  if(ball.x < ball.r){ ball.x = ball.r; ball.vx = Math.abs(ball.vx)*0.6; }
+  if(ball.x > W - ball.r){ ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx)*0.6; }
+
+  if(ball.y >= bottomY){
+    finishPlinko();
+    return;
+  }
+
+  for(const pt of plinkoState.particles){
+    pt.vy += 0.1;
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life -= 0.04;
+  }
+  plinkoState.particles = plinkoState.particles.filter(p=>p.life>0);
+
+  ctx.clearRect(0,0,W,H);
+  for(const p of plinkoState.pegs){
+    ctx.fillStyle = '#d8d8d8';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+  }
+  for(const pt of plinkoState.particles){
+    ctx.fillStyle = `rgba(255,150,80,${pt.life})`;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 1.5, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle = '#222';
+  ctx.fill();
+  ctx.strokeStyle = '#ff7833';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.shadowColor = '#ff7833';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r-1, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  requestAnimationFrame(plinkoAnimate);
+}
+
+function finishPlinko(){
+  plinkoState.rolling = false;
+  const slot = plinkoState.targetSlot;
+  const mult = PLINKO_MULTIPLIERS[slot];
+  const bet = plinkoState.currentBet;
+  const payout = +(bet.price * mult).toFixed(2);
+
+  const slotEl = document.getElementById('plk-mult-'+slot);
+  if(slotEl){ slotEl.classList.add('flash'); setTimeout(()=>slotEl.classList.remove('flash'),700); }
+
+  plinkoState.recentBets.unshift({
+    name: userNick || userName || 'you',
+    nft: bet,
+    mult,
+    payout,
+    ts: Date.now(),
+    win: mult >= 1,
+    isMe: true
+  });
+  if(plinkoState.recentBets.length > 30) plinkoState.recentBets.length = 30;
+  renderPlinkoBets();
+
+  if(mult > 0){
+    balance = +(balance + payout).toFixed(4);
+    updBal(); saveBal();
+  }
+
+  setTimeout(()=>{
+    showPlinkoResult(mult, payout, bet);
+    setTimeout(()=>{ plinkoAddFakeBet(); },1200);
+  },350);
+
+  setTimeout(()=>{
+    if(!plinkoState.rolling){
+      plinkoState.ball = null;
+      drawPlinkoStatic();
+    }
+  },800);
+}
+
+function showPlinkoResult(mult, payout, bet){
+  const popup = document.getElementById('plinko-win-popup');
+  const emoji = document.getElementById('plinko-win-emoji');
+  const multEl = document.getElementById('plinko-win-mult');
+  const text = document.getElementById('plinko-win-text');
+  if(mult === 0){
+    emoji.textContent = '😢';
+    multEl.textContent = '0×';
+    multEl.style.color = '#888';
+    text.textContent = `${bet.name} lost · better luck next time`;
+  } else if(mult < 1){
+    emoji.textContent = '😐';
+    multEl.textContent = mult+'×';
+    multEl.style.color = '#888';
+    text.textContent = `Refunded ${payout.toFixed(2)} TON`;
+  } else if(mult < 3){
+    emoji.textContent = '🎉';
+    multEl.textContent = mult+'×';
+    multEl.style.color = '#ff7833';
+    text.textContent = `You won ${payout.toFixed(2)} TON!`;
+  } else {
+    emoji.textContent = '🔥';
+    multEl.textContent = mult+'×';
+    multEl.style.color = '#dc2626';
+    text.textContent = `BIG WIN! ${payout.toFixed(2)} TON!`;
+    if(typeof spawnConfetti==='function') spawnConfetti(80);
+  }
+  popup.classList.add('open');
+}
+function closePlinkoWin(){
+  document.getElementById('plinko-win-popup').classList.remove('open');
+}
+
+function plinkoAddFakeBet(){
+  const items = CASES[0].items.filter(i=>i.isNFT);
+  const names = ['DaVasePohu','TOT_SUS','Dimariksex','vlad_iikk','xneuro','crypto_king','tonmaster','nft_lover','degen42','dropper'];
+  const mults = [0,0,0,0,0,0,1.2,1.5,2,2.5];
+  const nft = items[Math.floor(Math.random()*items.length)];
+  const m = mults[Math.floor(Math.random()*mults.length)];
+  const name = names[Math.floor(Math.random()*names.length)];
+  plinkoState.recentBets.unshift({
+    name, nft, mult: m, payout: +(nft.price*m).toFixed(2),
+    ts: Date.now(), win: m>=1
+  });
+  if(plinkoState.recentBets.length > 30) plinkoState.recentBets.length = 30;
+  renderPlinkoBets();
+}
+
+window.addEventListener('resize', ()=>{
+  if(document.getElementById('plinko-screen')?.classList.contains('open') && !plinkoState.rolling){
+    initPlinkoBoard();
+  }
+});
 
 connect();
 </script>
