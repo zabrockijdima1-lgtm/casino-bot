@@ -316,6 +316,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #particles{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8}
 .part{position:absolute;background:rgba(255,255,255,.1);border-radius:50%;animation:pfly linear infinite}
 @keyframes pfly{0%{opacity:.4;transform:translateY(0)}100%{opacity:0;transform:translateY(-100px)}}
+/* Зірки */
+.star{position:absolute;border-radius:50%;animation:twinkle ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.9;transform:scale(1.4)}}
 #topbar{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:8px 12px}
 #rlbl{font-size:9px;color:var(--text-muted);background:rgba(0,0,0,0.5);padding:4px 8px;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:700}
 #deposit-btn{display:flex;align-items:center;gap:6px;background:rgba(10,15,30,0.85);border:1px solid rgba(77,143,255,0.3);border-radius:20px;padding:5px 10px 5px 8px;cursor:pointer;backdrop-filter:blur(8px)}
@@ -492,6 +495,46 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #toast.show{opacity:1}
 .sp{position:fixed;pointer-events:none;z-index:200;font-size:18px;animation:spf 1s ease-out forwards}
 @keyframes spf{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-80px) scale(.3)}}
+
+/* Конфеті */
+.confetti-piece{position:fixed;pointer-events:none;z-index:999;width:8px;height:8px;border-radius:2px;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{
+  0%{opacity:1;transform:translateY(-20px) rotate(0deg)}
+  100%{opacity:0;transform:translateY(100vh) rotate(720deg)}
+}
+
+/* Пульс множника при великих іксах */
+@keyframes mult-pulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1)}
+  50%{transform:translate(-50%,-50%) scale(1.08)}
+}
+#mult.big-win{animation:mult-pulse .6s ease-in-out infinite}
+
+/* Хвилясті частинки фону під час польоту */
+.wave-dot{position:absolute;border-radius:50%;pointer-events:none;animation:wave-rise linear forwards}
+@keyframes wave-rise{
+  0%{opacity:0;transform:translateY(0) scale(0)}
+  20%{opacity:.7}
+  100%{opacity:0;transform:translateY(-120px) scale(.5)}
+}
+
+/* Монети летять при поповненні */
+.coin-fly{position:fixed;pointer-events:none;z-index:300;font-size:22px;animation:coin-arc ease-out forwards}
+@keyframes coin-arc{
+  0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
+  60%{opacity:1}
+  100%{opacity:0;transform:translate(var(--cx),var(--cy)) scale(.4) rotate(360deg)}
+}
+
+/* Екран очікування */
+@keyframes countdown-pulse{
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:1;transform:scale(1.05)}
+}
+#mult.waiting{animation:countdown-pulse 1.4s ease-in-out infinite}
+
+/* Швидкі ставки активна кнопка */
+.qb.active-preset{background:var(--acc);color:#fff;border-color:var(--acc)}
 /* ── CASES ── */
 #cases-screen{display:none;position:fixed;inset:0;background:#0a0f1a;z-index:150;flex-direction:column;overflow:hidden}
 #cases-screen.open{display:flex}
@@ -596,11 +639,12 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
       <div class="cl" id="lbl-bet-card">BET TON</div>
       <input class="inp" id="bi" type="number" value="0.1" min="0.1" step="0.1">
       <div class="qbtns">
-        <button class="qb" onclick="sB(.1)">0.1</button>
-        <button class="qb" onclick="sB(.5)">0.5</button>
-        <button class="qb" onclick="sB(2.8)">2.8</button>
-        <button class="qb" onclick="hB()">½</button>
-        <button class="qb" onclick="x2B()">×2</button>
+        <button class="qb" onclick="sB(.1);setActivePreset(this)">0.1</button>
+        <button class="qb" onclick="sB(.5);setActivePreset(this)">0.5</button>
+        <button class="qb" onclick="sB(1);setActivePreset(this)">1</button>
+        <button class="qb" onclick="sB(2);setActivePreset(this)">2</button>
+        <button class="qb" onclick="hB();setActivePreset(this)">½</button>
+        <button class="qb" onclick="x2B();setActivePreset(this)">×2</button>
       </div>
     </div>
     <div class="card">
@@ -770,9 +814,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <h2>🎁 Cases</h2>
   </div>
   <div class="cases-scroll">
-    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:20px">🔥 Available case</div>
+    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:16px;padding-bottom:4px">🔥 Choose your case</div>
     <div class="cases-featured" id="cases-featured"></div>
-    <div class="cases-grid" id="cases-list"></div>
+    <div class="cases-grid" id="cases-list" style="padding-bottom:24px"></div>
   </div>
 </div>
 
@@ -1035,22 +1079,31 @@ function getNFTSafe(win, mx){
 const tg=window.Telegram?.WebApp;
 tg?.ready();tg?.expand();
 const tgUser=tg?.initDataUnsafe?.user;
-const userId=tgUser?.id||Math.floor(Math.random()*999999);
+// SECURITY: в продакшені блокуємо без Telegram
+// Але дозволяємо перегляд у браузері для тестування
+const IS_TELEGRAM = !!tgUser;
+const userId = IS_TELEGRAM ? tgUser.id : 0; // 0 = dev mode, всі ігрові дії будуть заблоковані
 const userName=tgUser?.first_name||'Player';
 const userNick=tgUser?.username||'';
 const userPhoto=tgUser?.photo_url||'';
 const startParam=tg?.initDataUnsafe?.start_param||'';
 const refBy=startParam.startsWith('ref_')?startParam.slice(4):null;
 
-let balance=parseFloat(localStorage.getItem('rkt_bal_'+userId)||'1.0');
+// SECURITY: баланс = 0 до отримання з сервера. localStorage — тільки UI-кеш
+let balance=IS_TELEGRAM ? 0 : parseFloat(localStorage.getItem('rkt_bal_0')||'1.0');
+let serverBalanceSynced=!IS_TELEGRAM; // в dev mode вважаємо синхронізованим одразу
 let myNFTs=[];
 try{const s=localStorage.getItem('rkt_nfts_'+userId);if(s)myNFTs=JSON.parse(s);}catch(e){}
 let phase='waiting',mult=1.0,startTs=0,hasBet=false,betAmt=0;
-let autoOn=false,selTon=1,lastPayAmount=0;
+let autoOn=false,selTon=1,lastPayAmount=0,lastPayTxId=null;
 let points=[],loopId=null,ws=null,wsReady=false;
 
 function saveBal(){localStorage.setItem('rkt_bal_'+userId,balance.toFixed(4));}
-function updBal(){document.getElementById('bal').textContent=balance.toFixed(2);}
+function updBal(){
+  // В Telegram чекаємо синхронізацію. В dev mode — показуємо одразу
+  if(IS_TELEGRAM && !serverBalanceSynced) return;
+  document.getElementById('bal').textContent=balance.toFixed(2);
+}
 function saveNFTs(){localStorage.setItem('rkt_nfts_'+userId,JSON.stringify(myNFTs));}
 
 const canvas=document.getElementById('gc');
@@ -1064,54 +1117,44 @@ function calcMult(el){return Math.round(Math.pow(Math.E,el*0.07)*100)/100;}
 // ── РАКЕТА + ГРАФІК ─────────────────────────────────────────────────────────
 let rocketAngle = 35;
 
+// Pepe image sprite
+const pepeImg = new Image();
+pepeImg.src = 'data:image/webp;base64,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';
+
 function drawRocket(cx, cy, angleDeg){
   ctx.save();
   ctx.translate(cx, cy);
+  // Пепе сидить на ракеті що летить вправо-вгору
+  // Зображення: ракета з Пепе, ніс ракети вправо, хвіст вліво
   ctx.rotate(-angleDeg * Math.PI / 180);
 
-  // Вогняний хвіст позаду
+  const W = 120; // ширина зображення на canvas (160px оригінал, масштаб 0.75)
+  const H = 129; // висота (172 * 0.75)
+
+  // Вогняний реактивний слід ззаду (лівий край = хвіст ракети)
   [
-    {len:24, r:10, c:'rgba(255,80,0,0.13)'},
-    {len:17, r:6.5,c:'rgba(255,165,0,0.28)'},
-    {len:11, r:3.8,c:'rgba(255,225,60,0.60)'},
+    {len:50, r:18, c:'rgba(255,70,0,0.20)'},
+    {len:35, r:11, c:'rgba(255,160,0,0.38)'},
+    {len:20, r:6,  c:'rgba(255,230,50,0.70)'},
   ].forEach(f=>{
-    const g=ctx.createRadialGradient(-f.len*.45,0,0,-f.len*.45,0,f.r);
-    g.addColorStop(0,f.c); g.addColorStop(1,'rgba(255,60,0,0)');
+    const ox = -W * 0.48; // хвіст ракети
+    const g = ctx.createRadialGradient(ox, 0, 0, ox - f.len*0.3, 0, f.r);
+    g.addColorStop(0, f.c);
+    g.addColorStop(1, 'rgba(255,60,0,0)');
     ctx.beginPath();
-    ctx.ellipse(-f.len*.6,0,f.len,f.r,0,0,Math.PI*2);
-    ctx.fillStyle=g; ctx.fill();
+    ctx.ellipse(ox - f.len*0.5, 0, f.len, f.r, 0, 0, Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
   });
 
-  // Крила (за корпусом)
-  ctx.fillStyle='#455a64';
-  ctx.beginPath(); ctx.moveTo(2,-4); ctx.lineTo(-7,-11); ctx.lineTo(-5,-4); ctx.closePath(); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(2,4);  ctx.lineTo(-7,11);  ctx.lineTo(-5,4);  ctx.closePath(); ctx.fill();
-
-  // Корпус
-  const bg=ctx.createLinearGradient(-3,-5,3,-5);
-  bg.addColorStop(0,'#78909c'); bg.addColorStop(.35,'#eceff1');
-  bg.addColorStop(.65,'#cfd8dc'); bg.addColorStop(1,'#546e7a');
-  ctx.fillStyle=bg;
-  ctx.shadowColor='rgba(255,200,60,.5)'; ctx.shadowBlur=10;
-  ctx.beginPath();
-  ctx.moveTo(8,-5); ctx.lineTo(-6,-5);
-  ctx.quadraticCurveTo(-9,-5,-9,0); ctx.quadraticCurveTo(-9,5,-6,5);
-  ctx.lineTo(8,5); ctx.closePath(); ctx.fill();
-  ctx.shadowBlur=0;
-
-  // Ніс
-  const ng=ctx.createLinearGradient(8,-5,8,5);
-  ng.addColorStop(0,'#ef5350'); ng.addColorStop(.5,'#ff8a80'); ng.addColorStop(1,'#c62828');
-  ctx.fillStyle=ng;
-  ctx.beginPath(); ctx.moveTo(8,-5); ctx.lineTo(15,0); ctx.lineTo(8,5); ctx.closePath(); ctx.fill();
-
-  // Ілюмінатор
-  ctx.shadowColor='#00e5ff'; ctx.shadowBlur=6;
-  ctx.fillStyle='#4dd0e1';
-  ctx.beginPath(); ctx.arc(1.5,0,3,0,Math.PI*2); ctx.fill();
-  ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(255,255,255,.75)';
-  ctx.beginPath(); ctx.arc(.5,-1,1.3,0,Math.PI*2); ctx.fill();
+  // Малюємо Пепе на ракеті
+  // Зображення center: ніс ракети ~70% від лівого краю, center Y ~55%
+  // Розміщуємо так щоб кінець кривої (cx,cy) співпадав з носом ракети
+  if(pepeImg.complete && pepeImg.naturalWidth > 0){
+    // Ніс ракети у зображенні ~rightmost point
+    // Малюємо: right edge = 0 (cx,cy), так кінець кривої = ніс
+    ctx.drawImage(pepeImg, -W * 0.92, -H * 0.52, W, H);
+  }
 
   ctx.restore();
 }
@@ -1131,14 +1174,49 @@ function drawGraph(crashed){
   const toY=m=>PT+GH-(Math.log(Math.max(m,1))/Math.log(maxM))*GH;
 
   const isLight=document.body.classList.contains('light-theme');
-  const lc =crashed?'#ff1744':(isLight?'#7c3aed':'#ffd600');
+
+  // Колір кривої залежить від поточного множника
+  function curveColor(alpha){
+    if(crashed) return `rgba(255,23,68,${alpha})`;
+    if(isLight){
+      if(mult>=10) return `rgba(220,38,38,${alpha})`;
+      if(mult>=5)  return `rgba(234,88,12,${alpha})`;
+      if(mult>=2)  return `rgba(124,58,237,${alpha})`;
+      return `rgba(124,58,237,${alpha})`;
+    }
+    if(mult>=10) return `rgba(255,50,50,${alpha})`;
+    if(mult>=5)  return `rgba(255,140,0,${alpha})`;
+    if(mult>=2)  return `rgba(255,214,0,${alpha})`;
+    return `rgba(255,214,0,${alpha})`;
+  }
+
+  // Градієнт кривої по довжині (старт→кінець)
+  function makeCurveGradient(){
+    if(crashed) return '#ff1744';
+    const g=ctx.createLinearGradient(first.x,0,last.x,0);
+    if(isLight){
+      g.addColorStop(0,'#7c3aed');
+      g.addColorStop(0.6,'#7c3aed');
+      if(mult>=10){ g.addColorStop(0.85,'#ea580c'); g.addColorStop(1,'#dc2626'); }
+      else if(mult>=5){ g.addColorStop(1,'#ea580c'); }
+      else{ g.addColorStop(1,'#7c3aed'); }
+    } else {
+      g.addColorStop(0,'#ffd600');
+      g.addColorStop(0.6,'#ffd600');
+      if(mult>=10){ g.addColorStop(0.85,'#ff6600'); g.addColorStop(1,'#ff1a1a'); }
+      else if(mult>=5){ g.addColorStop(0.85,'#ffaa00'); g.addColorStop(1,'#ff6600'); }
+      else{ g.addColorStop(1,'#ffd600'); }
+    }
+    return g;
+  }
+
   const lc2=crashed?'#ff6090':(isLight?'#ddd6fe':'#fff9c4');
-  const gc =crashed?'rgba(255,23,68,.8)':(isLight?'rgba(124,58,237,.9)':'rgba(255,214,0,.9)');
-  const fa =crashed?'rgba(255,23,68,':(isLight?'rgba(124,58,237,':'rgba(255,214,0,');
+  const gc=curveColor(crashed?0.8:0.9);
+  const fa=crashed?'rgba(255,23,68,':(isLight?'rgba(124,58,237,':'rgba(255,214,0,');
 
   ctx.clearRect(0,0,W,H);
 
-  // Сітка
+  // Сітка — тільки лінії, без підписів
   const gridMs=[1.5,2,3,5,10,20,50,100].filter(m=>m<maxM*.97);
   ctx.save();
   ctx.strokeStyle=isLight?'rgba(120,50,220,.1)':'rgba(255,255,255,.05)';
@@ -1146,8 +1224,6 @@ function drawGraph(crashed){
   gridMs.forEach(m=>{
     const gy=toY(m);
     ctx.beginPath(); ctx.moveTo(PL,gy); ctx.lineTo(W-PR,gy); ctx.stroke();
-    ctx.fillStyle=isLight?'rgba(90,40,180,.4)':'rgba(255,255,255,.22)';
-    ctx.font='bold 9px Nunito'; ctx.fillText(m+'×',4,gy+4);
   });
   ctx.setLineDash([]); ctx.restore();
 
@@ -1180,7 +1256,7 @@ function drawGraph(crashed){
   // Outer glow
   ctx.save(); ctx.shadowColor=gc; ctx.shadowBlur=crashed?8:30;
   ctx.beginPath(); spline();
-  ctx.strokeStyle=lc; ctx.lineWidth=crashed?2.5:6;
+  ctx.strokeStyle=makeCurveGradient(); ctx.lineWidth=crashed?2.5:6;
   ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke(); ctx.restore();
 
   // Core
@@ -1197,15 +1273,30 @@ function drawGraph(crashed){
     ctx.lineCap='round'; ctx.stroke(); ctx.restore();
   }
 
-  // Ракета / вибух
+  // Міні-ракета або вибух
   if(!crashed){
-    if(pts.length>=4){
-      const pv=pts[Math.max(0,pts.length-6)];
-      const dx=last.x-pv.x, dy=last.y-pv.y;
-      const raw=Math.atan2(-dy,dx)*180/Math.PI;
-      rocketAngle=Math.max(2,Math.min(82,raw*.85+rocketAngle*.15));
-    }
-    drawRocket(last.x,last.y,rocketAngle);
+    // Красива куля з glow на кінці кривої
+    const ballColor = isLight
+      ? (mult>=10?'#dc2626':mult>=5?'#ea580c':'#7c3aed')
+      : (mult>=10?'#ff3030':mult>=5?'#ff8800':'#ffd600');
+    ctx.save();
+    // Outer halo
+    ctx.shadowColor=gc; ctx.shadowBlur=30;
+    ctx.beginPath(); ctx.arc(last.x,last.y,9,0,Math.PI*2);
+    ctx.fillStyle=ballColor+'33'; ctx.fill();
+    // Mid glow
+    ctx.shadowBlur=16;
+    ctx.beginPath(); ctx.arc(last.x,last.y,6,0,Math.PI*2);
+    ctx.fillStyle=ballColor+'88'; ctx.fill();
+    // Core
+    ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(last.x,last.y,4,0,Math.PI*2);
+    ctx.fillStyle=ballColor; ctx.fill();
+    // Bright center
+    ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(last.x-1,last.y-1,1.5,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fill();
+    ctx.restore();
   } else {
     ctx.save();
     [{r:22,c:'rgba(255,100,0,.12)'},{r:14,c:'rgba(255,160,0,.28)'},{r:8,c:'rgba(255,220,50,.55)'},{r:4,c:'rgba(255,255,200,.9)'}]
@@ -1220,17 +1311,31 @@ function drawGraph(crashed){
 
 
 function spawnParticles(){
-  const c=document.getElementById('particles');c.innerHTML='';
-  for(let i=0;i<14;i++){
-    const el=document.createElement('div');el.className='part';
-    const w=3+Math.random()*5,h=w*2.2;
-    el.style.cssText=`width:${w}px;height:${h}px;left:${Math.random()*100}%;top:${10+Math.random()*75}%;animation-duration:${3+Math.random()*5}s;animation-delay:${Math.random()*4}s;transform:rotate(${Math.random()*30-15}deg)`;
+  const c=document.getElementById('particles');
+  c.innerHTML='';
+  // Зірки на фоні
+  for(let i=0;i<55;i++){
+    const el=document.createElement('div');
+    el.className='star';
+    const sz=0.8+Math.random()*2.2;
+    const colors=['255,255,255','200,220,255','255,240,200','180,200,255'];
+    const col=colors[Math.floor(Math.random()*colors.length)];
+    el.style.cssText=`
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;
+      top:${Math.random()*88}%;
+      background:rgba(${col},${0.4+Math.random()*0.6});
+      animation-duration:${1.5+Math.random()*3.5}s;
+      animation-delay:${Math.random()*4}s;
+      box-shadow:0 0 ${sz*2}px rgba(${col},0.8);
+    `;
     c.appendChild(el);
   }
 }
 
 function startClientAnim(){
   cancelAnimationFrame(loopId);points=[];rocketAngle=45;spawnParticles();
+  startWaveParticles(); // хвилясті частинки фону
   const t0=startTs*1000;
   function tick(){
     if(phase!=='flying'){loopId=null;return;}
@@ -1516,20 +1621,19 @@ function sellNFT(id,name,price){
     btnLabel:`${t('confirm_btn_sell')} ${(+price).toFixed(2)} TON`,
     btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
     onOk:()=>{
-      // Видаляємо з локального інвентаря
       let removed=false;
       myNFTs=myNFTs.filter(n=>{if(!removed&&n.id===id){removed=true;return false;}return true;});
+      if(!removed){showToast(t('error'));return;} // SECURITY: NFT вже не існує
       saveNFTs();
-      // Зараховуємо TON на баланс локально
-      balance=+(balance+(+price)).toFixed(4);
-      updBal();saveBal();
+      // SECURITY: ціну визначає сервер за nft_id, НЕ передаємо price з клієнта
+      // Баланс оновиться через WS відповідь сервера
       const cnt=myNFTs.length;
       document.getElementById('inv-tab-lbl').textContent=cnt?`${t('inv')} (${cnt})`:t('inv');
-      showToast(`✅ ${t('nft_sold')} ${(+price).toFixed(2)} TON!`,'win');
+      showToast(`${t('nft_sold')} ${(+price).toFixed(2)} TON!`,'win');
       spawnGems(3,'💰');
       closeModal();
-      // Також повідомляємо сервер якщо є зв'язок
-      if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,price:price,type:'sell'}));
+      if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,type:'sell'}));
+      // НЕ нараховуємо balance тут — чекаємо ws відповідь withdraw_ok
     }
   });
 }
@@ -1618,12 +1722,15 @@ function connect(){
   ws=new WebSocket(url);
   ws.onopen=()=>{
     wsReady=true;document.getElementById('conn').textContent='⚡';
-    ws.send(JSON.stringify({a:'auth',name:userName,nick:userNick,photo:userPhoto,ref_by:refBy}));
+    // SECURITY: передаємо initData для серверної верифікації підпису
+    ws.send(JSON.stringify({a:'auth',name:userName,nick:userNick,photo:userPhoto,ref_by:refBy,initData:tg?.initData||''}));
   };
   ws.onmessage=e=>{
     const d=JSON.parse(e.data);
     if(d.t==='init'){
-      balance=d.bal||balance;updBal();saveBal();
+      // SECURITY: баланс тільки від сервера, встановлюємо прапор синхронізації
+      serverBalanceSynced=true;
+      balance=d.bal||0;updBal();saveBal();
       if(d.h)d.h.slice().reverse().forEach(v=>addH(v));
       renderPlayers(d.pl);
       if(d.phase==='flying'){phase='flying';startTs=d.ts;ME().className='';ME().textContent=(d.mult||1).toFixed(2)+'×';startClientAnim();}
@@ -1634,6 +1741,7 @@ function connect(){
       const newRound=d.rid!==parseInt(document.getElementById('rid').textContent||'0');
       if(newRound){hasBet=false;}
       phase='waiting';document.getElementById('rid').textContent=d.rid;
+      stopWaveParticles();
       ME().className='waiting';ME().textContent=`${t('start_in')} ${d.sec}...`;
       document.getElementById('particles').innerHTML='';
       resize();ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -1641,8 +1749,14 @@ function connect(){
       if(pendingBet && !hasBet){
         pendingBet = false;
         const amt = betAmt;
-        const ac = autoOn ? parseFloat(document.getElementById('av').value) || null : null;
-        if(wsReady) ws.send(JSON.stringify({a:'bet', amt, ac}));
+        // SECURITY: повторна перевірка балансу перед відправкою
+        if(amt > balance){
+          BB().disabled=false; BB().className=''; BB().innerHTML=t('place_bet');
+          showToast(t('not_enough'));
+        } else {
+          const ac = autoOn ? parseFloat(document.getElementById('av').value) || null : null;
+          if(wsReady) ws.send(JSON.stringify({a:'bet', amt, ac}));
+        }
       } else if(!hasBet){
         BB().disabled=false;BB().className='';BB().innerHTML=t('place_bet');
       } else {
@@ -1659,6 +1773,7 @@ function connect(){
     else if(d.t==='cr'){
       cancelAnimationFrame(loopId);loopId=null;
       stopFlightTicks();
+      stopWaveParticles(); // зупиняємо хвилі
       phase='crashed';mult=d.ca;
       ME().textContent=d.ca.toFixed(2)+'×';ME().className='crashed';
       // Flash + screen shake
@@ -1672,7 +1787,7 @@ function connect(){
       document.getElementById('particles').innerHTML='';
       if(points.length>1)drawGraph(true);
       addH(d.ca);
-      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;playCrashSound();}
+      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;playCrashSound();vibrateOnCrash();}
       pendingBet = false;
       BB().disabled=true;BB().className='';BB().innerHTML=t('place_bet');
       renderPlayers(d.pl);
@@ -1683,13 +1798,13 @@ function connect(){
       hasBet=false;balance=d.bal;updBal();saveBal();
       stopFlightTicks();
       playCashoutSound();
-      // NFT лише якщо множник >= 1.1
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
       if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
       showWinPopup(d.mx,d.win,nftAllowed?d.nft:null);
+      triggerBigWin(+d.mx); // конфеті/зірки залежно від множника
       BB().className='';BB().innerHTML=t('place_bet');
     }
-    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);}
+    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
     else if(d.t==='nft_sold'){
       // NFT вже видалено локально в sellNFT(), просто синхронізуємо баланс із сервером
       if(d.bal){balance=d.bal;updBal();saveBal();}
@@ -1704,6 +1819,13 @@ function connect(){
       closeModal();
     }
     else if(d.t==='ref_bonus'){balance=d.bal;updBal();saveBal();showToast(`👥 +${d.bonus} TON bonus!`,'win');}
+    // SECURITY: баланс від сервера після підтверджених операцій
+    else if(d.t==='withdraw_ok'){
+      if(d.bal){balance=d.bal;updBal();saveBal();}
+    }
+    else if(d.t==='case_win_ok'){
+      if(d.bal){balance=d.bal;updBal();saveBal();}
+    }
     else if(d.t==='err'){showToast(d.msg);}
   };
   ws.onclose=()=>{wsReady=false;document.getElementById('conn').textContent='🔴';setTimeout(connect,2000);};
@@ -1712,7 +1834,16 @@ function connect(){
 
 let pendingBet = false; // ставка в чергу на наступний раунд
 
+// SECURITY: rate limiting — не частіше ніж раз на 300ms
+let lastBetAction=0;
 function handleBet(){
+  const now=Date.now();
+  if(now-lastBetAction<300)return;
+  lastBetAction=now;
+
+  // SECURITY: в Telegram блокуємо до синхронізації балансу з сервером
+  if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
+
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
@@ -1780,10 +1911,24 @@ async function doTonPayment(){
 }
 function confirmPaid(){
   closeTopup();
+  // SECURITY: баланс зараховується ТІЛЬКИ через WebSocket topup_ok від сервера
+  // після підтвердження блокчейну. Ніякого клієнтського нарахування.
   fetch(SERVER+`/topup/${userId}/${lastPayAmount}`,{method:'POST'})
     .then(r=>r.json())
-    .then(d=>{if(d.ok||d.balance){balance=d.balance||d.bal;updBal();saveBal();showToast(`◈ +${lastPayAmount} ${t('credited')}`,'win');spawnGems(5);}})
-    .catch(()=>{balance=+(balance+lastPayAmount).toFixed(4);updBal();saveBal();showToast(`◈ +${lastPayAmount} ${t('credited')}`,'win');});
+    .then(d=>{
+      if(d.ok||d.balance){
+        balance=d.balance||d.bal;
+        updBal();saveBal();
+        showToast(`◈ +${lastPayAmount} ${t('credited')}`,'win');
+        spawnGems(5);
+      } else {
+        showToast(t('sent'),'info'); // чекаємо підтвердження через WS
+      }
+    })
+    .catch(()=>{
+      // SECURITY: НЕ зараховуємо баланс при помилці — чекаємо WS topup_ok
+      showToast(t('sent'),'info');
+    });
 }
 
 let tT=null;
@@ -1799,6 +1944,109 @@ function spawnGems(n,emoji='◈'){
     s.style.left=15+Math.random()*70+'vw';s.style.top=30+Math.random()*30+'vh';
     s.style.animationDelay=Math.random()*0.3+'s';document.body.appendChild(s);
     setTimeout(()=>s.remove(),1200);
+  }
+}
+
+// Конфеті при великому виграші
+function spawnConfetti(count=60){
+  const colors=['#ffd600','#ff6b6b','#4ade80','#60a5fa','#f472b6','#a78bfa','#34d399','#fbbf24'];
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`
+      left:${10+Math.random()*80}vw;
+      top:-10px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${5+Math.random()*8}px;
+      height:${5+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:${Math.random()*0.8}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4000);
+  }
+}
+
+// Монети летять до балансу при топапі
+function spawnCoinsToBal(n=6){
+  const balEl=document.getElementById('deposit-btn');
+  if(!balEl)return;
+  const br=balEl.getBoundingClientRect();
+  const tx=br.left+br.width/2;
+  const ty=br.top+br.height/2;
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');
+    el.className='coin-fly';
+    const sx=20+Math.random()*60;
+    const sy=40+Math.random()*30;
+    el.style.cssText=`
+      left:${sx}vw; top:${sy}vh;
+      --cx:${tx-window.innerWidth*sx/100}px;
+      --cy:${ty-window.innerHeight*sy/100}px;
+      animation-duration:${0.6+Math.random()*0.4}s;
+      animation-delay:${i*0.08}s;
+    `;
+    el.textContent='◈';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),1500);
+  }
+}
+
+// Хвилясті частинки фону під час польоту
+let waveInterval=null;
+function startWaveParticles(){
+  stopWaveParticles();
+  const sky=document.getElementById('sky');
+  waveInterval=setInterval(()=>{
+    if(phase!=='flying')return;
+    const el=document.createElement('div');
+    el.className='wave-dot';
+    const isLight=document.body.classList.contains('light-theme');
+    const colors=isLight?['rgba(124,58,237,.25)','rgba(167,139,250,.3)','rgba(196,181,253,.2)']:['rgba(255,214,0,.15)','rgba(255,165,0,.12)','rgba(255,255,255,.08)'];
+    const sz=2+Math.random()*5;
+    el.style.cssText=`
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;
+      bottom:${Math.random()*60}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:0s;
+      z-index:6;
+    `;
+    sky.appendChild(el);
+    setTimeout(()=>el.remove(),3500);
+  },120);
+}
+function stopWaveParticles(){
+  if(waveInterval){clearInterval(waveInterval);waveInterval=null;}
+}
+
+// Вібрація при краші
+function vibrateOnCrash(){
+  if(navigator.vibrate){
+    navigator.vibrate([80,30,120,30,200]);
+  }
+}
+
+// Підсвітка активної кнопки швидкої ставки
+function setActivePreset(btn){
+  document.querySelectorAll('.qb').forEach(b=>b.classList.remove('active-preset'));
+  btn.classList.add('active-preset');
+  setTimeout(()=>btn.classList.remove('active-preset'),800);
+}
+
+// Великий виграш — пульс множника + конфеті
+function triggerBigWin(mx){
+  const multEl=ME();
+  if(mx>=10){
+    multEl.classList.add('big-win');
+    spawnConfetti(80);
+    setTimeout(()=>multEl.classList.remove('big-win'),3000);
+  } else if(mx>=5){
+    spawnConfetti(35);
+  } else if(mx>=2){
+    spawnGems(8,'⭐');
   }
 }
 
@@ -2034,8 +2282,11 @@ function setLang(lang){
 }
 
 // ── АДМІН КНОПКА ─────────────────────────────────────────────────
+// SECURITY: кнопка показується для зручності, але сервер /admin
+// повинен самостійно верифікувати userId через Telegram initData
+// Клієнтський список — тільки для UI, НЕ для авторизації
 const ADMIN_IDS_CLIENT = new Set([1256452126, 6479535975]);
-if(ADMIN_IDS_CLIENT.has(userId)){
+if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
   const adminBtn = document.createElement('button');
   adminBtn.innerHTML = '🐙 Admin';
   adminBtn.style.cssText = [
@@ -2057,7 +2308,9 @@ if(ADMIN_IDS_CLIENT.has(userId)){
     'letter-spacing:0.5px'
   ].join(';');
   adminBtn.onclick = () => {
-    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}`;
+    // SECURITY: передаємо initData — сервер верифікує підпис Telegram
+    const initDataEncoded = encodeURIComponent(tg?.initData||'');
+    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}&initData=${initDataEncoded}`;
     if(tg?.openLink) tg.openLink(url);
     else window.open(url,'_blank');
   };
@@ -2071,7 +2324,8 @@ initAudio();
 setTimeout(()=>{try{initTon();}catch(e){}},300);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
-const CASES=[
+// Порядок: від дешевого до дорогого (0.5 → 0.9 → 1.0 → 1.4 → 2.5 → 4.7)
+const CASES_RAW=[
   {id:'pink',name:'PINK',emoji:'💋',price:4.7,
    previewNFTs:['snakebox','candycane','jesterhat'],
    items:[
@@ -2101,8 +2355,84 @@ const CASES=[
     {id:'nailbracelet', name:'Nail Bracelet Neon Tube',emoji:'💜',price:107.10,rarity:'Legendary',weight:0.05,isNFT:true},
     {id:'astralshard',  name:'Astral Shard Lovestone',emoji:'💎',price:249.10,rarity:'Legendary', weight:0.02,isNFT:true},
   ]},
+  {id:'bichugan',name:'BICHUGAN',emoji:'🏆',price:0.5,
+   previewNFTs:['snakebox','jesterhat','candycane'],
+   items:[
+    {id:'snakebox',     name:'Snake Box',            emoji:'🐍', price:2.60,  rarity:'Common',    weight:20, isNFT:true},
+    {id:'candycane',    name:'Candy Cane',           emoji:'🍬', price:2.85,  rarity:'Common',    weight:18, isNFT:true},
+    {id:'jesterhat',    name:'Jester Hat',           emoji:'🎭', price:3.28,  rarity:'Common',    weight:15, isNFT:true},
+    {id:'lolpop',       name:'Lol Pop',              emoji:'🍭', price:3.35,  rarity:'Common',    weight:12, isNFT:true},
+    {id:'spicedwine',   name:'Spiced Wine',          emoji:'🍷', price:3.69,  rarity:'Common',    weight:10, isNFT:true},
+    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Rare',      weight:8,  isNFT:true},
+    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:5,  isNFT:true},
+    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:3,  isNFT:true},
+    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:1.5,isNFT:true},
+    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Legendary', weight:0.3,isNFT:true},
+    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.02,isNFT:true},
+  ]},
+  {id:'spring',name:'SPRING',emoji:'🌸',price:0.9,
+   previewNFTs:['sakuraflower','lushbouquet','cookieheart'],
+   items:[
+    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Common',    weight:18, isNFT:true},
+    {id:'lushbouquet',  name:'Lush Bouquet',         emoji:'💐', price:4.69,  rarity:'Common',    weight:16, isNFT:true},
+    {id:'bunnymuffin',  name:'Bunny Muffin',         emoji:'🐰', price:5.94,  rarity:'Rare',      weight:12, isNFT:true},
+    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:9,  isNFT:true},
+    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:7,  isNFT:true},
+    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:5,  isNFT:true},
+    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:3,  isNFT:true},
+    {id:'eternalrose',  name:'Eternal Rose',         emoji:'🌹', price:23.81, rarity:'Epic',      weight:1.5,isNFT:true},
+    {id:'nekohelmet',   name:'Neko Helmet Princess', emoji:'⛑️', price:89.36, rarity:'Legendary', weight:0.4,isNFT:true},
+    {id:'astralshard',  name:'Astral Shard',         emoji:'💎', price:159.27,rarity:'Legendary', weight:0.1,isNFT:true},
+  ]},
+  {id:'baza',name:'BAZA',emoji:'💎',price:1.0,
+   previewNFTs:['crystalball','ionicgem','perfumebottle'],
+   items:[
+    {id:'spyagaric',    name:'Spy Agaric',           emoji:'🍄', price:4.79,  rarity:'Common',    weight:18, isNFT:true},
+    {id:'inputkey',     name:'Input Key',            emoji:'🔑', price:4.99,  rarity:'Common',    weight:15, isNFT:true},
+    {id:'crystalball',  name:'Crystal Ball',         emoji:'🔮', price:10.23, rarity:'Rare',      weight:10, isNFT:true},
+    {id:'madpumpkin',   name:'Mad Pumpkin',          emoji:'🎃', price:11.43, rarity:'Rare',      weight:8,  isNFT:true},
+    {id:'ionicdrier',   name:'Ionic Dryer',          emoji:'💨', price:14.21, rarity:'Epic',      weight:5,  isNFT:true},
+    {id:'recordplayer', name:'Record Player',        emoji:'🎵', price:14.95, rarity:'Epic',      weight:4,  isNFT:true},
+    {id:'cupidcharm',   name:'Cupid Charm',          emoji:'💘', price:18.28, rarity:'Epic',      weight:2.5,isNFT:true},
+    {id:'electricskull',name:'Electric Skull',       emoji:'💀', price:25.92, rarity:'Epic',      weight:1.5,isNFT:true},
+    {id:'ionicgem',     name:'Ion Gem',              emoji:'💎', price:73.31, rarity:'Legendary', weight:0.4,isNFT:true},
+    {id:'perfumebottle',name:'Perfume Bottle',       emoji:'🧴', price:74.40, rarity:'Legendary', weight:0.2,isNFT:true},
+    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
+  ]},
+  {id:'infinity',name:'INFINITY',emoji:'⌚',price:1.4,
+   previewNFTs:['swisswatch','diamondring','voodoodoll'],
+   items:[
+    {id:'timelessbook', name:'Timeless Book',        emoji:'📖', price:4.23,  rarity:'Common',    weight:16, isNFT:true},
+    {id:'moonpendant',  name:'Moon Pendant',         emoji:'🌙', price:4.58,  rarity:'Common',    weight:14, isNFT:true},
+    {id:'jinglebells',  name:'Jingle Bells',         emoji:'🔔', price:7.77,  rarity:'Rare',      weight:10, isNFT:true},
+    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:8,  isNFT:true},
+    {id:'tophat',       name:'Top Hat',              emoji:'🎩', price:11.12, rarity:'Epic',      weight:6,  isNFT:true},
+    {id:'diamondring',  name:'Diamond Ring',         emoji:'💍', price:26.54, rarity:'Epic',      weight:3,  isNFT:true},
+    {id:'voodoodoll',   name:'Voodoo Doll',          emoji:'🪆', price:30.73, rarity:'Epic',      weight:2,  isNFT:true},
+    {id:'swisswatch',   name:'Swiss Watch',          emoji:'⌚', price:45.29, rarity:'Legendary', weight:1,  isNFT:true},
+    {id:'heroichelmet', name:'Heroic Helmet',        emoji:'⛑️', price:210.61,rarity:'Legendary', weight:0.2,isNFT:true},
+    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
+  ]},
+  {id:'vip',name:'VIP',emoji:'👑',price:2.5,
+   previewNFTs:['genielamp','lowrider','heroichelmet'],
+   items:[
+    {id:'hangingstar',  name:'Hanging Star',         emoji:'⭐', price:7.50,  rarity:'Common',    weight:14, isNFT:true},
+    {id:'jinglebells',  name:'Jingle Bells',         emoji:'🔔', price:7.77,  rarity:'Common',    weight:12, isNFT:true},
+    {id:'voodoodoll',   name:'Voodoo Doll',          emoji:'🪆', price:30.73, rarity:'Rare',      weight:8,  isNFT:true},
+    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Rare',      weight:7,  isNFT:true},
+    {id:'lowrider',     name:'Low Rider',            emoji:'🚗', price:41.88, rarity:'Epic',      weight:5,  isNFT:true},
+    {id:'genielamp',    name:'Genie Lamp',           emoji:'🪔', price:42.74, rarity:'Epic',      weight:4,  isNFT:true},
+    {id:'swisswatch',   name:'Swiss Watch',          emoji:'⌚', price:45.29, rarity:'Epic',      weight:3,  isNFT:true},
+    {id:'westsideside', name:'Westside Sign',        emoji:'🤙', price:74.49, rarity:'Legendary', weight:1.5,isNFT:true},
+    {id:'minioscars',   name:'Mini Oscar',           emoji:'🏆', price:75.83, rarity:'Legendary', weight:1,  isNFT:true},
+    {id:'heroichelmet', name:'Heroic Helmet',        emoji:'⛑️', price:210.61,rarity:'Legendary', weight:0.3,isNFT:true},
+    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
+  ]},
 ];
+// Сортуємо від дешевого до дорогого
+const CASES = CASES_RAW.slice().sort((a,b)=>a.price-b.price);
 let curCase=null,spinAnim=null,lastWin=null;
+let caseWinProcessed=false; // SECURITY: захист від подвійного caseWinKeep+Sell
 const ITW=110;
 function rc(r){return r==='Legendary'?'#ffd700':r==='Epic'?'var(--pepe-light)':r==='Rare'?'#44aaff':'#3ddc84';}
 function wRand(arr){let t=arr.reduce((s,i)=>s+i.weight,0),r=Math.random()*t;for(const i of arr){r-=i.weight;if(r<=0)return i;}return arr[arr.length-1];}
@@ -2126,34 +2456,56 @@ function renderTrack(items){
 
 function openCases(){
   document.getElementById('cases-screen').classList.add('open');
-  const tonSvg=`<svg width="14" height="14" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
 
-  // Єдиний кейс PINK — великий центрований
-  const c = CASES[0];
-  document.getElementById('cases-featured').innerHTML = `
+  // Кольорові теми для кожного кейса
+  const caseThemes = {
+    bichugan: {grad:'linear-gradient(145deg,#1c1400,#2a1e00,#1c1400)',border:'rgba(255,205,0,0.5)', glow:'rgba(255,200,0,0.22)', emojiGlow:'rgba(255,200,0,0.6)',  badge:'rgba(255,205,0,0.13)',   badgeBorder:'rgba(255,205,0,0.4)',   priceTxt:'#ffd700', shadow:'rgba(255,190,0,0.14)'},
+    spring:   {grad:'linear-gradient(145deg,#071a07,#0c280c,#071a07)',border:'rgba(72,200,90,0.5)',  glow:'rgba(60,200,75,0.22)',  emojiGlow:'rgba(60,200,75,0.6)',   badge:'rgba(72,200,90,0.13)',   badgeBorder:'rgba(72,200,90,0.4)',   priceTxt:'#6ee97e', shadow:'rgba(50,190,65,0.12)'},
+    baza:     {grad:'linear-gradient(145deg,#060618,#0a0e2e,#060618)', border:'rgba(90,150,255,0.5)',glow:'rgba(80,140,255,0.22)', emojiGlow:'rgba(80,140,255,0.6)', badge:'rgba(90,150,255,0.13)',  badgeBorder:'rgba(90,150,255,0.4)', priceTxt:'#90bfff', shadow:'rgba(70,130,255,0.12)'},
+    infinity: {grad:'linear-gradient(145deg,#04121e,#061c2e,#04121e)', border:'rgba(0,175,215,0.5)', glow:'rgba(0,165,210,0.22)', emojiGlow:'rgba(0,165,210,0.6)',  badge:'rgba(0,175,215,0.13)',   badgeBorder:'rgba(0,175,215,0.4)',  priceTxt:'#4dd4f0', shadow:'rgba(0,155,200,0.12)'},
+    vip:      {grad:'linear-gradient(145deg,#180e00,#261500,#180e00)', border:'rgba(255,165,0,0.6)', glow:'rgba(255,155,0,0.28)', emojiGlow:'rgba(255,155,0,0.7)',  badge:'rgba(255,165,0,0.16)',   badgeBorder:'rgba(255,165,0,0.5)',  priceTxt:'#ffb830', shadow:'rgba(255,145,0,0.18)'},
+    pink:     {grad:'linear-gradient(145deg,#180622,#240832,#180622)', border:'rgba(255,100,175,0.5)',glow:'rgba(255,90,165,0.22)',emojiGlow:'rgba(255,90,165,0.65)',badge:'rgba(255,100,175,0.13)', badgeBorder:'rgba(255,100,175,0.4)',priceTxt:'#ff7ec7', shadow:'rgba(255,80,155,0.14)'},
+  };
+
+  // Очищаємо featured — використовуємо грід
+  document.getElementById('cases-featured').innerHTML = '';
+
+  // Рендеримо всі 6 кейсів у грід (вже відсортовані по ціні)
+  document.getElementById('cases-list').innerHTML = CASES.map(c => {
+    const th = caseThemes[c.id] || caseThemes.pink;
+    const nftCount = c.items.filter(i=>i.isNFT).length;
+    return `
     <div onclick="openSpin('${c.id}')" style="
-      background:linear-gradient(135deg,#1a0828,#2a0a3a,#1a0828);
-      border:1.5px solid rgba(255,105,180,0.4);
-      border-radius:24px;
-      padding:24px 20px;
+      background:${th.grad};
+      border:1.5px solid ${th.border};
+      border-radius:22px;
+      padding:20px 10px 16px;
       text-align:center;
       cursor:pointer;
-      margin:0 16px 20px;
-      box-shadow:0 0 40px rgba(255,0,128,0.15),0 8px 32px rgba(0,0,0,0.4);
-      transition:transform .15s;
       position:relative;
       overflow:hidden;
-    " onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
-      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,105,180,0.12) 0%,transparent 60%);pointer-events:none"></div>
-      <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(255,0,128,0.5))">💋</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#fff;margin-bottom:6px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,105,180,0.8)">PINK</div>
-      <div style="font-size:12px;color:#cc66aa;margin-bottom:16px;font-family:'Nunito',sans-serif;font-weight:700">NFT Gifts · ${c.items.filter(i=>i.isNFT).length} предметів</div>
-      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,105,180,0.4);border-radius:20px;padding:8px 20px">
-        ${tonSvg}<span style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff">${c.price} TON</span>
+      box-shadow:0 6px 28px ${th.shadow},0 2px 6px rgba(0,0,0,0.35);
+      transition:transform .15s,box-shadow .2s;
+      user-select:none;
+    " onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(0.95)'" ontouchend="this.style.transform='scale(1)'">
+      <!-- Фоновий радіальний гейл -->
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 10%,${th.glow} 0%,transparent 65%);pointer-events:none"></div>
+      <!-- Бейдж кількості предметів -->
+      <div style="position:absolute;top:9px;left:9px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:2px 7px;font-size:10px;font-weight:800;color:rgba(255,255,255,0.65);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:3px;letter-spacing:0.3px">
+        <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="11" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="1" y="11" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="11" y="11" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/></svg>
+        ${nftCount}
+      </div>
+      <!-- Emoji -->
+      <div style="font-size:62px;line-height:1;margin-bottom:10px;filter:drop-shadow(0 0 18px ${th.emojiGlow})">${c.emoji}</div>
+      <!-- Назва -->
+      <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;color:#fff;margin-bottom:10px;letter-spacing:2px;text-shadow:0 0 14px ${th.glow}">${c.name}</div>
+      <!-- Ціна -->
+      <div style="display:inline-flex;align-items:center;gap:7px;background:${th.badge};border:1.5px solid ${th.badgeBorder};border-radius:18px;padding:8px 20px;backdrop-filter:blur(4px)">
+        <svg width="18" height="18" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>
+        <span style="font-family:'Fredoka One',cursive;font-size:22px;color:${th.priceTxt};letter-spacing:0.5px">${c.price}</span>
       </div>
     </div>`;
-  // Очищаємо грід — він не потрібен
-  document.getElementById('cases-list').innerHTML = '';
+  }).join('');
 }
 function closeCases(){document.getElementById('cases-screen').classList.remove('open');}
 
@@ -2527,55 +2879,64 @@ function playFlightTick(m){
   }catch(e){}
 }
 
-// Звук прокрутки кейса — механічний тріскіт рулетки
+// Звук прокрутки кейса — тихі кліки, прискорюються і сповільнюються разом з анімацією
 function playSpinSound(){
   try{
     const ctx=getAudioCtx();
-    const total=7.0;
-    let t=0;
-    // Клацання як у реальній рулетці — металевий звук
-    function clack(time,vol,pitch){
-      // Шум клацання
-      const bufSize=Math.floor(ctx.sampleRate*0.03);
-      const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
-      const nd=nBuf.getChannelData(0);
-      for(let i=0;i<bufSize;i++) nd[i]=Math.random()*2-1;
-      const ns=ctx.createBufferSource();
-      ns.buffer=nBuf;
-      const hf=ctx.createBiquadFilter();
-      hf.type='highpass';hf.frequency.value=pitch||3000;
-      const ng=ctx.createGain();
-      ng.gain.setValueAtTime(vol,ctx.currentTime+time);
+    // Просто короткий whoosh на старт
+    const bufSize=Math.floor(ctx.sampleRate*0.25);
+    const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    const nd=nBuf.getChannelData(0);
+    for(let i=0;i<bufSize;i++) nd[i]=(Math.random()*2-1)*Math.pow(1-i/bufSize,2);
+    const ns=ctx.createBufferSource();
+    ns.buffer=nBuf;
+    const hf=ctx.createBiquadFilter();
+    hf.type='bandpass';hf.frequency.value=1800;hf.Q.value=1.2;
+    const ng=ctx.createGain();
+    ng.gain.setValueAtTime(0.18,ctx.currentTime);
+    ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.22);
+    ns.connect(hf);hf.connect(ng);ng.connect(ctx.destination);
+    ns.start(ctx.currentTime);ns.stop(ctx.currentTime+0.25);
+  }catch(e){}
+}
+
+let _spinTickTimeout=null;
+function startSpinTicks(getDuration, getElapsed){
+  stopSpinTicks();
+  function tick(){
+    const elapsed=getElapsed();
+    const total=getDuration();
+    const p=Math.min(elapsed/total,1);
+    // Швидкість тіків: швидко в середині, повільно на початку і в кінці
+    let speed; // тіків в секунду
+    if(p<0.15) speed=4+p/0.15*14;       // розгін: 4→18
+    else if(p<0.75) speed=18;             // повна швидкість
+    else speed=18*Math.pow(1-(p-0.75)/0.25,1.5)*0.9+1; // гальмування: 18→~1
+    const interval=Math.max(1000/speed,55);
+    if(p>=1){stopSpinTicks();return;}
+    try{
+      const ctx=getAudioCtx();
+      const pitch=700+speed*8;
+      const vol=0.04+speed*0.001;
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.type='sine';o.frequency.value=pitch;
+      o.connect(g);g.connect(ctx.destination);
+      g.gain.setValueAtTime(vol,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.03);
+      o.start(ctx.currentTime);o.stop(ctx.currentTime+0.035);
+    }catch(e){}
+    _spinTickTimeout=setTimeout(tick,interval);
+  }
+  tick();
+}
+function stopSpinTicks(){
+  if(_spinTickTimeout){clearTimeout(_spinTickTimeout);_spinTickTimeout=null;}
+}
+
       ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.025);
       ns.connect(hf);hf.connect(ng);ng.connect(ctx.destination);
       ns.start(ctx.currentTime+time);
-      ns.stop(ctx.currentTime+time+0.03);
-
-      // Тон клацання
-      const ot=ctx.createOscillator();
-      const gt=ctx.createGain();
-      ot.type='sine';ot.frequency.value=pitch?pitch*0.3:800;
-      ot.connect(gt);gt.connect(ctx.destination);
-      gt.gain.setValueAtTime(vol*0.5,ctx.currentTime+time);
-      gt.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.04);
-      ot.start(ctx.currentTime+time);ot.stop(ctx.currentTime+time+0.045);
-    }
-
-    let interval=0.035;
-    while(t<total){
-      const progress=t/total;
-      interval=0.035+progress*progress*0.40;
-      const vol=progress>0.88?0.22:0.10;
-      const pitch=progress>0.88?5000:3200;
-      clack(t,vol,pitch);
-      t+=interval;
-    }
-    // Фінальний удар — зупинка
-    clack(total+0.05,0.35,6000);
-    clack(total+0.12,0.20,5000);
-    clack(total+0.22,0.10,4000);
-  }catch(e){}
-}
 
 // Ініціалізація — запускаємо музику після першого торкання
 function initAudio(){
@@ -2587,26 +2948,29 @@ function initAudio(){
 
 function spinCase(){
   if(!curCase)return;
+  if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
-  if(spinAnim){return;} // захист від подвійного кліку
+  if(spinAnim){return;}
+  caseWinProcessed=false;
   playSpinSound();
   balance=+(balance-curCase.price).toFixed(4);updBal();saveBal();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
 
-  // 1. Чесний winner
+  // Рандомна тривалість 3–15 секунд
+  const dur=3000+Math.random()*12000;
+
   const winner=wRand(curCase.items);
   lastWin=winner;
 
-  // 2. Трек: позиція WINNER_IDX — реальний winner, решта — декор
   const WINNER_IDX=55;
-  const ITEM_GAP=12; // gap між елементами в #spin-track (з CSS)
-  const ITEM_FULL=ITW+ITEM_GAP; // реальна ширина одного слота включно з gap
+  const ITEM_GAP=12;
+  const ITEM_FULL=ITW+ITEM_GAP;
 
   const nftItems=curCase.items.filter(i=>i.isNFT);
   const tonItems=curCase.items.filter(i=>i.isTon);
   const items=Array.from({length:120},(_,idx)=>{
-    if(idx===WINNER_IDX) return winner; // реальний результат завжди тут
+    if(idx===WINNER_IDX) return winner;
     if(nftItems.length&&tonItems.length){
       return Math.random()<0.75?nftItems[Math.floor(Math.random()*nftItems.length)]:tonItems[Math.floor(Math.random()*tonItems.length)];
     }
@@ -2619,16 +2983,24 @@ function spinCase(){
   tr.style.transform='translateX(0)';
 
   const ww=tr.parentElement.offsetWidth||320;
-  // Точне центрування: лівий край winner'а мінус (ширина контейнера - ширина item) / 2
-  // Без рандомного зсуву — щоб підсвічений елемент точно відповідав winner
   const tx=-(WINNER_IDX*ITEM_FULL-(ww/2-ITW/2));
-  const dur=7000,st=performance.now();
+  const st=performance.now();
 
+  // Easing: швидкий старт, рівномірна середина, дуже плавне гальмування в кінці
   function ease(p){
-    if(p<0.6) return p*p*1.5;
-    const q=(p-0.6)/0.4;
-    return 0.54+0.46*(1-Math.pow(1-q,4));
+    if(p<0.12){
+      // Розгін
+      return p/0.12*(0.12*0.55);
+    } else if(p<0.72){
+      // Рівномірно швидко
+      return 0.12*0.55 + (p-0.12)/0.60*0.55;
+    } else {
+      // Плавне гальмування — easeOutQuint
+      const q=(p-0.72)/0.28;
+      return 0.67 + 0.33*(1-Math.pow(1-q,5));
+    }
   }
+
   function anim(now){
     const p=Math.min((now-st)/dur,1);
     tr.style.transform='translateX('+tx*ease(p)+'px)';
@@ -2636,12 +3008,16 @@ function spinCase(){
       spinAnim=requestAnimationFrame(anim);
     } else {
       spinAnim=null;
+      stopSpinTicks();
       const el=tr.children[WINNER_IDX];
       if(el) el.classList.add('winner');
       setTimeout(()=>showCaseWin(lastWin),600);
     }
   }
+
   spinAnim=requestAnimationFrame(anim);
+  // Запускаємо тіки синхронно з анімацією
+  startSpinTicks(()=>dur, ()=>performance.now()-st);
 }
 
 function showCaseWin(item){
@@ -2678,6 +3054,9 @@ function showCaseWin(item){
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
 function caseWinKeep(){
   if(!lastWin||!lastWin.isNFT)return;
+  // SECURITY: захист від подвійного виклику Keep+Sell
+  if(caseWinProcessed){return;}
+  caseWinProcessed=true;
   // Зберігаємо фото напряму з NFT_PHOTOS щоб в інвентарі показувалось правильне зображення
   const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[lastWin.id])||null;
   const nftEntry={
@@ -2705,17 +3084,18 @@ function caseWinKeep(){
 }
 function caseWinSell(){
   if(!lastWin)return;
+  // SECURITY: захист від подвійного виклику Keep+Sell
+  if(caseWinProcessed){return;}
+  caseWinProcessed=true;
   if(lastWin.isNFT){
-    balance=+(balance+lastWin.price).toFixed(4);
-    if(wsReady)ws.send(JSON.stringify({a:'case_win_sell',nft_id:lastWin.id,price:lastWin.price}));
+    // SECURITY: ціну визначає сервер, баланс оновиться через WS відповідь
+    if(wsReady)ws.send(JSON.stringify({a:'case_win_sell',nft_id:lastWin.id}));
     showToast(t('nft_sold')+' '+lastWin.price+' TON!','win');
   } else {
-    balance=+(balance+lastWin.ton).toFixed(4);
     if(wsReady)ws.send(JSON.stringify({a:'case_ton_win',amount:lastWin.ton}));
     showToast('+'+lastWin.ton+' TON '+t('case_ton_win'),'win');
   }
-  updBal();saveBal();
-  document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
+  // Баланс оновиться через WS case_win_ok від сервера
   spawnGems(3,'💰');closeCaseWin();
 }
 function showPrizesModal(){
