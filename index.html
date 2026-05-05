@@ -814,9 +814,9 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
     <h2>🎁 Cases</h2>
   </div>
   <div class="cases-scroll">
-    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:16px;padding-bottom:4px">🔥 Choose your case</div>
+    <div class="cases-section-label" id="lbl-available-case" style="justify-content:center;padding-top:20px">🔥 Available case</div>
     <div class="cases-featured" id="cases-featured"></div>
-    <div class="cases-grid" id="cases-list" style="padding-bottom:24px"></div>
+    <div class="cases-grid" id="cases-list"></div>
   </div>
 </div>
 
@@ -2324,8 +2324,7 @@ initAudio();
 setTimeout(()=>{try{initTon();}catch(e){}},300);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
-// Порядок: від дешевого до дорогого (0.5 → 0.9 → 1.0 → 1.4 → 2.5 → 4.7)
-const CASES_RAW=[
+const CASES=[
   {id:'pink',name:'PINK',emoji:'💋',price:4.7,
    previewNFTs:['snakebox','candycane','jesterhat'],
    items:[
@@ -2355,82 +2354,7 @@ const CASES_RAW=[
     {id:'nailbracelet', name:'Nail Bracelet Neon Tube',emoji:'💜',price:107.10,rarity:'Legendary',weight:0.05,isNFT:true},
     {id:'astralshard',  name:'Astral Shard Lovestone',emoji:'💎',price:249.10,rarity:'Legendary', weight:0.02,isNFT:true},
   ]},
-  {id:'bichugan',name:'BICHUGAN',emoji:'🏆',price:0.5,
-   previewNFTs:['snakebox','jesterhat','candycane'],
-   items:[
-    {id:'snakebox',     name:'Snake Box',            emoji:'🐍', price:2.60,  rarity:'Common',    weight:20, isNFT:true},
-    {id:'candycane',    name:'Candy Cane',           emoji:'🍬', price:2.85,  rarity:'Common',    weight:18, isNFT:true},
-    {id:'jesterhat',    name:'Jester Hat',           emoji:'🎭', price:3.28,  rarity:'Common',    weight:15, isNFT:true},
-    {id:'lolpop',       name:'Lol Pop',              emoji:'🍭', price:3.35,  rarity:'Common',    weight:12, isNFT:true},
-    {id:'spicedwine',   name:'Spiced Wine',          emoji:'🍷', price:3.69,  rarity:'Common',    weight:10, isNFT:true},
-    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Rare',      weight:8,  isNFT:true},
-    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:5,  isNFT:true},
-    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:3,  isNFT:true},
-    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:1.5,isNFT:true},
-    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Legendary', weight:0.3,isNFT:true},
-    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.02,isNFT:true},
-  ]},
-  {id:'spring',name:'SPRING',emoji:'🌸',price:0.9,
-   previewNFTs:['sakuraflower','lushbouquet','cookieheart'],
-   items:[
-    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Common',    weight:18, isNFT:true},
-    {id:'lushbouquet',  name:'Lush Bouquet',         emoji:'💐', price:4.69,  rarity:'Common',    weight:16, isNFT:true},
-    {id:'bunnymuffin',  name:'Bunny Muffin',         emoji:'🐰', price:5.94,  rarity:'Rare',      weight:12, isNFT:true},
-    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:9,  isNFT:true},
-    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:7,  isNFT:true},
-    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:5,  isNFT:true},
-    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:3,  isNFT:true},
-    {id:'eternalrose',  name:'Eternal Rose',         emoji:'🌹', price:23.81, rarity:'Epic',      weight:1.5,isNFT:true},
-    {id:'nekohelmet',   name:'Neko Helmet Princess', emoji:'⛑️', price:89.36, rarity:'Legendary', weight:0.4,isNFT:true},
-    {id:'astralshard',  name:'Astral Shard',         emoji:'💎', price:159.27,rarity:'Legendary', weight:0.1,isNFT:true},
-  ]},
-  {id:'baza',name:'BAZA',emoji:'💎',price:1.0,
-   previewNFTs:['crystalball','ionicgem','perfumebottle'],
-   items:[
-    {id:'spyagaric',    name:'Spy Agaric',           emoji:'🍄', price:4.79,  rarity:'Common',    weight:18, isNFT:true},
-    {id:'inputkey',     name:'Input Key',            emoji:'🔑', price:4.99,  rarity:'Common',    weight:15, isNFT:true},
-    {id:'crystalball',  name:'Crystal Ball',         emoji:'🔮', price:10.23, rarity:'Rare',      weight:10, isNFT:true},
-    {id:'madpumpkin',   name:'Mad Pumpkin',          emoji:'🎃', price:11.43, rarity:'Rare',      weight:8,  isNFT:true},
-    {id:'ionicdrier',   name:'Ionic Dryer',          emoji:'💨', price:14.21, rarity:'Epic',      weight:5,  isNFT:true},
-    {id:'recordplayer', name:'Record Player',        emoji:'🎵', price:14.95, rarity:'Epic',      weight:4,  isNFT:true},
-    {id:'cupidcharm',   name:'Cupid Charm',          emoji:'💘', price:18.28, rarity:'Epic',      weight:2.5,isNFT:true},
-    {id:'electricskull',name:'Electric Skull',       emoji:'💀', price:25.92, rarity:'Epic',      weight:1.5,isNFT:true},
-    {id:'ionicgem',     name:'Ion Gem',              emoji:'💎', price:73.31, rarity:'Legendary', weight:0.4,isNFT:true},
-    {id:'perfumebottle',name:'Perfume Bottle',       emoji:'🧴', price:74.40, rarity:'Legendary', weight:0.2,isNFT:true},
-    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
-  ]},
-  {id:'infinity',name:'INFINITY',emoji:'⌚',price:1.4,
-   previewNFTs:['swisswatch','diamondring','voodoodoll'],
-   items:[
-    {id:'timelessbook', name:'Timeless Book',        emoji:'📖', price:4.23,  rarity:'Common',    weight:16, isNFT:true},
-    {id:'moonpendant',  name:'Moon Pendant',         emoji:'🌙', price:4.58,  rarity:'Common',    weight:14, isNFT:true},
-    {id:'jinglebells',  name:'Jingle Bells',         emoji:'🔔', price:7.77,  rarity:'Rare',      weight:10, isNFT:true},
-    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:8,  isNFT:true},
-    {id:'tophat',       name:'Top Hat',              emoji:'🎩', price:11.12, rarity:'Epic',      weight:6,  isNFT:true},
-    {id:'diamondring',  name:'Diamond Ring',         emoji:'💍', price:26.54, rarity:'Epic',      weight:3,  isNFT:true},
-    {id:'voodoodoll',   name:'Voodoo Doll',          emoji:'🪆', price:30.73, rarity:'Epic',      weight:2,  isNFT:true},
-    {id:'swisswatch',   name:'Swiss Watch',          emoji:'⌚', price:45.29, rarity:'Legendary', weight:1,  isNFT:true},
-    {id:'heroichelmet', name:'Heroic Helmet',        emoji:'⛑️', price:210.61,rarity:'Legendary', weight:0.2,isNFT:true},
-    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
-  ]},
-  {id:'vip',name:'VIP',emoji:'👑',price:2.5,
-   previewNFTs:['genielamp','lowrider','heroichelmet'],
-   items:[
-    {id:'hangingstar',  name:'Hanging Star',         emoji:'⭐', price:7.50,  rarity:'Common',    weight:14, isNFT:true},
-    {id:'jinglebells',  name:'Jingle Bells',         emoji:'🔔', price:7.77,  rarity:'Common',    weight:12, isNFT:true},
-    {id:'voodoodoll',   name:'Voodoo Doll',          emoji:'🪆', price:30.73, rarity:'Rare',      weight:8,  isNFT:true},
-    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Rare',      weight:7,  isNFT:true},
-    {id:'lowrider',     name:'Low Rider',            emoji:'🚗', price:41.88, rarity:'Epic',      weight:5,  isNFT:true},
-    {id:'genielamp',    name:'Genie Lamp',           emoji:'🪔', price:42.74, rarity:'Epic',      weight:4,  isNFT:true},
-    {id:'swisswatch',   name:'Swiss Watch',          emoji:'⌚', price:45.29, rarity:'Epic',      weight:3,  isNFT:true},
-    {id:'westsideside', name:'Westside Sign',        emoji:'🤙', price:74.49, rarity:'Legendary', weight:1.5,isNFT:true},
-    {id:'minioscars',   name:'Mini Oscar',           emoji:'🏆', price:75.83, rarity:'Legendary', weight:1,  isNFT:true},
-    {id:'heroichelmet', name:'Heroic Helmet',        emoji:'⛑️', price:210.61,rarity:'Legendary', weight:0.3,isNFT:true},
-    {id:'durovscap',    name:'Durov Cap',            emoji:'🎩', price:605.72,rarity:'Legendary', weight:0.05,isNFT:true},
-  ]},
 ];
-// Сортуємо від дешевого до дорогого
-const CASES = CASES_RAW.slice().sort((a,b)=>a.price-b.price);
 let curCase=null,spinAnim=null,lastWin=null;
 let caseWinProcessed=false; // SECURITY: захист від подвійного caseWinKeep+Sell
 const ITW=110;
@@ -2456,56 +2380,34 @@ function renderTrack(items){
 
 function openCases(){
   document.getElementById('cases-screen').classList.add('open');
+  const tonSvg=`<svg width="14" height="14" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
 
-  // Кольорові теми для кожного кейса
-  const caseThemes = {
-    bichugan: {grad:'linear-gradient(145deg,#1c1400,#2a1e00,#1c1400)',border:'rgba(255,205,0,0.5)', glow:'rgba(255,200,0,0.22)', emojiGlow:'rgba(255,200,0,0.6)',  badge:'rgba(255,205,0,0.13)',   badgeBorder:'rgba(255,205,0,0.4)',   priceTxt:'#ffd700', shadow:'rgba(255,190,0,0.14)'},
-    spring:   {grad:'linear-gradient(145deg,#071a07,#0c280c,#071a07)',border:'rgba(72,200,90,0.5)',  glow:'rgba(60,200,75,0.22)',  emojiGlow:'rgba(60,200,75,0.6)',   badge:'rgba(72,200,90,0.13)',   badgeBorder:'rgba(72,200,90,0.4)',   priceTxt:'#6ee97e', shadow:'rgba(50,190,65,0.12)'},
-    baza:     {grad:'linear-gradient(145deg,#060618,#0a0e2e,#060618)', border:'rgba(90,150,255,0.5)',glow:'rgba(80,140,255,0.22)', emojiGlow:'rgba(80,140,255,0.6)', badge:'rgba(90,150,255,0.13)',  badgeBorder:'rgba(90,150,255,0.4)', priceTxt:'#90bfff', shadow:'rgba(70,130,255,0.12)'},
-    infinity: {grad:'linear-gradient(145deg,#04121e,#061c2e,#04121e)', border:'rgba(0,175,215,0.5)', glow:'rgba(0,165,210,0.22)', emojiGlow:'rgba(0,165,210,0.6)',  badge:'rgba(0,175,215,0.13)',   badgeBorder:'rgba(0,175,215,0.4)',  priceTxt:'#4dd4f0', shadow:'rgba(0,155,200,0.12)'},
-    vip:      {grad:'linear-gradient(145deg,#180e00,#261500,#180e00)', border:'rgba(255,165,0,0.6)', glow:'rgba(255,155,0,0.28)', emojiGlow:'rgba(255,155,0,0.7)',  badge:'rgba(255,165,0,0.16)',   badgeBorder:'rgba(255,165,0,0.5)',  priceTxt:'#ffb830', shadow:'rgba(255,145,0,0.18)'},
-    pink:     {grad:'linear-gradient(145deg,#180622,#240832,#180622)', border:'rgba(255,100,175,0.5)',glow:'rgba(255,90,165,0.22)',emojiGlow:'rgba(255,90,165,0.65)',badge:'rgba(255,100,175,0.13)', badgeBorder:'rgba(255,100,175,0.4)',priceTxt:'#ff7ec7', shadow:'rgba(255,80,155,0.14)'},
-  };
-
-  // Очищаємо featured — використовуємо грід
-  document.getElementById('cases-featured').innerHTML = '';
-
-  // Рендеримо всі 6 кейсів у грід (вже відсортовані по ціні)
-  document.getElementById('cases-list').innerHTML = CASES.map(c => {
-    const th = caseThemes[c.id] || caseThemes.pink;
-    const nftCount = c.items.filter(i=>i.isNFT).length;
-    return `
+  // Єдиний кейс PINK — великий центрований
+  const c = CASES[0];
+  document.getElementById('cases-featured').innerHTML = `
     <div onclick="openSpin('${c.id}')" style="
-      background:${th.grad};
-      border:1.5px solid ${th.border};
-      border-radius:22px;
-      padding:20px 10px 16px;
+      background:linear-gradient(135deg,#1a0828,#2a0a3a,#1a0828);
+      border:1.5px solid rgba(255,105,180,0.4);
+      border-radius:24px;
+      padding:24px 20px;
       text-align:center;
       cursor:pointer;
+      margin:0 16px 20px;
+      box-shadow:0 0 40px rgba(255,0,128,0.15),0 8px 32px rgba(0,0,0,0.4);
+      transition:transform .15s;
       position:relative;
       overflow:hidden;
-      box-shadow:0 6px 28px ${th.shadow},0 2px 6px rgba(0,0,0,0.35);
-      transition:transform .15s,box-shadow .2s;
-      user-select:none;
-    " onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'" ontouchstart="this.style.transform='scale(0.95)'" ontouchend="this.style.transform='scale(1)'">
-      <!-- Фоновий радіальний гейл -->
-      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 10%,${th.glow} 0%,transparent 65%);pointer-events:none"></div>
-      <!-- Бейдж кількості предметів -->
-      <div style="position:absolute;top:9px;left:9px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:2px 7px;font-size:10px;font-weight:800;color:rgba(255,255,255,0.65);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:3px;letter-spacing:0.3px">
-        <svg width="9" height="9" viewBox="0 0 18 18" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="11" y="1" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="1" y="11" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/><rect x="11" y="11" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.55)"/></svg>
-        ${nftCount}
-      </div>
-      <!-- Emoji -->
-      <div style="font-size:62px;line-height:1;margin-bottom:10px;filter:drop-shadow(0 0 18px ${th.emojiGlow})">${c.emoji}</div>
-      <!-- Назва -->
-      <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;color:#fff;margin-bottom:10px;letter-spacing:2px;text-shadow:0 0 14px ${th.glow}">${c.name}</div>
-      <!-- Ціна -->
-      <div style="display:inline-flex;align-items:center;gap:7px;background:${th.badge};border:1.5px solid ${th.badgeBorder};border-radius:18px;padding:8px 20px;backdrop-filter:blur(4px)">
-        <svg width="18" height="18" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>
-        <span style="font-family:'Fredoka One',cursive;font-size:22px;color:${th.priceTxt};letter-spacing:0.5px">${c.price}</span>
+    " onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,105,180,0.12) 0%,transparent 60%);pointer-events:none"></div>
+      <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(255,0,128,0.5))">💋</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#fff;margin-bottom:6px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,105,180,0.8)">PINK</div>
+      <div style="font-size:12px;color:#cc66aa;margin-bottom:16px;font-family:'Nunito',sans-serif;font-weight:700">NFT Gifts · ${c.items.filter(i=>i.isNFT).length} предметів</div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,105,180,0.4);border-radius:20px;padding:8px 20px">
+        ${tonSvg}<span style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff">${c.price} TON</span>
       </div>
     </div>`;
-  }).join('');
+  // Очищаємо грід — він не потрібен
+  document.getElementById('cases-list').innerHTML = '';
 }
 function closeCases(){document.getElementById('cases-screen').classList.remove('open');}
 
@@ -2879,64 +2781,55 @@ function playFlightTick(m){
   }catch(e){}
 }
 
-// Звук прокрутки кейса — тихі кліки, прискорюються і сповільнюються разом з анімацією
+// Звук прокрутки кейса — механічний тріскіт рулетки
 function playSpinSound(){
   try{
     const ctx=getAudioCtx();
-    // Просто короткий whoosh на старт
-    const bufSize=Math.floor(ctx.sampleRate*0.25);
-    const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
-    const nd=nBuf.getChannelData(0);
-    for(let i=0;i<bufSize;i++) nd[i]=(Math.random()*2-1)*Math.pow(1-i/bufSize,2);
-    const ns=ctx.createBufferSource();
-    ns.buffer=nBuf;
-    const hf=ctx.createBiquadFilter();
-    hf.type='bandpass';hf.frequency.value=1800;hf.Q.value=1.2;
-    const ng=ctx.createGain();
-    ng.gain.setValueAtTime(0.18,ctx.currentTime);
-    ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.22);
-    ns.connect(hf);hf.connect(ng);ng.connect(ctx.destination);
-    ns.start(ctx.currentTime);ns.stop(ctx.currentTime+0.25);
-  }catch(e){}
-}
-
-let _spinTickTimeout=null;
-function startSpinTicks(getDuration, getElapsed){
-  stopSpinTicks();
-  function tick(){
-    const elapsed=getElapsed();
-    const total=getDuration();
-    const p=Math.min(elapsed/total,1);
-    // Швидкість тіків: швидко в середині, повільно на початку і в кінці
-    let speed; // тіків в секунду
-    if(p<0.15) speed=4+p/0.15*14;       // розгін: 4→18
-    else if(p<0.75) speed=18;             // повна швидкість
-    else speed=18*Math.pow(1-(p-0.75)/0.25,1.5)*0.9+1; // гальмування: 18→~1
-    const interval=Math.max(1000/speed,55);
-    if(p>=1){stopSpinTicks();return;}
-    try{
-      const ctx=getAudioCtx();
-      const pitch=700+speed*8;
-      const vol=0.04+speed*0.001;
-      const o=ctx.createOscillator();
-      const g=ctx.createGain();
-      o.type='sine';o.frequency.value=pitch;
-      o.connect(g);g.connect(ctx.destination);
-      g.gain.setValueAtTime(vol,ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.03);
-      o.start(ctx.currentTime);o.stop(ctx.currentTime+0.035);
-    }catch(e){}
-    _spinTickTimeout=setTimeout(tick,interval);
-  }
-  tick();
-}
-function stopSpinTicks(){
-  if(_spinTickTimeout){clearTimeout(_spinTickTimeout);_spinTickTimeout=null;}
-}
-
+    const total=7.0;
+    let t=0;
+    // Клацання як у реальній рулетці — металевий звук
+    function clack(time,vol,pitch){
+      // Шум клацання
+      const bufSize=Math.floor(ctx.sampleRate*0.03);
+      const nBuf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+      const nd=nBuf.getChannelData(0);
+      for(let i=0;i<bufSize;i++) nd[i]=Math.random()*2-1;
+      const ns=ctx.createBufferSource();
+      ns.buffer=nBuf;
+      const hf=ctx.createBiquadFilter();
+      hf.type='highpass';hf.frequency.value=pitch||3000;
+      const ng=ctx.createGain();
+      ng.gain.setValueAtTime(vol,ctx.currentTime+time);
       ng.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.025);
       ns.connect(hf);hf.connect(ng);ng.connect(ctx.destination);
       ns.start(ctx.currentTime+time);
+      ns.stop(ctx.currentTime+time+0.03);
+
+      // Тон клацання
+      const ot=ctx.createOscillator();
+      const gt=ctx.createGain();
+      ot.type='sine';ot.frequency.value=pitch?pitch*0.3:800;
+      ot.connect(gt);gt.connect(ctx.destination);
+      gt.gain.setValueAtTime(vol*0.5,ctx.currentTime+time);
+      gt.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+time+0.04);
+      ot.start(ctx.currentTime+time);ot.stop(ctx.currentTime+time+0.045);
+    }
+
+    let interval=0.035;
+    while(t<total){
+      const progress=t/total;
+      interval=0.035+progress*progress*0.40;
+      const vol=progress>0.88?0.22:0.10;
+      const pitch=progress>0.88?5000:3200;
+      clack(t,vol,pitch);
+      t+=interval;
+    }
+    // Фінальний удар — зупинка
+    clack(total+0.05,0.35,6000);
+    clack(total+0.12,0.20,5000);
+    clack(total+0.22,0.10,4000);
+  }catch(e){}
+}
 
 // Ініціалізація — запускаємо музику після першого торкання
 function initAudio(){
@@ -2951,26 +2844,25 @@ function spinCase(){
   if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
-  caseWinProcessed=false;
+  caseWinProcessed=false; // SECURITY: скидаємо прапор для нового спіну
   playSpinSound();
   balance=+(balance-curCase.price).toFixed(4);updBal();saveBal();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
 
-  // Рандомна тривалість 3–15 секунд
-  const dur=3000+Math.random()*12000;
-
+  // 1. Чесний winner
   const winner=wRand(curCase.items);
   lastWin=winner;
 
+  // 2. Трек: позиція WINNER_IDX — реальний winner, решта — декор
   const WINNER_IDX=55;
-  const ITEM_GAP=12;
-  const ITEM_FULL=ITW+ITEM_GAP;
+  const ITEM_GAP=12; // gap між елементами в #spin-track (з CSS)
+  const ITEM_FULL=ITW+ITEM_GAP; // реальна ширина одного слота включно з gap
 
   const nftItems=curCase.items.filter(i=>i.isNFT);
   const tonItems=curCase.items.filter(i=>i.isTon);
   const items=Array.from({length:120},(_,idx)=>{
-    if(idx===WINNER_IDX) return winner;
+    if(idx===WINNER_IDX) return winner; // реальний результат завжди тут
     if(nftItems.length&&tonItems.length){
       return Math.random()<0.75?nftItems[Math.floor(Math.random()*nftItems.length)]:tonItems[Math.floor(Math.random()*tonItems.length)];
     }
@@ -2983,24 +2875,16 @@ function spinCase(){
   tr.style.transform='translateX(0)';
 
   const ww=tr.parentElement.offsetWidth||320;
+  // Точне центрування: лівий край winner'а мінус (ширина контейнера - ширина item) / 2
+  // Без рандомного зсуву — щоб підсвічений елемент точно відповідав winner
   const tx=-(WINNER_IDX*ITEM_FULL-(ww/2-ITW/2));
-  const st=performance.now();
+  const dur=7000,st=performance.now();
 
-  // Easing: швидкий старт, рівномірна середина, дуже плавне гальмування в кінці
   function ease(p){
-    if(p<0.12){
-      // Розгін
-      return p/0.12*(0.12*0.55);
-    } else if(p<0.72){
-      // Рівномірно швидко
-      return 0.12*0.55 + (p-0.12)/0.60*0.55;
-    } else {
-      // Плавне гальмування — easeOutQuint
-      const q=(p-0.72)/0.28;
-      return 0.67 + 0.33*(1-Math.pow(1-q,5));
-    }
+    if(p<0.6) return p*p*1.5;
+    const q=(p-0.6)/0.4;
+    return 0.54+0.46*(1-Math.pow(1-q,4));
   }
-
   function anim(now){
     const p=Math.min((now-st)/dur,1);
     tr.style.transform='translateX('+tx*ease(p)+'px)';
@@ -3008,16 +2892,12 @@ function spinCase(){
       spinAnim=requestAnimationFrame(anim);
     } else {
       spinAnim=null;
-      stopSpinTicks();
       const el=tr.children[WINNER_IDX];
       if(el) el.classList.add('winner');
       setTimeout(()=>showCaseWin(lastWin),600);
     }
   }
-
   spinAnim=requestAnimationFrame(anim);
-  // Запускаємо тіки синхронно з анімацією
-  startSpinTicks(()=>dur, ()=>performance.now()-st);
 }
 
 function showCaseWin(item){
