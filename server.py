@@ -586,19 +586,40 @@ async def ws_ep(ws: WebSocket, uid: int):
                         nick_str = f"@{nick}" if nick else f"uid:{uid}"
                         if action_type == "sell":
                             players[uid]["balance"] = round(players[uid].get("balance", 0) + sell_price, 4)
-                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "sell"})
-                            await ws.send_text(json.dumps({"t": "nft_sold", "nft_id": nft_id, "amount": sell_price, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
+                            add_log("withdrawals", {
+                                "uid": uid, "name": name,
+                                "nft_name": found_nft.get("name"),
+                                "nft_floor": found_nft.get("floor"),
+                                "sell_price": sell_price, "type": "sell"
+                            })
+                            await ws.send_text(json.dumps({
+                                "t": "nft_sold", "nft_id": nft_id,
+                                "amount": sell_price, "bal": players[uid]["balance"],
+                                "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"
+                            }))
+                            asyncio.create_task(send_tg(ADMIN_ID,
+                                f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
                         else:
-                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw"})
-                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nЧас: {time.strftime('%H:%M:%S')}"))
+                            add_log("withdrawals", {
+                                "uid": uid, "name": name,
+                                "nft_name": found_nft.get("name"),
+                                "nft_floor": found_nft.get("floor"),
+                                "sell_price": 0, "type": "withdraw"
+                            })
+                            await ws.send_text(json.dumps({
+                                "t": "nft_withdrawn", "nft_id": nft_id,
+                                "msg": f"✅ {found_nft.get('name')} успішно виведено!"
+                            }))
+                            asyncio.create_task(send_tg(ADMIN_ID,
+                                f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nЧас: {time.strftime('%H:%M:%S')}"))
                     else:
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
 
     except WebSocketDisconnect:
         clients.pop(uid, None)
-
+    except Exception as e:
+        print(f"WS Error for {uid}: {e}")
+        clients.pop(uid, None)
 # ── REST ──────────────────────────────────────────────────────────────────────
 @app.get("/topup/{uid}/{amount}")
 async def get_topup(uid: int, amount: float):
