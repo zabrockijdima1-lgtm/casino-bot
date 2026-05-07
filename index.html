@@ -120,21 +120,19 @@ body.light-theme #bb.co{
 body.light-theme #bb.co:active{transform:scale(0.98)}
 body.light-theme #bb:disabled{background:#d8d0f0;box-shadow:none;color:#9985cc}
 
-/* NFT bet button and picker */
-#bb-nft.visible{display:flex!important}
+/* NFT bet picker */
 #nft-bet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px)}
 #nft-bet-bg.open{display:flex}
 #nft-bet-sheet{background:linear-gradient(160deg,#0d0820,#160a30,#0d0820);border:1px solid rgba(192,132,252,0.25);border-radius:24px 24px 0 0;padding:0 0 20px;width:100%;max-width:480px;max-height:82vh;display:flex;flex-direction:column}
 #nft-bet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid rgba(192,132,252,0.12)}
 #nft-bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;overflow-y:auto;flex:1;scrollbar-width:none}
-#nft-bet-grid::-webkit-scrollbar{display:none}
-.nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s}
 .nft-bet-card.sel{border-color:rgba(192,132,252,0.7);box-shadow:0 0 14px rgba(192,132,252,0.3);background:#1a0a3a}
-.nft-bet-card img,.nft-bet-card .nbt-emoji-wrap{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
-.nbt-emoji-wrap{display:flex;align-items:center;justify-content:center;font-size:34px;background:var(--bg2)}
-.nft-bet-card .nbt-name{font-size:10px;font-weight:700;color:var(--cream);font-family:'Nunito',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.nft-bet-card .nbt-price{font-size:11px;font-family:'Fredoka One',cursive;color:var(--acc)}
-#nft-bet-confirm{width:calc(100% - 28px);margin:6px 14px 0;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:16px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;padding:15px;cursor:pointer;box-shadow:0 4px 20px rgba(124,58,237,0.4)}
+.nft-bet-card img{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
+.nbt-emoji-wrap{width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:34px;background:var(--bg2)}
+.nbt-name{font-size:10px;font-weight:700;color:var(--cream);font-family:'Nunito',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.nbt-price{font-size:11px;font-family:'Fredoka One',cursive;color:var(--acc)}
+#nft-bet-confirm{width:calc(100% - 28px);margin:6px 14px 0;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:16px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;padding:15px;cursor:pointer}
 #nft-bet-confirm:disabled{opacity:.35;cursor:not-allowed}
 /* NFT hint */
 body.light-theme #nft-hint{color:#7c6aae}
@@ -669,16 +667,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
       <input class="ai" id="av" type="number" value="2.0" min="1.1" step="0.1" oninput="if(parseFloat(this.value)<1.1&&this.value!='')this.style.borderColor='var(--red)';else this.style.borderColor=''">
     </div>
     <button id="bb" onclick="handleBet()">🚀 PLACE BET</button>
-    <button id="bb-nft" onclick="openNFTBetPicker()" style="
-      grid-column:1/-1;
-      background:linear-gradient(135deg,#1a0a2e 0%,#2e1060 50%,#1a0a2e 100%);
-      border:1.5px solid rgba(192,132,252,0.5);
-      border-radius:20px;color:var(--cream);
-      font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;
-      padding:11px;cursor:pointer;letter-spacing:0.5px;
-      box-shadow:0 0 18px rgba(192,132,252,0.2),inset 0 1px 0 rgba(192,132,252,0.15);
-      display:none;align-items:center;justify-content:center;gap:8px;
-    ">🎁 BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
+    <button id="bb-nft" onclick="openNFTBetPicker()" style="grid-column:1/-1;display:none;background:linear-gradient(135deg,#1a0a2e,#2e1060,#1a0a2e);border:1.5px solid rgba(192,132,252,0.5);border-radius:20px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:15px;padding:11px;cursor:pointer;align-items:center;justify-content:center;gap:8px;">&#x1F381; BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
   </div>
 
   <div id="nft-hint">Win ≥2.8 TON → get <span>Telegram Gift NFT</span></div>
@@ -1431,8 +1420,24 @@ function drawGraph(crashed){
     const ballColor = isLight
       ? (mult>=10?'#dc2626':mult>=5?'#ea580c':'#7c3aed')
       : (mult>=10?'#ff3030':mult>=5?'#ff8800':'#ffd600');
-    // Малюємо ракету на кінці кривої
-    drawRocket(last.x, last.y, rocketAngle);
+    ctx.save();
+    // Outer halo
+    ctx.shadowColor=gc; ctx.shadowBlur=30;
+    ctx.beginPath(); ctx.arc(last.x,last.y,9,0,Math.PI*2);
+    ctx.fillStyle=ballColor+'33'; ctx.fill();
+    // Mid glow
+    ctx.shadowBlur=16;
+    ctx.beginPath(); ctx.arc(last.x,last.y,6,0,Math.PI*2);
+    ctx.fillStyle=ballColor+'88'; ctx.fill();
+    // Core
+    ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(last.x,last.y,4,0,Math.PI*2);
+    ctx.fillStyle=ballColor; ctx.fill();
+    // Bright center
+    ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(last.x-1,last.y-1,1.5,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fill();
+    ctx.restore();
   } else {
     ctx.save();
     [{r:22,c:'rgba(255,100,0,.12)'},{r:14,c:'rgba(255,160,0,.28)'},{r:8,c:'rgba(255,220,50,.55)'},{r:4,c:'rgba(255,255,200,.9)'}]
@@ -2515,116 +2520,77 @@ function openAdminPanel(){
             <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)">◈</div>
           </div>
 
-          <!-- TABS -->
-          <div style="display:flex;gap:6px;margin-bottom:16px">
-            <button id="adm-tab-me" onclick="adminSwitchTab('me')" style="flex:1;padding:8px;border-radius:10px;border:1px solid #7b3fff66;background:linear-gradient(135deg,#7b3fff33,#4d00ff22);color:#d4b8ff;font-family:'Fredoka One',cursive;font-size:13px;cursor:pointer">👤 My Balance</button>
-            <button id="adm-tab-user" onclick="adminSwitchTab('user')" style="flex:1;padding:8px;border-radius:10px;border:1px solid #7b3fff22;background:transparent;color:#7755aa;font-family:'Fredoka One',cursive;font-size:13px;cursor:pointer">🔍 Find User</button>
-          </div>
-
-          <!-- MY BALANCE TAB -->
-          <div id="adm-pane-me">
-            <!-- TON amount input -->
-            <div style="margin-bottom:14px">
-              <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Amount (TON)</div>
-              <input id="admin-ton-input" type="number" step="0.01" min="0" placeholder="0.00" style="
-                width:100%;box-sizing:border-box;padding:14px 16px;
-                background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;
-                color:#fff;font-family:'Fredoka One',cursive;font-size:20px;
-                outline:none;transition:border .2s;
-              " onfocus="this.style.borderColor='#b44fff'" onblur="this.style.borderColor='#7b3fff66'">
-              <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-                ${[1,5,10,50,100,500,1000].map(v=>`
-                  <button onclick="document.getElementById('admin-ton-input').value=${v}" style="
-                    flex:1;min-width:50px;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;
-                    padding:6px 8px;border-radius:8px;cursor:pointer;font-family:'Fredoka One',cursive;font-size:12px;
-                  ">+${v}</button>
-                `).join('')}
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-              <button onclick="adminAddBalance()" style="background:linear-gradient(135deg,#1a6228,#15803d);border:1px solid #4ade8044;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;box-shadow:0 0 14px rgba(74,222,128,0.25);">➕ Add TON</button>
-              <button onclick="adminRemoveBalance()" style="background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:1px solid #ef444444;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;box-shadow:0 0 14px rgba(239,68,68,0.25);">➖ Remove TON</button>
-            </div>
-            <div style="background:#7b3fff10;border:1px solid #7b3fff33;border-radius:12px;padding:12px;margin-bottom:18px">
-              <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Set Exact Balance</div>
-              <div style="display:flex;gap:8px">
-                <input id="admin-set-input" type="number" step="0.01" min="0" placeholder="0.00" style="flex:1;padding:10px 12px;background:#0d0528;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:14px;outline:none;">
-                <button onclick="adminSetBalance()" style="background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:0 18px;cursor:pointer;">Set</button>
-              </div>
-            </div>
-            <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Quick Actions</div>
-            <div style="display:grid;gap:8px">
-              <button onclick="adminAddNFT()" style="background:linear-gradient(135deg,#3a1a4a,#5a1a6a);border:1px solid #ff66cc44;border-radius:10px;color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px">🎁</span> Add Random NFT to Inventory</button>
-              <button onclick="adminClearNFTs()" style="background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px">🗑️</span> Clear All NFTs (${myNFTs.length})</button>
-              <button onclick="adminResetAll()" style="background:#ffffff08;border:1px solid #ef444433;border-radius:10px;color:#ef9999;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px">⚠️</span> Reset Everything</button>
+          <!-- TON amount input -->
+          <div style="margin-bottom:14px">
+            <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Amount (TON)</div>
+            <input id="admin-ton-input" type="number" step="0.01" min="0" placeholder="0.00" style="
+              width:100%;box-sizing:border-box;padding:14px 16px;
+              background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:20px;
+              outline:none;transition:border .2s;
+            " onfocus="this.style.borderColor='#b44fff'" onblur="this.style.borderColor='#7b3fff66'">
+            <!-- Quick amounts -->
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+              ${[1,5,10,50,100,500,1000].map(v=>`
+                <button onclick="document.getElementById(&#39;admin-ton-input&#39;).value=${v}" style="
+                  flex:1;min-width:50px;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;
+                  padding:6px 8px;border-radius:8px;cursor:pointer;font-family:'Fredoka One',cursive;font-size:12px;
+                ">+${v}</button>
+              `).join('')}
             </div>
           </div>
 
-          <!-- FIND USER TAB -->
-          <div id="adm-pane-user" style="display:none">
-            <div style="margin-bottom:14px">
-              <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Search by @username or user ID</div>
-              <div style="display:flex;gap:8px">
-                <input id="admin-user-search" type="text" placeholder="@username or 12345678" style="
-                  flex:1;padding:12px 14px;background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;
-                  color:#fff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;outline:none;
-                " onfocus="this.style.borderColor='#b44fff'" onblur="this.style.borderColor='#7b3fff66'"
-                onkeydown="if(event.key==='Enter')adminSearchUser()">
-                <button onclick="adminSearchUser()" style="background:linear-gradient(135deg,#7b3fff,#9b5fff);border:none;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:0 18px;cursor:pointer;white-space:nowrap;">🔍 Find</button>
-              </div>
+          <!-- Add / Remove buttons -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+            <button onclick="adminAddBalance()" style="
+              background:linear-gradient(135deg,#1a6228,#15803d);border:1px solid #4ade8044;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;
+              box-shadow:0 0 14px rgba(74,222,128,0.25);
+            ">➕ Add TON</button>
+            <button onclick="adminRemoveBalance()" style="
+              background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:1px solid #ef444444;border-radius:12px;
+              color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:14px;cursor:pointer;
+              box-shadow:0 0 14px rgba(239,68,68,0.25);
+            ">➖ Remove TON</button>
+          </div>
+
+          <!-- Set exact balance -->
+          <div style="background:#7b3fff10;border:1px solid #7b3fff33;border-radius:12px;padding:12px;margin-bottom:18px">
+            <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Set Exact Balance</div>
+            <div style="display:flex;gap:8px">
+              <input id="admin-set-input" type="number" step="0.01" min="0" placeholder="0.00" style="
+                flex:1;padding:10px 12px;background:#0d0528;border:1px solid #7b3fff44;border-radius:10px;
+                color:#fff;font-family:'Fredoka One',cursive;font-size:14px;outline:none;
+              ">
+              <button onclick="adminSetBalance()" style="
+                background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;
+                color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:0 18px;cursor:pointer;
+              ">Set</button>
             </div>
+          </div>
 
-            <!-- Found user card -->
-            <div id="admin-user-card" style="display:none;background:#0d0528;border:1px solid #7b3fff55;border-radius:14px;padding:14px;margin-bottom:14px">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-                <div id="adm-u-avatar" style="width:46px;height:46px;border-radius:50%;background:#7b3fff33;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#d4b8ff;font-family:'Fredoka One',cursive;overflow:hidden;flex-shrink:0"></div>
-                <div style="flex:1;min-width:0">
-                  <div id="adm-u-name" style="font-family:'Fredoka One',cursive;font-size:15px;color:#fff"></div>
-                  <div id="adm-u-username" style="font-size:11px;color:#b48fff;margin-top:1px"></div>
-                  <div id="adm-u-id" style="font-size:10px;color:#5533aa;margin-top:1px"></div>
-                </div>
-                <div id="adm-u-banned-badge" style="display:none;background:#b91c1c;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;font-family:'Nunito',sans-serif;">BANNED</div>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;background:#ffffff08;border-radius:10px;padding:10px 14px;margin-bottom:12px">
-                <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700">Balance</div>
-                <div id="adm-u-balance" style="font-family:'Fredoka One',cursive;font-size:20px;color:#fff"></div>
-              </div>
-
-              <!-- Give / Take balance for found user -->
-              <div style="margin-bottom:12px">
-                <div style="font-size:11px;color:#b48fff;font-weight:700;margin-bottom:6px">TON Amount</div>
-                <input id="admin-u-ton-input" type="number" step="0.01" min="0" placeholder="0.00" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#080318;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;outline:none;margin-bottom:8px;">
-                <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-                  ${[1,5,10,50,100].map(v=>`<button onclick="document.getElementById('admin-u-ton-input').value=${v}" style="flex:1;min-width:40px;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;padding:5px 6px;border-radius:8px;cursor:pointer;font-family:'Fredoka One',cursive;font-size:12px;">+${v}</button>`).join('')}
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                  <button onclick="adminUserGiveBalance()" style="background:linear-gradient(135deg,#1a6228,#15803d);border:1px solid #4ade8044;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:11px;cursor:pointer;">➕ Give TON</button>
-                  <button onclick="adminUserTakeBalance()" style="background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:1px solid #ef444444;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:11px;cursor:pointer;">➖ Take TON</button>
-                </div>
-              </div>
-
-              <!-- Set exact balance for user -->
-              <div style="display:flex;gap:8px;margin-bottom:12px">
-                <input id="admin-u-set-input" type="number" step="0.01" min="0" placeholder="Set exact balance..." style="flex:1;padding:9px 12px;background:#080318;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;outline:none;">
-                <button onclick="adminUserSetBalance()" style="background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:12px;padding:0 14px;cursor:pointer;">Set</button>
-              </div>
-
-              <!-- Ban / Unban -->
-              <div id="adm-ban-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <button id="adm-ban-btn" onclick="adminUserBan()" style="background:linear-gradient(135deg,#4a0a0a,#7f1d1d);border:1px solid #ef444466;border-radius:10px;color:#fca5a5;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer;">🚫 Ban User</button>
-                <button id="adm-unban-btn" onclick="adminUserUnban()" style="display:none;background:linear-gradient(135deg,#1a4a28,#1a6228);border:1px solid #4ade8066;border-radius:10px;color:#86efac;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer;">✅ Unban User</button>
-                <button onclick="adminUserClearNFTs()" style="background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer;">🗑️ Clear NFTs</button>
-              </div>
-            </div>
-
-            <div id="admin-user-not-found" style="display:none;text-align:center;color:#7755aa;padding:24px;font-size:13px;font-family:'Nunito',sans-serif;font-weight:700">
-              <div style="font-size:36px;margin-bottom:8px">🔍</div>
-              User not found. Make sure they've played at least once.
-            </div>
+          <!-- Quick actions -->
+          <div style="font-size:11px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Quick Actions</div>
+          <div style="display:grid;gap:8px">
+            <button onclick="adminAddNFT()" style="
+              background:linear-gradient(135deg,#3a1a4a,#5a1a6a);border:1px solid #ff66cc44;border-radius:10px;
+              color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">🎁</span> Add Random NFT to Inventory</button>
+            <button onclick="adminClearNFTs()" style="
+              background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;
+              color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">🗑️</span> Clear All NFTs (${myNFTs.length})</button>
+            <button onclick="adminResetAll()" style="
+              background:#ffffff08;border:1px solid #ef444433;border-radius:10px;
+              color:#ef9999;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
+              text-align:left;display:flex;align-items:center;gap:10px;
+            "><span style="font-size:18px">⚠️</span> Reset Everything</button>
           </div>
 
           <div style="font-size:10px;color:#7755aa;text-align:center;margin-top:16px;line-height:1.5">
-            Server admin panel · changes sync via WebSocket
+            Local admin panel · changes apply only on this device
           </div>
         </div>
       </div>
@@ -2639,54 +2605,6 @@ function closeAdminPanel(){
   const bg = document.getElementById('admin-panel-bg');
   if(bg) bg.style.display = 'none';
 }
-function adminSwitchTab(tab){
-  document.getElementById('adm-pane-me').style.display = tab==='me' ? '' : 'none';
-  document.getElementById('adm-pane-user').style.display = tab==='user' ? '' : 'none';
-  const tme = document.getElementById('adm-tab-me');
-  const tusr = document.getElementById('adm-tab-user');
-  if(tme && tusr){
-    tme.style.background = tab==='me' ? 'linear-gradient(135deg,#7b3fff33,#4d00ff22)' : 'transparent';
-    tme.style.color = tab==='me' ? '#d4b8ff' : '#7755aa';
-    tme.style.borderColor = tab==='me' ? '#7b3fff66' : '#7b3fff22';
-    tusr.style.background = tab==='user' ? 'linear-gradient(135deg,#7b3fff33,#4d00ff22)' : 'transparent';
-    tusr.style.color = tab==='user' ? '#d4b8ff' : '#7755aa';
-    tusr.style.borderColor = tab==='user' ? '#7b3fff66' : '#7b3fff22';
-  }
-}
-
-// Admin user search state
-let _adminTargetUser = null;
-
-function adminSearchUser(){
-  const q = (document.getElementById('admin-user-search').value||'').trim().replace(/^@/,'');
-  if(!q){ showToast('Enter @username or user ID'); return; }
-  document.getElementById('admin-user-card').style.display = 'none';
-  document.getElementById('admin-user-not-found').style.display = 'none';
-
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_find_user', query:q}));
-  showToast('🔍 Searching...','info');
-}
-
-function _adminShowUserCard(u){
-  _adminTargetUser = u;
-  const card = document.getElementById('admin-user-card');
-  if(!card) return;
-  const av = document.getElementById('adm-u-avatar');
-  if(u.photo_url){ av.innerHTML=`<img src="${u.photo_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`; }
-  else { av.textContent = (u.first_name||u.username||'?')[0].toUpperCase(); av.innerHTML = av.textContent; }
-  document.getElementById('adm-u-name').textContent = (u.first_name||'') + (u.last_name?' '+u.last_name:'');
-  document.getElementById('adm-u-username').textContent = u.username ? '@'+u.username : '';
-  document.getElementById('adm-u-id').textContent = 'ID: '+u.id;
-  document.getElementById('adm-u-balance').textContent = (+u.balance||0).toFixed(2)+' TON';
-  const banned = !!u.banned;
-  document.getElementById('adm-u-banned-badge').style.display = banned ? '' : 'none';
-  document.getElementById('adm-ban-btn').style.display = banned ? 'none' : '';
-  document.getElementById('adm-unban-btn').style.display = banned ? '' : 'none';
-  card.style.display = '';
-  document.getElementById('admin-user-not-found').style.display = 'none';
-}
-
 function adminRefreshBal(){
   const el = document.getElementById('admin-current-bal');
   if(el) el.textContent = balance.toFixed(2)+' TON';
@@ -2697,7 +2615,6 @@ function adminAddBalance(){
   balance = +(balance + v).toFixed(4);
   updBal(); saveBal();
   adminRefreshBal();
-  if(wsReady) ws.send(JSON.stringify({a:'admin_balance',uid:userId,delta:v}));
   showToast(`✅ Added ${v.toFixed(2)} TON`,'win');
   document.getElementById('admin-ton-input').value = '';
 }
@@ -2707,7 +2624,6 @@ function adminRemoveBalance(){
   balance = +Math.max(0, balance - v).toFixed(4);
   updBal(); saveBal();
   adminRefreshBal();
-  if(wsReady) ws.send(JSON.stringify({a:'admin_balance',uid:userId,delta:-v}));
   showToast(`➖ Removed ${v.toFixed(2)} TON`,'info');
   document.getElementById('admin-ton-input').value = '';
 }
@@ -2717,76 +2633,16 @@ function adminSetBalance(){
   balance = +v.toFixed(4);
   updBal(); saveBal();
   adminRefreshBal();
-  if(wsReady) ws.send(JSON.stringify({a:'admin_set_balance',uid:userId,balance:v}));
   showToast(`✅ Balance set to ${v.toFixed(2)} TON`,'win');
   document.getElementById('admin-set-input').value = '';
 }
-function adminUserGiveBalance(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  const v = parseFloat(document.getElementById('admin-u-ton-input').value);
-  if(!v || v<=0){ showToast('Enter valid amount'); return; }
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_balance', uid:_adminTargetUser.id, delta:v}));
-  _adminTargetUser.balance = (+_adminTargetUser.balance||0) + v;
-  document.getElementById('adm-u-balance').textContent = _adminTargetUser.balance.toFixed(2)+' TON';
-  showToast(`✅ Gave ${v.toFixed(2)} TON to @${_adminTargetUser.username||_adminTargetUser.id}`,'win');
-  document.getElementById('admin-u-ton-input').value = '';
-}
-function adminUserTakeBalance(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  const v = parseFloat(document.getElementById('admin-u-ton-input').value);
-  if(!v || v<=0){ showToast('Enter valid amount'); return; }
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_balance', uid:_adminTargetUser.id, delta:-v}));
-  _adminTargetUser.balance = Math.max(0, (+_adminTargetUser.balance||0) - v);
-  document.getElementById('adm-u-balance').textContent = _adminTargetUser.balance.toFixed(2)+' TON';
-  showToast(`➖ Took ${v.toFixed(2)} TON from @${_adminTargetUser.username||_adminTargetUser.id}`,'info');
-  document.getElementById('admin-u-ton-input').value = '';
-}
-function adminUserSetBalance(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  const v = parseFloat(document.getElementById('admin-u-set-input').value);
-  if(isNaN(v) || v<0){ showToast('Enter valid amount'); return; }
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_set_balance', uid:_adminTargetUser.id, balance:v}));
-  _adminTargetUser.balance = v;
-  document.getElementById('adm-u-balance').textContent = v.toFixed(2)+' TON';
-  showToast(`✅ Balance set to ${v.toFixed(2)} TON`,'win');
-  document.getElementById('admin-u-set-input').value = '';
-}
-function adminUserBan(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  if(!confirm(`Ban @${_adminTargetUser.username||_adminTargetUser.id}? They will lose all access.`)) return;
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_ban', uid:_adminTargetUser.id, ban:true}));
-  _adminTargetUser.banned = true;
-  document.getElementById('adm-u-banned-badge').style.display = '';
-  document.getElementById('adm-ban-btn').style.display = 'none';
-  document.getElementById('adm-unban-btn').style.display = '';
-  showToast(`🚫 Banned @${_adminTargetUser.username||_adminTargetUser.id}`,'info');
-}
-function adminUserUnban(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_ban', uid:_adminTargetUser.id, ban:false}));
-  _adminTargetUser.banned = false;
-  document.getElementById('adm-u-banned-badge').style.display = 'none';
-  document.getElementById('adm-ban-btn').style.display = '';
-  document.getElementById('adm-unban-btn').style.display = 'none';
-  showToast(`✅ Unbanned @${_adminTargetUser.username||_adminTargetUser.id}`,'win');
-}
-function adminUserClearNFTs(){
-  if(!_adminTargetUser){ showToast('Find a user first'); return; }
-  if(!confirm(`Clear all NFTs for @${_adminTargetUser.username||_adminTargetUser.id}?`)) return;
-  if(!wsReady){ showToast('No server connection'); return; }
-  ws.send(JSON.stringify({a:'admin_clear_nfts', uid:_adminTargetUser.id}));
-  showToast(`🗑️ NFTs cleared for @${_adminTargetUser.username||_adminTargetUser.id}`,'info');
-}
 function adminAddNFT(){
+  // Add random NFT from CASES[0]
   const items = CASES[0].items.filter(i=>i.isNFT);
   const nft = items[Math.floor(Math.random()*items.length)];
   addNFTToInventory(nft, nft.price, 1);
   showToast(`🎁 Added ${nft.name} (${nft.price} TON)`,'win');
+  // Refresh NFT count in admin
   closeAdminPanel(); openAdminPanel();
 }
 function adminClearNFTs(){
@@ -2896,7 +2752,7 @@ function openCases(){
       </div>
     </div>
 
-    
+  `;
   // Очищаємо грід — він не потрібен
   document.getElementById('cases-list').innerHTML = '';
 }
@@ -3577,18 +3433,6 @@ setTimeout(()=>{
     ws.onmessage = function(e){
       try{
         const d = JSON.parse(e.data);
-        // Відповідь на пошук юзера адміном
-        if(d.t === 'admin_user_found' && d.user){
-          _adminShowUserCard(d.user);
-          return;
-        }
-        if(d.t === 'admin_user_not_found'){
-          const c = document.getElementById('admin-user-card');
-          if(c) c.style.display = 'none';
-          const nf = document.getElementById('admin-user-not-found');
-          if(nf) nf.style.display = '';
-          return;
-        }
         // Реакція від іншого гравця
         if(d.t === 'reaction'){
           spawnReaction(d.emoji);
@@ -4285,128 +4129,199 @@ window.addEventListener('resize', ()=>{
   }
 });
 
-// ── NFT BET ON ROCKET ────────────────────────────────────────────────────────
-let _nftBetSelected = null;
-let _nftBetIdx = null;
-
-function openNFTBetPicker(){
-  if(phase !== 'waiting'){ showToast('Wait for the next round'); return; }
-  if(hasBet){ showToast('Already placed a bet'); return; }
-  const grid = document.getElementById('nft-bet-grid');
-  if(!myNFTs.length){
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px 16px;color:#7755aa;font-family:'Nunito',sans-serif;font-weight:700"><div style="font-size:40px;margin-bottom:8px">🎒</div>No NFTs yet — open a Case first!</div>`;
-    document.getElementById('nft-bet-confirm').disabled = true;
-    document.getElementById('nft-bet-confirm').textContent = 'No NFTs';
-  } else {
-    grid.innerHTML = myNFTs.map((nft,i)=>{
-      const ph = nft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[nft.id]);
-      const imgHtml = ph ? `<img src="${ph}">` : `<div class="nbt-emoji-wrap">${nft.emoji||'🎁'}</div>`;
-      return `<div class="nft-bet-card" data-idx="${i}" onclick="selectNFTBet(${i})">${imgHtml}<div class="nbt-name">${nft.name}</div><div class="nbt-price">▽ ${(+(nft.price||nft.floor||0)).toFixed(2)}</div></div>`;
-    }).join('');
-    document.getElementById('nft-bet-confirm').disabled = true;
-    document.getElementById('nft-bet-confirm').textContent = 'Pick an NFT to bet';
-  }
-  _nftBetSelected = null; _nftBetIdx = null;
-  document.getElementById('nft-bet-bg').classList.add('open');
-}
-function closeNFTBetPicker(){
-  document.getElementById('nft-bet-bg').classList.remove('open');
-}
-function selectNFTBet(idx){
-  _nftBetIdx = idx; _nftBetSelected = myNFTs[idx];
-  document.querySelectorAll('.nft-bet-card').forEach((c,i)=>c.classList.toggle('sel', i===idx));
-  const btn = document.getElementById('nft-bet-confirm');
-  btn.disabled = false;
-  btn.textContent = `🚀 Bet ${_nftBetSelected.name} (▽ ${(+(_nftBetSelected.price||_nftBetSelected.floor||0)).toFixed(2)})`;
-}
-function confirmNFTBet(){
-  if(!_nftBetSelected || _nftBetIdx === null) return;
-  if(phase !== 'waiting'){ showToast('Wait for next round'); return; }
-  if(hasBet){ showToast('Already placed a bet'); return; }
-  closeNFTBetPicker();
-  window._activeNFTBet = {..._nftBetSelected, _origIdx: _nftBetIdx};
-  myNFTs.splice(_nftBetIdx, 1); saveNFTs();
-  document.getElementById('inv-tab-lbl').textContent = myNFTs.length ? `${t('inv')} (${myNFTs.length})` : t('inv');
-  document.getElementById('bb-nft-info').textContent = `· ${_nftBetSelected.name}`;
-  if(wsReady) ws.send(JSON.stringify({a:'nft_rocket_bet', nft_id:_nftBetSelected.id, nft_price:+(_nftBetSelected.price||_nftBetSelected.floor||0), nft_name:_nftBetSelected.name}));
-  hasBet = true;
-  betAmt = +(_nftBetSelected.price||_nftBetSelected.floor||0);
-  const bb = document.getElementById('bb');
-  if(bb){ bb.innerHTML = `<span style="font-size:11px">🎁 NFT BET · ${_nftBetSelected.name}</span>`; bb.classList.add('co'); bb.disabled = true; }
-  showToast(`🎁 NFT bet placed!`, 'win');
-  if(navigator.vibrate) navigator.vibrate([30,15,60]);
-}
-
-// Patch WS to handle NFT rocket bet results from server
-setTimeout(()=>{
-  const _patchNFTResult = ()=>{
-    if(!ws){ setTimeout(_patchNFTResult, 600); return; }
-    const _prev2 = ws.onmessage;
-    ws.onmessage = function(e){
-      try{
-        const d = JSON.parse(e.data);
-        if(d.t === 'cr' && window._activeNFTBet){
-          const nb = window._activeNFTBet; window._activeNFTBet = null;
-          showToast(`😢 NFT lost · ${nb.name}`);
-          document.getElementById('bb-nft-info').textContent = '';
-        }
-        if(d.t === 'win_nft_rocket' && d.nft){
-          addNFTToInventory(d.nft, d.nft.price, d.mult||1);
-          showToast(`🎁 Won ${d.nft.name} · ▽ ${d.nft.price} TON`, 'win');
-        }
-      }catch(err){}
-      if(_prev2) _prev2.call(ws, e);
-    };
-  };
-  _patchNFTResult();
-}, 1400);
-
-// Show/hide NFT bet button based on phase and inventory
-setInterval(()=>{
-  const btn = document.getElementById('bb-nft');
-  if(!btn) return;
-  if(phase === 'waiting' && myNFTs.length > 0 && !hasBet) btn.classList.add('visible');
-  else btn.classList.remove('visible');
-}, 400);
-
-// ── SMART CRASH ALGORITHM (client-side hint, server is source of truth) ──────
-// When nobody bets: occasionally give medium multipliers so history looks organic
-// When bets active: mostly 1–5x (stable), decent win 1 in 20, big win 1 in 100
-let _crashBetCount = 0;
-let _crashLastBig = 0;
-
-window._smartCrashPoint = function(activeBetsCount){
-  _crashBetCount++;
-  const n = _crashBetCount, since = n - _crashLastBig;
-  if(activeBetsCount === 0){
-    const r = Math.random();
-    if(r < 0.06) return +(1.5 + Math.random()*6.5).toFixed(2);
-    if(r < 0.25) return +(1.2 + Math.random()*1.3).toFixed(2);
-    return +(1.0 + Math.random()*0.85).toFixed(2);
-  }
-  if(since >= 95 && Math.random() < 0.35){ _crashLastBig=n; return Math.min(+(10+Math.random()*90).toFixed(2),100); }
-  if(since >= 18 && Math.random() < 0.25){ _crashLastBig=n; return +(3+Math.random()*5).toFixed(2); }
-  const r = Math.random();
-  if(r < 0.40) return +(1.0+Math.random()*0.6).toFixed(2);
-  if(r < 0.65) return +(1.6+Math.random()*1.1).toFixed(2);
-  if(r < 0.80) return +(2.0+Math.random()*2.0).toFixed(2);
-  if(r < 0.92) return +(3.0+Math.random()*2.0).toFixed(2);
-  if(r < 0.97) return +(5+Math.random()*5).toFixed(2);
-  return +(10+Math.random()*15).toFixed(2);
-};
-
 connect();
-<!-- NFT BET PICKER FOR ROCKET -->
+</script>
+
+<!-- NFT BET PICKER -->
 <div id="nft-bet-bg">
   <div id="nft-bet-sheet">
     <div id="nft-bet-header">
-      <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#c084fc">🎁 Bet NFT on Rocket</div>
-      <button onclick="closeNFTBetPicker()" style="background:#ffffff15;border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">×</button>
+      <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#c084fc">&#127873; Bet NFT on Rocket</div>
+      <button onclick="closeNFTBetPicker()" style="background:#ffffff15;border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px">x</button>
     </div>
-    <div style="padding:8px 14px 2px;font-size:11px;color:#8866aa;font-family:'Nunito',sans-serif;font-weight:700">NFT price × multiplier = new NFT value. Cash out in time to win a more expensive NFT!</div>
+    <div style="padding:8px 14px 2px;font-size:11px;color:#8866aa;font-family:'Nunito',sans-serif;font-weight:700">NFT price x multiplier = new NFT value. Cash out in time!</div>
     <div id="nft-bet-grid"></div>
     <button id="nft-bet-confirm" disabled onclick="confirmNFTBet()">Pick an NFT to bet</button>
   </div>
 </div>
+
+<script>
+(function(){
+  var _patch=function(){
+    if(!window.ws){setTimeout(_patch,400);return;}
+    var _orig=ws.onmessage;
+    ws.onmessage=function(e){
+      try{
+        var d=JSON.parse(e.data);
+        if(d.t==='reaction'){
+          if(typeof spawnReaction==='function')spawnReaction(d.emoji);
+          var ri=(typeof REACTIONS!=='undefined')?REACTIONS.indexOf(d.emoji):-1;
+          if(ri>=0&&typeof reactCounts!=='undefined'){reactCounts[ri]++;if(typeof updateReactCount==='function')updateReactCount(ri);}
+          return;
+        }
+        if(d.t==='st'){if(typeof resetReactCounts==='function')resetReactCounts();var rb=document.getElementById('react-bar');if(rb)rb.classList.add('visible');}
+        if(d.t==='cr'||d.t==='cd'){var rb2=document.getElementById('react-bar');if(rb2)rb2.classList.remove('visible');if(d.t==='cr'&&window._activeNFTBet){var nb=window._activeNFTBet;window._activeNFTBet=null;if(typeof showToast==='function')showToast('NFT lost: '+nb.name);var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';}}
+        if(d.t==='admin_user_found'&&d.user)_adminShowUserCard(d.user);
+        if(d.t==='admin_user_not_found'){var c=document.getElementById('admin-user-card');if(c)c.style.display='none';var nf=document.getElementById('admin-user-not-found');if(nf)nf.style.display='';}
+        if(d.t==='win_nft_rocket'&&d.nft){if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price,d.mult||1);if(typeof showToast==='function')showToast('Won '+d.nft.name,'win');}
+      }catch(err){}
+      if(_orig)_orig.call(ws,e);
+    };
+  };
+  setTimeout(_patch,800);
+})();
+
+setInterval(function(){
+  var btn=document.getElementById('bb-nft');
+  if(!btn)return;
+  btn.style.display=(typeof phase!=='undefined'&&phase==='waiting'&&typeof myNFTs!=='undefined'&&myNFTs.length>0&&typeof hasBet!=='undefined'&&!hasBet)?'flex':'none';
+},400);
+
+var _nftBetIdx=null;
+function openNFTBetPicker(){
+  if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
+  if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
+  var grid=document.getElementById('nft-bet-grid'),btn=document.getElementById('nft-bet-confirm');
+  if(!myNFTs||!myNFTs.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:#7755aa;font-family:Nunito,sans-serif;font-weight:700">No NFTs - open a Case first!</div>';
+    btn.disabled=true;btn.textContent='No NFTs';
+  }else{
+    grid.innerHTML=myNFTs.map(function(nft,i){
+      var ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id]);
+      var img=ph?'<img src="'+ph+'">':'<div class="nbt-emoji-wrap">'+(nft.emoji||'&#x1F381;')+'</div>';
+      return'<div class="nft-bet-card" data-idx="'+i+'">'+img+'<div class="nbt-name">'+nft.name+'</div><div class="nbt-price">&#9661; '+(+(nft.price||nft.floor||0)).toFixed(2)+'</div></div>';
+    }).join('');
+    grid.querySelectorAll('.nft-bet-card').forEach(function(c){c.onclick=function(){selectNFTBet(parseInt(this.dataset.idx));};});
+    btn.disabled=true;btn.textContent='Pick an NFT to bet';
+  }
+  _nftBetIdx=null;
+  document.getElementById('nft-bet-bg').classList.add('open');
+}
+function closeNFTBetPicker(){document.getElementById('nft-bet-bg').classList.remove('open');}
+function selectNFTBet(idx){
+  _nftBetIdx=idx;
+  document.querySelectorAll('.nft-bet-card').forEach(function(c,i){c.classList.toggle('sel',i===idx);});
+  var nft=myNFTs[idx],btn=document.getElementById('nft-bet-confirm');
+  btn.disabled=false;btn.textContent='Bet '+nft.name+' ('+(+(nft.price||nft.floor||0)).toFixed(2)+')';
+}
+function confirmNFTBet(){
+  if(_nftBetIdx===null)return;
+  if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
+  if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
+  closeNFTBetPicker();
+  var nft=myNFTs[_nftBetIdx];
+  window._activeNFTBet=Object.assign({},nft);
+  myNFTs.splice(_nftBetIdx,1);
+  if(typeof saveNFTs==='function')saveNFTs();
+  var l=document.getElementById('inv-tab-lbl');
+  if(l)l.textContent=myNFTs.length?(typeof t==='function'?t('inv'):'Backpack')+' ('+myNFTs.length+')':(typeof t==='function'?t('inv'):'Backpack');
+  var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+nft.name;
+  if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_rocket_bet',nft_id:nft.id,nft_price:+(nft.price||nft.floor||0),nft_name:nft.name}));
+  hasBet=true;betAmt=+(nft.price||nft.floor||0);
+  var bb=document.getElementById('bb');
+  if(bb){bb.innerHTML='<span style="font-size:11px">NFT BET: '+nft.name+'</span>';bb.classList.add('co');bb.disabled=true;}
+  if(typeof showToast==='function')showToast('NFT bet placed!','win');
+  if(navigator.vibrate)navigator.vibrate([30,15,60]);
+}
+
+var _crashN=0,_crashLastBig=0;
+window._smartCrashPoint=function(activeBets){
+  _crashN++;var since=_crashN-_crashLastBig;
+  if(!activeBets){var r0=Math.random();if(r0<0.06)return+(1.5+Math.random()*6.5).toFixed(2);if(r0<0.25)return+(1.2+Math.random()*1.3).toFixed(2);return+(1.0+Math.random()*0.85).toFixed(2);}
+  if(since>=95&&Math.random()<0.35){_crashLastBig=_crashN;return Math.min(+(10+Math.random()*90).toFixed(2),100);}
+  if(since>=18&&Math.random()<0.25){_crashLastBig=_crashN;return+(3+Math.random()*5).toFixed(2);}
+  var r=Math.random();
+  if(r<0.40)return+(1.0+Math.random()*0.6).toFixed(2);
+  if(r<0.65)return+(1.6+Math.random()*1.1).toFixed(2);
+  if(r<0.80)return+(2.0+Math.random()*2.0).toFixed(2);
+  if(r<0.92)return+(3.0+Math.random()*2.0).toFixed(2);
+  if(r<0.97)return+(5+Math.random()*5).toFixed(2);
+  return+(10+Math.random()*15).toFixed(2);
+};
+
+var _adminTargetUser=null;
+function openAdminPanel(){
+  var bg=document.getElementById('admin-panel-bg');
+  if(bg){bg.style.display='flex';var b=document.getElementById('admin-current-bal');if(b)b.textContent=(typeof balance!=='undefined'?balance:0).toFixed(2)+' TON';return;}
+  bg=document.createElement('div');bg.id='admin-panel-bg';
+  bg.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:16px';
+  bg.onclick=function(e){if(e.target===bg)closeAdminPanel();};
+  var uid=typeof userId!=='undefined'?String(userId):'';
+  var nc=typeof myNFTs!=='undefined'?myNFTs.length:0;
+  var bal=typeof balance!=='undefined'?balance.toFixed(2):'0.00';
+  var wrap=document.createElement('div');
+  wrap.style.cssText='width:100%;max-width:420px;max-height:90vh;overflow-y:auto;background:linear-gradient(160deg,#1a0a44,#0d0528,#1e0c50);border:1px solid #7b3fff66;border-radius:20px;box-shadow:0 0 40px #7b3fff44';
+  var hdr=document.createElement('div');
+  hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid #7b3fff33;position:sticky;top:0;background:#1a0a44;z-index:2';
+  hdr.innerHTML='<div style="display:flex;align-items:center;gap:10px"><div style="font-size:22px">&#x1F419;</div><div><div style="font-family:Fredoka One,cursive;font-size:16px;color:#fff">Admin Panel</div><div style="font-size:10px;color:#b48fff;font-weight:600">UID: '+uid+'</div></div></div>';
+  var xb=document.createElement('button');xb.textContent='x';xb.style.cssText='background:#ffffff15;border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px';xb.onclick=closeAdminPanel;hdr.appendChild(xb);wrap.appendChild(hdr);
+  var body=document.createElement('div');body.style.cssText='padding:18px 20px 22px';wrap.appendChild(body);
+  body.innerHTML='<div style="background:#0d0528;border:1px solid #7b3fff44;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:10px;color:#b48fff;font-weight:700;text-transform:uppercase;letter-spacing:1px">My Balance</div><div id="admin-current-bal" style="font-family:Fredoka One,cursive;font-size:24px;color:#fff;margin-top:4px">'+bal+' TON</div></div><div style="font-size:36px">&#9670;</div></div>';
+  var tabs=document.createElement('div');tabs.style.cssText='display:flex;gap:6px;margin-bottom:16px';
+  var tm=document.createElement('button');tm.id='adm-tab-me';tm.textContent='My Balance';tm.style.cssText='flex:1;padding:8px;border-radius:10px;border:1px solid #7b3fff66;background:linear-gradient(135deg,#7b3fff33,#4d00ff22);color:#d4b8ff;font-family:Fredoka One,cursive;font-size:13px;cursor:pointer';tm.onclick=function(){adminSwitchTab('me');};
+  var tu=document.createElement('button');tu.id='adm-tab-user';tu.textContent='Find User';tu.style.cssText='flex:1;padding:8px;border-radius:10px;border:1px solid #7b3fff22;background:transparent;color:#7755aa;font-family:Fredoka One,cursive;font-size:13px;cursor:pointer';tu.onclick=function(){adminSwitchTab('user');};
+  tabs.appendChild(tm);tabs.appendChild(tu);body.appendChild(tabs);
+  var pMe=document.createElement('div');pMe.id='adm-pane-me';
+  var ti=document.createElement('input');ti.id='admin-ton-input';ti.type='number';ti.step='0.01';ti.min='0';ti.placeholder='0.00';ti.style.cssText='width:100%;box-sizing:border-box;padding:14px 16px;background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;color:#fff;font-family:Fredoka One,cursive;font-size:20px;outline:none;margin-bottom:8px';pMe.appendChild(ti);
+  var qr=document.createElement('div');qr.style.cssText='display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap';
+  [1,5,10,50,100,500,1000].forEach(function(v){var b=document.createElement('button');b.textContent='+'+v;b.style.cssText='flex:1;min-width:46px;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;padding:6px 4px;border-radius:8px;cursor:pointer;font-family:Fredoka One,cursive;font-size:12px';b.onclick=function(){ti.value=v;};qr.appendChild(b);});pMe.appendChild(qr);
+  var ar=document.createElement('div');ar.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px';
+  var ab=document.createElement('button');ab.textContent='+ Add TON';ab.style.cssText='background:linear-gradient(135deg,#1a6228,#15803d);border:none;border-radius:12px;color:#fff;font-family:Fredoka One,cursive;font-size:14px;padding:14px;cursor:pointer';ab.onclick=adminAddBalance;
+  var rb=document.createElement('button');rb.textContent='- Remove TON';rb.style.cssText='background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:none;border-radius:12px;color:#fff;font-family:Fredoka One,cursive;font-size:14px;padding:14px;cursor:pointer';rb.onclick=adminRemoveBalance;
+  ar.appendChild(ab);ar.appendChild(rb);pMe.appendChild(ar);
+  var sr=document.createElement('div');sr.style.cssText='display:flex;gap:8px;margin-bottom:14px';
+  var si=document.createElement('input');si.id='admin-set-input';si.type='number';si.step='0.01';si.min='0';si.placeholder='Set exact...';si.style.cssText='flex:1;padding:10px 12px;background:#0d0528;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:14px;outline:none';
+  var sb=document.createElement('button');sb.textContent='Set';sb.style.cssText='background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:13px;padding:0 18px;cursor:pointer';sb.onclick=adminSetBalance;
+  sr.appendChild(si);sr.appendChild(sb);pMe.appendChild(sr);
+  var ag=document.createElement('div');ag.style.cssText='display:grid;gap:8px';
+  var anb=document.createElement('button');anb.textContent='+ Add Random NFT';anb.style.cssText='background:linear-gradient(135deg,#3a1a4a,#5a1a6a);border:none;border-radius:10px;color:#fff;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left';anb.onclick=adminAddNFT;
+  var cnb=document.createElement('button');cnb.textContent='Clear NFTs ('+nc+')';cnb.style.cssText='background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;color:#aaa;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left';cnb.onclick=adminClearNFTs;
+  var rstb=document.createElement('button');rstb.textContent='Reset Everything';rstb.style.cssText='background:#ffffff08;border:1px solid #ef444433;border-radius:10px;color:#ef9999;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;text-align:left';rstb.onclick=adminResetAll;
+  ag.appendChild(anb);ag.appendChild(cnb);ag.appendChild(rstb);pMe.appendChild(ag);body.appendChild(pMe);
+  var pU=document.createElement('div');pU.id='adm-pane-user';pU.style.display='none';
+  var srow=document.createElement('div');srow.style.cssText='display:flex;gap:8px;margin-bottom:12px';
+  var sinp=document.createElement('input');sinp.id='admin-user-search';sinp.type='text';sinp.placeholder='@username or ID';sinp.style.cssText='flex:1;padding:12px 14px;background:#0d0528;border:1.5px solid #7b3fff66;border-radius:12px;color:#fff;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;outline:none';sinp.onkeydown=function(e){if(e.key==='Enter')adminSearchUser();};
+  var fb=document.createElement('button');fb.textContent='Find';fb.style.cssText='background:linear-gradient(135deg,#7b3fff,#9b5fff);border:none;border-radius:12px;color:#fff;font-family:Fredoka One,cursive;font-size:14px;padding:0 18px;cursor:pointer';fb.onclick=adminSearchUser;
+  srow.appendChild(sinp);srow.appendChild(fb);pU.appendChild(srow);
+  var ucard=document.createElement('div');ucard.id='admin-user-card';ucard.style.cssText='display:none;background:#0d0528;border:1px solid #7b3fff55;border-radius:14px;padding:14px;margin-bottom:10px';
+  ucard.innerHTML='<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><div id="adm-u-avatar" style="width:46px;height:46px;border-radius:50%;background:#7b3fff33;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#d4b8ff;overflow:hidden;flex-shrink:0"></div><div style="flex:1"><div id="adm-u-name" style="font-family:Fredoka One,cursive;font-size:15px;color:#fff"></div><div id="adm-u-username" style="font-size:11px;color:#b48fff"></div><div id="adm-u-id" style="font-size:10px;color:#5533aa"></div></div><div id="adm-u-banned-badge" style="display:none;background:#b91c1c;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">BANNED</div></div><div style="display:flex;align-items:center;justify-content:space-between;background:#ffffff08;border-radius:10px;padding:10px 14px;margin-bottom:10px"><div style="font-size:11px;color:#b48fff;font-weight:700">Balance</div><div id="adm-u-balance" style="font-family:Fredoka One,cursive;font-size:20px;color:#fff"></div></div>';
+  var uti=document.createElement('input');uti.id='admin-u-ton-input';uti.type='number';uti.step='0.01';uti.min='0';uti.placeholder='TON amount...';uti.style.cssText='width:100%;box-sizing:border-box;padding:10px 12px;background:#080318;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:16px;outline:none;margin-bottom:8px';ucard.appendChild(uti);
+  var uqr=document.createElement('div');uqr.style.cssText='display:flex;gap:6px;margin-bottom:8px';
+  [1,5,10,50,100].forEach(function(v){var b=document.createElement('button');b.textContent='+'+v;b.style.cssText='flex:1;background:#7b3fff22;border:1px solid #7b3fff44;color:#d4b8ff;padding:5px 4px;border-radius:8px;cursor:pointer;font-family:Fredoka One,cursive;font-size:12px';b.onclick=function(){uti.value=v;};uqr.appendChild(b);});ucard.appendChild(uqr);
+  var ugt=document.createElement('div');ugt.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px';
+  var gb=document.createElement('button');gb.textContent='+ Give';gb.style.cssText='background:linear-gradient(135deg,#1a6228,#15803d);border:none;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:13px;padding:11px;cursor:pointer';gb.onclick=adminUserGiveBalance;
+  var tkb=document.createElement('button');tkb.textContent='- Take';tkb.style.cssText='background:linear-gradient(135deg,#7f1d1d,#b91c1c);border:none;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:13px;padding:11px;cursor:pointer';tkb.onclick=adminUserTakeBalance;
+  ugt.appendChild(gb);ugt.appendChild(tkb);ucard.appendChild(ugt);
+  var usr=document.createElement('div');usr.style.cssText='display:flex;gap:8px;margin-bottom:10px';
+  var usi=document.createElement('input');usi.id='admin-u-set-input';usi.type='number';usi.step='0.01';usi.min='0';usi.placeholder='Set exact...';usi.style.cssText='flex:1;padding:9px 12px;background:#080318;border:1px solid #7b3fff44;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:13px;outline:none';
+  var usb=document.createElement('button');usb.textContent='Set';usb.style.cssText='background:linear-gradient(135deg,#1a4fd6,#2563eb);border:none;border-radius:10px;color:#fff;font-family:Fredoka One,cursive;font-size:12px;padding:0 14px;cursor:pointer';usb.onclick=adminUserSetBalance;
+  usr.appendChild(usi);usr.appendChild(usb);ucard.appendChild(usr);
+  var ubr=document.createElement('div');ubr.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+  var banb=document.createElement('button');banb.id='adm-ban-btn';banb.textContent='Ban User';banb.style.cssText='background:linear-gradient(135deg,#4a0a0a,#7f1d1d);border:none;border-radius:10px;color:#fca5a5;font-family:Nunito,sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer';banb.onclick=adminUserBan;
+  var unbanb=document.createElement('button');unbanb.id='adm-unban-btn';unbanb.textContent='Unban';unbanb.style.display='none';unbanb.style.cssText='background:linear-gradient(135deg,#1a4a28,#1a6228);border:none;border-radius:10px;color:#86efac;font-family:Nunito,sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer';unbanb.onclick=adminUserUnban;
+  var cunb=document.createElement('button');cunb.textContent='Clear NFTs';cunb.style.cssText='background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;color:#aaa;font-family:Nunito,sans-serif;font-weight:700;font-size:12px;padding:10px;cursor:pointer';cunb.onclick=adminUserClearNFTs;
+  ubr.appendChild(banb);ubr.appendChild(unbanb);ubr.appendChild(cunb);ucard.appendChild(ubr);pU.appendChild(ucard);
+  var nfd=document.createElement('div');nfd.id='admin-user-not-found';nfd.style.cssText='display:none;text-align:center;color:#7755aa;padding:24px;font-size:13px;font-family:Nunito,sans-serif;font-weight:700';nfd.textContent='User not found.';pU.appendChild(nfd);
+  body.appendChild(pU);
+  var foot=document.createElement('div');foot.style.cssText='font-size:10px;color:#7755aa;text-align:center;margin-top:16px';foot.textContent='Server admin';body.appendChild(foot);
+  bg.appendChild(wrap);document.body.appendChild(bg);
+}
+function closeAdminPanel(){var bg=document.getElementById('admin-panel-bg');if(bg)bg.style.display='none';}
+function adminSwitchTab(tab){var pm=document.getElementById('adm-pane-me'),pu=document.getElementById('adm-pane-user'),tm=document.getElementById('adm-tab-me'),tu=document.getElementById('adm-tab-user');if(!pm||!pu||!tm||!tu)return;pm.style.display=tab==='me'?'':'none';pu.style.display=tab==='user'?'':'none';tm.style.background=tab==='me'?'linear-gradient(135deg,#7b3fff33,#4d00ff22)':'transparent';tm.style.color=tab==='me'?'#d4b8ff':'#7755aa';tu.style.background=tab==='user'?'linear-gradient(135deg,#7b3fff33,#4d00ff22)':'transparent';tu.style.color=tab==='user'?'#d4b8ff':'#7755aa';}
+function adminSearchUser(){var el=document.getElementById('admin-user-search');if(!el)return;var q=(el.value||'').trim().replace(/^@/,'');if(!q){if(typeof showToast==='function')showToast('Enter username or ID');return;}var c=document.getElementById('admin-user-card');if(c)c.style.display='none';var nf=document.getElementById('admin-user-not-found');if(nf)nf.style.display='none';if(typeof wsReady!=='undefined'&&wsReady&&window.ws){ws.send(JSON.stringify({a:'admin_find_user',query:q}));if(typeof showToast==='function')showToast('Searching...','info');}else{if(typeof showToast==='function')showToast('No connection');}}
+function _adminShowUserCard(u){_adminTargetUser=u;var card=document.getElementById('admin-user-card');if(!card)return;var av=document.getElementById('adm-u-avatar');av.innerHTML=u.photo_url?'<img src="'+u.photo_url+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">':(u.first_name||u.username||'?')[0].toUpperCase();document.getElementById('adm-u-name').textContent=(u.first_name||'')+(u.last_name?' '+u.last_name:'');document.getElementById('adm-u-username').textContent=u.username?'@'+u.username:'';document.getElementById('adm-u-id').textContent='ID: '+u.id;document.getElementById('adm-u-balance').textContent=(+(u.balance||0)).toFixed(2)+' TON';var banned=!!u.banned;document.getElementById('adm-u-banned-badge').style.display=banned?'':'none';document.getElementById('adm-ban-btn').style.display=banned?'none':'';document.getElementById('adm-unban-btn').style.display=banned?'':'none';card.style.display='';document.getElementById('admin-user-not-found').style.display='none';}
+function adminAddBalance(){var v=parseFloat((document.getElementById('admin-ton-input')||{}).value);if(!v||v<=0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof balance!=='undefined'){balance=+(balance+v).toFixed(4);if(typeof updBal==='function')updBal();if(typeof saveBal==='function')saveBal();}var el=document.getElementById('admin-current-bal');if(el)el.textContent=balance.toFixed(2)+' TON';if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_balance',uid:typeof userId!=='undefined'?userId:'',delta:v}));if(typeof showToast==='function')showToast('Added '+v.toFixed(2)+' TON','win');var i=document.getElementById('admin-ton-input');if(i)i.value='';}
+function adminRemoveBalance(){var v=parseFloat((document.getElementById('admin-ton-input')||{}).value);if(!v||v<=0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof balance!=='undefined'){balance=+Math.max(0,balance-v).toFixed(4);if(typeof updBal==='function')updBal();if(typeof saveBal==='function')saveBal();}var el=document.getElementById('admin-current-bal');if(el)el.textContent=balance.toFixed(2)+' TON';if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_balance',uid:typeof userId!=='undefined'?userId:'',delta:-v}));if(typeof showToast==='function')showToast('Removed '+v.toFixed(2)+' TON','info');var i=document.getElementById('admin-ton-input');if(i)i.value='';}
+function adminSetBalance(){var v=parseFloat((document.getElementById('admin-set-input')||{}).value);if(isNaN(v)||v<0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof balance!=='undefined'){balance=+v.toFixed(4);if(typeof updBal==='function')updBal();if(typeof saveBal==='function')saveBal();}var el=document.getElementById('admin-current-bal');if(el)el.textContent=v.toFixed(2)+' TON';if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_set_balance',uid:typeof userId!=='undefined'?userId:'',balance:v}));if(typeof showToast==='function')showToast('Set to '+v.toFixed(2),'win');var i=document.getElementById('admin-set-input');if(i)i.value='';}
+function adminUserGiveBalance(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}var el=document.getElementById('admin-u-ton-input');var v=parseFloat(el?el.value:0);if(!v||v<=0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_balance',uid:_adminTargetUser.id,delta:v}));_adminTargetUser.balance=(+(_adminTargetUser.balance||0))+v;document.getElementById('adm-u-balance').textContent=_adminTargetUser.balance.toFixed(2)+' TON';if(typeof showToast==='function')showToast('Gave '+v.toFixed(2)+' TON','win');if(el)el.value='';}
+function adminUserTakeBalance(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}var el=document.getElementById('admin-u-ton-input');var v=parseFloat(el?el.value:0);if(!v||v<=0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_balance',uid:_adminTargetUser.id,delta:-v}));_adminTargetUser.balance=Math.max(0,(+(_adminTargetUser.balance||0))-v);document.getElementById('adm-u-balance').textContent=_adminTargetUser.balance.toFixed(2)+' TON';if(typeof showToast==='function')showToast('Took '+v.toFixed(2)+' TON','info');if(el)el.value='';}
+function adminUserSetBalance(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}var el=document.getElementById('admin-u-set-input');var v=parseFloat(el?el.value:NaN);if(isNaN(v)||v<0){if(typeof showToast==='function')showToast('Enter valid amount');return;}if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_set_balance',uid:_adminTargetUser.id,balance:v}));_adminTargetUser.balance=v;document.getElementById('adm-u-balance').textContent=v.toFixed(2)+' TON';if(typeof showToast==='function')showToast('Set to '+v.toFixed(2),'win');if(el)el.value='';}
+function adminUserBan(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}if(!confirm('Ban user?'))return;if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_ban',uid:_adminTargetUser.id,ban:true}));_adminTargetUser.banned=true;document.getElementById('adm-u-banned-badge').style.display='';document.getElementById('adm-ban-btn').style.display='none';document.getElementById('adm-unban-btn').style.display='';if(typeof showToast==='function')showToast('Banned','info');}
+function adminUserUnban(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_ban',uid:_adminTargetUser.id,ban:false}));_adminTargetUser.banned=false;document.getElementById('adm-u-banned-badge').style.display='none';document.getElementById('adm-ban-btn').style.display='';document.getElementById('adm-unban-btn').style.display='none';if(typeof showToast==='function')showToast('Unbanned','win');}
+function adminUserClearNFTs(){if(!_adminTargetUser){if(typeof showToast==='function')showToast('Find a user first');return;}if(!confirm('Clear NFTs?'))return;if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'admin_clear_nfts',uid:_adminTargetUser.id}));if(typeof showToast==='function')showToast('NFTs cleared','info');}
+function adminAddNFT(){if(typeof CASES==='undefined'||!CASES.length)return;var items=CASES[0].items.filter(function(i){return i.isNFT;});var nft=items[Math.floor(Math.random()*items.length)];if(typeof addNFTToInventory==='function')addNFTToInventory(nft,nft.price,1);if(typeof showToast==='function')showToast('Added '+nft.name,'win');closeAdminPanel();openAdminPanel();}
+function adminClearNFTs(){if(typeof myNFTs==='undefined'||!myNFTs.length){if(typeof showToast==='function')showToast('Inventory empty');return;}if(!confirm('Delete all '+myNFTs.length+' NFTs?'))return;myNFTs=[];if(typeof saveNFTs==='function')saveNFTs();var l=document.getElementById('inv-tab-lbl');if(l)l.textContent=typeof t==='function'?t('inv'):'Backpack';if(typeof showToast==='function')showToast('Cleared','info');closeAdminPanel();openAdminPanel();}
+function adminResetAll(){if(!confirm('Reset everything?'))return;if(typeof balance!=='undefined'){balance=0;if(typeof updBal==='function')updBal();if(typeof saveBal==='function')saveBal();}if(typeof myNFTs!=='undefined'){myNFTs=[];if(typeof saveNFTs==='function')saveNFTs();}var l=document.getElementById('inv-tab-lbl');if(l)l.textContent=typeof t==='function'?t('inv'):'Backpack';if(typeof showToast==='function')showToast('Reset done','info');closeAdminPanel();openAdminPanel();}
+</script>
 </body>
 </html>
