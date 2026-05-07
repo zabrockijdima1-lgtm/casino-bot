@@ -4161,6 +4161,7 @@ connect();
         }
         if(d.t==='st'){if(typeof resetReactCounts==='function')resetReactCounts();var rb=document.getElementById('react-bar');if(rb)rb.classList.add('visible');}
         if(d.t==='cr'||d.t==='cd'){var rb2=document.getElementById('react-bar');if(rb2)rb2.classList.remove('visible');if(d.t==='cr'&&window._activeNFTBet){var nb=window._activeNFTBet;window._activeNFTBet=null;if(typeof showToast==='function')showToast('NFT lost: '+nb.name);var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';}}
+        if(d.t==='nft_returned'&&d.nft){window._activeNFTBet=null;if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price||d.nft.floor,1);var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';if(typeof showToast==='function')showToast('NFT returned: '+d.nft.name,'info');}
         if(d.t==='admin_user_found'&&d.user)_adminShowUserCard(d.user);
         if(d.t==='admin_user_not_found'){var c=document.getElementById('admin-user-card');if(c)c.style.display='none';var nf=document.getElementById('admin-user-not-found');if(nf)nf.style.display='';}
         if(d.t==='win_nft_rocket'&&d.nft){if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price,d.mult||1);if(typeof showToast==='function')showToast('Won '+d.nft.name,'win');}
@@ -4216,15 +4217,10 @@ function confirmNFTBet(){
   var l=document.getElementById('inv-tab-lbl');
   if(l)l.textContent=myNFTs.length?(typeof t==='function'?t('inv'):'Backpack')+' ('+myNFTs.length+')':(typeof t==='function'?t('inv'):'Backpack');
   var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+nft.name;
-  var nftPrice=+(nft.price||nft.floor||0);
-  // Send regular bet to server so player card appears + nft_bet field for server to track
-  if(typeof wsReady!=='undefined'&&wsReady&&window.ws){
-    ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:nft.id,nft_price:nftPrice,nft_name:nft.name}}));
-  }
-  betAmt=nftPrice;
-  // Don't set hasBet=true here - wait for bet_ok from server (it will show player card)
+  if(typeof wsReady!=='undefined'&&wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_rocket_bet',nft_id:nft.id,nft_price:+(nft.price||nft.floor||0),nft_name:nft.name}));
+  hasBet=true;betAmt=+(nft.price||nft.floor||0);
   var bb=document.getElementById('bb');
-  if(bb){bb.innerHTML='<span style="font-size:11px">NFT BET: '+nft.name+'</span>';bb.disabled=true;}
+  if(bb){bb.innerHTML='<span style="font-size:11px">NFT BET: '+nft.name+'</span>';bb.classList.add('co');bb.disabled=true;}
   if(typeof showToast==='function')showToast('NFT bet placed!','win');
   if(navigator.vibrate)navigator.vibrate([30,15,60]);
 }
