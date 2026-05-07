@@ -1483,7 +1483,7 @@ function startClientAnim(){
     const el=Math.max(0,(Date.now()-t0)/1000);
     mult=calcMult(el);points.push({t:el,m:mult});
     ME().textContent=mult.toFixed(2)+'×';
-    if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;}
+    if(hasBet){BB().disabled=false;BB().className='co';var _nftWin=window._activeNFTBet?getNFTSafe(betAmt*mult,mult):null;var _bbLabel=_nftWin?`<span style="font-size:11px;opacity:.8">${t('cashout')}</span><span style="font-size:15px;font-weight:900"> ${_nftWin.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`:`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;BB().innerHTML=_bbLabel;}
     drawGraph(false);
     loopId=requestAnimationFrame(tick);
   }
@@ -1522,7 +1522,7 @@ function renderPlayers(list){
     const ava=p.photo?`<img src="${p.photo}">`:`<span>${(p.name||'?').slice(0,2).toUpperCase()}</span>`;
     let rowCls='pr'+(isMe?' me':'')+(p.cashed?' won':p.lost?' lost':'');
     const m=p.mult&&+p.mult>0?' ×'+(+p.mult).toFixed(2):'';
-    const betTag=p.bet?`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`:'';
+    const betTag=p.bet?(p.is_nft?`<span class="pr-bet">\uD83C\uDF81 NFT${m}</span>`:`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`):'';
     let right='';
     if(p.cashed&&p.nft){
       const np=getPhotoById(p.nft);
@@ -1536,7 +1536,14 @@ function renderPlayers(list){
       // Показуємо поточний виграш і NFT яке можна забрати
       const potentialWin = (+p.bet) * mult;
       const potNFT = getNFTSafe(potentialWin, mult);
-      const potWinStr = `<span class="pr-win" style="background:#0d1828;color:#f5c500">${TSVG} ${potentialWin.toFixed(2)}</span>`;
+      let potWinStr;
+      if(p.is_nft){
+        potWinStr = potNFT
+          ? `<span class="pr-win" style="background:#1a0a3a;color:#c084fc">🎁 ${potNFT.name} (${potentialWin.toFixed(2)})</span>`
+          : `<span class="pr-win" style="background:#1a0a3a;color:#c084fc">🎁 NFT (${potentialWin.toFixed(2)})</span>`;
+      } else {
+        potWinStr = `<span class="pr-win" style="background:#0d1828;color:#f5c500">${TSVG} ${potentialWin.toFixed(2)}</span>`;
+      }
       if(potNFT){
         const np=getPhotoById(potNFT);
         const ni=np?`<img class="pr-nft" src="${np}" style="opacity:0.85">`:'<span style="font-size:22px;opacity:0.8">🎁</span>';
@@ -1907,7 +1914,7 @@ function connect(){
     else if(d.t==='st'){
       phase='flying';startTs=d.ts;document.getElementById('rid').textContent=d.rid;
       ME().className='';ME().textContent='1.00×';points=[];startClientAnim();
-      if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;startFlightTicks();}
+      if(hasBet){BB().disabled=false;BB().className='co';var _nftW=window._activeNFTBet?getNFTSafe(betAmt*1,1.0):null;BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${window._activeNFTBet?window._activeNFTBet.name+' NFT':betAmt.toFixed(2)+' TON'}</span>`;startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
     else if(d.t==='tick'){renderPlayers(d.pl);}
@@ -1934,7 +1941,7 @@ function connect(){
       renderPlayers(d.pl);
     }
     else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
-    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();BB().disabled=true;BB().innerHTML=t('bet_accepted');addBetIndicator();}
+    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();BB().disabled=true;BB().innerHTML=t('bet_accepted');addBetIndicator();if(window._activeNFTBet){var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+window._activeNFTBet.name;}}
     else if(d.t==='your_co'){
       hasBet=false;balance=d.bal;updBal();saveBal();
       stopFlightTicks();
