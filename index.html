@@ -4137,6 +4137,8 @@ async function loadNFTPrices() {
     const data = await resp.json();
     const prices = data.prices || {};
     let updated = 0;
+
+    // Оновлюємо CASES (кейс PINK)
     CASES.forEach(caseObj => {
       caseObj.items.forEach(item => {
         if (item.isNFT && prices[item.id] != null) {
@@ -4146,6 +4148,18 @@ async function loadNFTPrices() {
         }
       });
     });
+
+    // Оновлюємо NFT_CATALOG (Rocket)
+    if (typeof NFT_CATALOG !== 'undefined') {
+      NFT_CATALOG.forEach(item => {
+        if (prices[item.id] != null) {
+          item.floor = prices[item.id];
+          item.price = +(prices[item.id] * 1.05).toFixed(2); // ціна = floor + 5% маржа
+          updated++;
+        }
+      });
+    }
+
     if (updated > 0) {
       console.log(`✅ NFT ціни оновлено: ${updated} предметів (${data.updatedAt || '?'})`);
     }
