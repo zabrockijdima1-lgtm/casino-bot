@@ -1,10 +1,37 @@
+"""
+update_prices.py — підтягування floor-цін NFT з tgmrkt.io у prices.json.
+
+Запуск:
+  python update_prices.py            # одноразово
+  python update_prices.py --loop     # кожну годину (60 хв)
+  python update_prices.py --loop 30  # кожні 30 хв
+
+Оптимізації:
+  • Паралельні запити (ThreadPoolExecutor) — замість 1.5с * N послідовно, ~10–15с разом
+  • Запитуємо лише УНІКАЛЬНІ назви колекцій, потім розкладаємо результат на всі id
+  • Експоненційна затримка при 429 Rate Limited
+  • Атомарний запис prices.json (через temp + os.replace) — HTML не зловить пів-файлу
+  • Зберігаємо попередні ціни як fallback, якщо API падає
+"""
+
 import requests
 import json
 import time
+import os
+import tempfile
+import sys
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 PRICES_FILE    = "prices.json"
 MARKET_API_URL = "https://api.tgmrkt.io/api/v1"
+
+# Скільки одночасних запитів. tgmrkt — невеликий API, тримай помірно.
+MAX_WORKERS    = 6
+# Невелика пауза при відправці запитів у пул — щоб не б'ємо всі одночасно
+REQ_DELAY      = 0.25
+# Таймаут одного запиту
+HTTP_TIMEOUT   = 10
 
 HEADERS = {
     "Authorization": "6719edf2-b2a9-49ca-bdac-add1fd7ba128",
@@ -140,9 +167,13 @@ NFT_COLLECTION_MAP = {
     "happybroom":            "Happy Brownie",
 }
 
-def get_floor_price(collection_name):
+
+def _fetch_floor(collection_name, session, attempt=0):
+    """Один запит на одну колекцію. Повертає float або None.
+    На 429 робить експоненційну затримку (макс 2 retry).
+    """
     try:
-        resp = requests.post(
+        resp = session.post(
             f"{MARKET_API_URL}/gifts/saling",
             headers=HEADERS,
             json={
@@ -153,97 +184,126 @@ def get_floor_price(collection_name):
                 "number": None, "count": 1, "cursor": "", "query": None,
                 "promotedFirst": False,
             },
-            timeout=10,
+            timeout=HTTP_TIMEOUT,
         )
         if resp.status_code == 429:
-            return "RATE_LIMITED"
+            if attempt < 2:
+                time.sleep(2 ** attempt + 1)  # 2с, 3с
+                return _fetch_floor(collection_name, session, attempt + 1)
+            return None
         if resp.status_code != 200:
             return None
         gifts = resp.json().get("gifts", [])
         if not gifts:
             return None
         price = gifts[0].get("salePrice")
-        if price is not None:
-            return round(price / 1_000_000_000, 2)
-        return None
-    except:
+        if price is None:
+            return None
+        return round(price / 1_000_000_000, 2)
+    except Exception:
         return None
 
+
+def _save_atomic(path, payload):
+    """Атомарний запис: пишемо в temp у тій же папці, потім os.replace.
+    Це гарантує, що HTML ніколи не прочитає недописаний/порожній файл."""
+    dir_ = os.path.dirname(os.path.abspath(path)) or "."
+    fd, tmp = tempfile.mkstemp(prefix=".prices_", suffix=".tmp", dir=dir_)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2, ensure_ascii=False)
+        os.replace(tmp, path)
+    except Exception:
+        try: os.unlink(tmp)
+        except: pass
+        raise
+
+
 def update_prices():
+    started = time.time()
     print(f"\n{'='*60}")
     print(f"  Оновлення цін NFT — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"  Джерело: tgmrkt.io API")
+    print(f"  Джерело: tgmrkt.io API (паралельно, workers={MAX_WORKERS})")
     print(f"{'='*60}\n")
 
     # Завантажуємо існуючі ціни як fallback
     try:
-        with open(PRICES_FILE, "r") as f:
+        with open(PRICES_FILE, "r", encoding="utf-8") as f:
             existing = json.load(f).get("prices", {})
-    except:
+    except Exception:
         existing = {}
 
     prices = dict(existing)
+
+    # Беремо тільки УНІКАЛЬНІ назви колекцій (None → пропуск)
+    unique_collections = sorted({c for c in NFT_COLLECTION_MAP.values() if c})
+    print(f"  Унікальних колекцій до запиту: {len(unique_collections)}\n")
+
+    # Паралельні запити
+    collection_floors = {}
+    with requests.Session() as sess, ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        futures = {}
+        for coll in unique_collections:
+            futures[pool.submit(_fetch_floor, coll, sess)] = coll
+            time.sleep(REQ_DELAY)  # ramping — не б'ємо всі одразу
+
+        for fut in as_completed(futures):
+            coll = futures[fut]
+            try:
+                floor = fut.result()
+            except Exception:
+                floor = None
+            collection_floors[coll] = floor
+            tag = "OK" if floor else "--"
+            val = f"{floor:.2f} TON" if floor else "немає"
+            print(f"  [{tag}] {coll:<24} {val}")
+
+    # Розкладаємо результати на всі NFT-id
     success = 0
     fallback = 0
-    rate_limited = 0
-    seen_collections = {}  # кешуємо вже запитані колекції
-
-    for nft_id, collection_name in NFT_COLLECTION_MAP.items():
-        label = nft_id.ljust(22)
-
-        if collection_name is None:
-            print(f"  [ ]  {label} → немає на tgmrkt")
-            fallback += 1
+    none_count = 0
+    for nft_id, coll in NFT_COLLECTION_MAP.items():
+        if coll is None:
+            none_count += 1
             continue
-
-        # Якщо вже запитували цю колекцію — беремо з кешу
-        if collection_name in seen_collections:
-            floor = seen_collections[collection_name]
-            if floor is not None:
-                prices[nft_id] = floor
-                print(f"  [=]  {label} {floor:.2f} TON (кеш)")
-                success += 1
-            continue
-
-        print(f"  ...  {label}", end="", flush=True)
-        floor = get_floor_price(collection_name)
-
-        if floor == "RATE_LIMITED":
-            print(f"\r  [429] {label} rate limit — чекаємо 5 сек...")
-            time.sleep(5)
-            floor = get_floor_price(collection_name)
-
-        seen_collections[collection_name] = floor if floor != "RATE_LIMITED" else None
-
-        if floor and floor != "RATE_LIMITED":
+        floor = collection_floors.get(coll)
+        if floor is not None:
             prices[nft_id] = floor
-            print(f"\r  [OK] {label} {floor:.2f} TON")
             success += 1
         else:
-            print(f"\r  [!!] {label} fallback {existing.get(nft_id, '?')} TON")
+            # лишаємо попереднє значення з prices.json як fallback
             fallback += 1
 
-        time.sleep(1.5)
+    payload = {
+        "updatedAt": datetime.utcnow().isoformat() + "Z",
+        "prices": prices,
+    }
+    _save_atomic(PRICES_FILE, payload)
 
-    with open(PRICES_FILE, "w", encoding="utf-8") as f:
-        json.dump({"updatedAt": datetime.utcnow().isoformat()+"Z", "prices": prices}, f, indent=2)
-
+    elapsed = time.time() - started
     print(f"\n{'='*60}")
     print(f"  SUCCESS      : {success}")
     print(f"  FALLBACK     : {fallback}")
-    print(f"  RATE LIMITED : {rate_limited}")
+    print(f"  NO MAPPING   : {none_count}")
+    print(f"  TIME         : {elapsed:.1f}s")
     print(f"  SAVED TO     : {PRICES_FILE}")
     print(f"{'='*60}\n")
 
+
 if __name__ == "__main__":
-    import sys
     if "--loop" in sys.argv:
         idx = sys.argv.index("--loop")
-        interval = int(sys.argv[idx+1]) if len(sys.argv) > idx+1 else 60
+        # дефолт — 60 хв (одна година)
+        try:
+            interval = int(sys.argv[idx + 1]) if len(sys.argv) > idx + 1 else 60
+        except ValueError:
+            interval = 60
         print(f"Авто-оновлення кожні {interval} хв.")
         while True:
-            try: update_prices()
-            except Exception as e: print(f"Помилка: {e}")
+            try:
+                update_prices()
+            except Exception as e:
+                print(f"Помилка: {e}")
             time.sleep(interval * 60)
     else:
         update_prices()
