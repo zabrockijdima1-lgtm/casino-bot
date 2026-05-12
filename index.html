@@ -570,6 +570,89 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 .case-card .case-price-row .cprice{font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;color:#fff}
 .case-badge{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#f5a623,#e8820a);color:#000;font-size:9px;font-weight:800;padding:3px 8px;border-radius:8px;font-family:'Nunito',sans-serif;letter-spacing:0.5px}
 .cases-featured{padding:0 16px 4px}
+/* ── НОВІ КАРТКИ КЕЙСІВ (стиль CASEMINT) ─────────────────────────────── */
+.case-card-v2{
+  position:relative;
+  border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:20px;
+  padding:14px 12px 14px;
+  cursor:pointer;
+  overflow:hidden;
+  transition:transform .15s, box-shadow .25s;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:200px;
+}
+.case-card-v2:active{transform:scale(0.96)}
+.case-card-v2 .cc-glow{position:absolute;inset:0;pointer-events:none;opacity:0.9}
+.case-card-v2 .cc-badge{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.12);
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  padding:3px 8px;
+  border-radius:10px;
+  font-family:'Nunito',sans-serif;
+  backdrop-filter:blur(6px);
+  z-index:2;
+}
+.case-card-v2 .cc-image{
+  width:100%;
+  aspect-ratio:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  position:relative;
+  margin-bottom:10px;
+}
+.case-card-v2 .cc-emoji{
+  font-size:62px;
+  line-height:1;
+  position:relative;
+  z-index:1;
+}
+.case-card-v2 .cc-previews{
+  display:flex;
+  gap:4px;
+  margin-top:4px;
+  z-index:1;
+}
+.case-card-v2 .cc-name{
+  font-family:'Fredoka One',cursive;
+  font-size:18px;
+  color:#fff;
+  letter-spacing:1.5px;
+  margin-bottom:8px;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+.case-card-v2 .cc-price{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:rgba(0,0,0,0.45);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:14px;
+  padding:5px 14px;
+  font-family:'Fredoka One',cursive;
+  font-size:14px;
+  color:#fff;
+  position:relative;
+  z-index:1;
+  backdrop-filter:blur(6px);
+}
+body.light-theme .case-card-v2 .cc-badge{background:rgba(255,255,255,0.85);color:#1e1b4b;border-color:rgba(124,58,237,0.2)}
+body.light-theme .case-card-v2 .cc-price{background:rgba(255,255,255,0.75);color:#1e1b4b;border-color:rgba(124,58,237,0.2)}
+body.light-theme .case-card-v2 .cc-name{color:#fff}
+
 .case-card-featured{background:linear-gradient(135deg,#141f35,#0f1829);border:1px solid rgba(77,143,255,0.2);border-radius:20px;padding:0;cursor:pointer;transition:transform .15s;overflow:hidden;display:flex;align-items:center;margin-bottom:10px}
 .case-card-featured:active{transform:scale(0.98)}
 .case-card-featured .cf-img{width:90px;height:90px;object-fit:cover;flex-shrink:0}
@@ -2709,36 +2792,330 @@ initAudio();
 setTimeout(()=>{try{initTon();}catch(e){}},300);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
+// ── Хелпери для побудови кейсів ─────────────────────────────────────────────
+// Беремо item з NFT_CATALOG і додаємо weight (вагу) — шанс випадіння.
+function _nft(id, weight){
+  const src = (typeof NFT_CATALOG !== 'undefined') ? NFT_CATALOG.find(n=>n.id===id) : null;
+  if(!src){
+    // fallback: запис-плейсхолдер, щоб масив був валідним навіть якщо id некоректний
+    return {id:id,name:id,emoji:'🎁',price:1,rarity:'Common',weight:weight,isNFT:true};
+  }
+  return {
+    id: src.id,
+    name: src.name,
+    emoji: '🎁',
+    price: src.price,    // ціна для відображення/продажу (з маржею з prices.json)
+    floor: src.floor,
+    rarity: src.rarity,
+    weight: weight,
+    isNFT: true,
+  };
+}
+
 const CASES=[
-  {id:'pink',name:'PINK',emoji:'💋',price:4.7,
+  // ── 1. BICHUGAN — 0.4 TON — найдешевший, common only ─────────────────────
+  {id:'bichugan', name:'BICHUGAN', emoji:'🏆', price:0.4, color:'#a87d3a',
+   gradient:'linear-gradient(135deg,#2a1f10,#3a2a15)',
+   accent:'#f5a623',
    previewNFTs:['snakebox','candycane','jesterhat'],
    items:[
-    // TON призи (немає в цьому кейсі — тільки NFT як на фото)
-    // NFT призи 1:1 як на скріні (ціни в TON = значення з фото ÷ курс ~1)
-    {id:'snakebox',     name:'Snake Box',            emoji:'🐍', price:2.60,  rarity:'Common',    weight:18, isNFT:true},
-    {id:'candycane',    name:'Candy Cane',           emoji:'🍬', price:2.85,  rarity:'Common',    weight:16, isNFT:true},
-    {id:'jesterhat',    name:'Jester Hat',           emoji:'🎭', price:3.28,  rarity:'Common',    weight:14, isNFT:true},
-    {id:'lolpop',       name:'Lol Pop',              emoji:'🍭', price:3.35,  rarity:'Common',    weight:13, isNFT:true},
-    {id:'spicedwine',   name:'Spiced Wine',          emoji:'🍷', price:3.69,  rarity:'Common',    weight:11, isNFT:true},
-    {id:'cookieheart',  name:'Cookie Heart',         emoji:'🍪', price:4.11,  rarity:'Common',    weight:9,  isNFT:true},
-    {id:'lolpopsweetheart', name:'Lol Pop Sweetheart', emoji:'💕',price:5.24, rarity:'Rare',      weight:7,  isNFT:true},
-    {id:'deskcalendar', name:'Desk Calendar',        emoji:'📅', price:5.74,  rarity:'Rare',      weight:6,  isNFT:true},
-    {id:'joyfullbundle',name:'Joyful Bundle',        emoji:'🎁', price:5.83,  rarity:'Rare',      weight:5,  isNFT:true},
-    {id:'bunnymuffin',  name:'Bunny Muffin',         emoji:'🐰', price:5.94,  rarity:'Rare',      weight:5,  isNFT:true},
-    {id:'berrybox',     name:'Berry Box',            emoji:'🍓', price:7.41,  rarity:'Rare',      weight:4,  isNFT:true},
-    {id:'valentinebox', name:'Valentine Box',        emoji:'💝', price:8.64,  rarity:'Rare',      weight:3,  isNFT:true},
-    {id:'joyfullbundleteddybears', name:'Joyful Bundle Teddy Bears', emoji:'🧸', price:8.93, rarity:'Rare', weight:2.5, isNFT:true},
-    {id:'lovecandle',   name:'Love Candle',          emoji:'🕯️', price:9.08,  rarity:'Rare',      weight:2,  isNFT:true},
-    {id:'sakuraflower', name:'Sakura Flower',        emoji:'🌸', price:11.50, rarity:'Epic',      weight:1.5,isNFT:true},
-    {id:'lovepotion',   name:'Love Potion',          emoji:'🧪', price:12.46, rarity:'Epic',      weight:1.2,isNFT:true},
-    {id:'starnotepad',  name:'Star Notepad True Love',emoji:'📓',price:12.60, rarity:'Epic',      weight:1,  isNFT:true},
-    {id:'eternalrose',  name:'Eternal Rose',         emoji:'🌹', price:23.81, rarity:'Epic',      weight:0.6,isNFT:true},
-    {id:'toybear',      name:'Toy Bear',             emoji:'🧸', price:32.75, rarity:'Epic',      weight:0.4,isNFT:true},
-    {id:'sharptongue',  name:'Sharp Tongue Glamour', emoji:'💋', price:40.84, rarity:'Legendary', weight:0.2,isNFT:true},
-    {id:'nekohelmet',   name:'Neko Helmet Princess', emoji:'⛑️', price:89.36, rarity:'Legendary', weight:0.08,isNFT:true},
-    {id:'nailbracelet', name:'Nail Bracelet Neon Tube',emoji:'💜',price:107.10,rarity:'Legendary',weight:0.05,isNFT:true},
-    {id:'astralshard',  name:'Astral Shard Lovestone',emoji:'💎',price:249.10,rarity:'Legendary', weight:0.02,isNFT:true},
-  ]},
+     _nft('snakebox',     30),
+     _nft('candycane',    28),
+     _nft('xmasstocking', 25),
+     _nft('chillflame',   22),
+     _nft('vicecream',    22),
+     _nft('lunarsnake',   18),
+     _nft('holidaydrink', 15),
+     _nft('whipcupcake',  12),
+     _nft('winterwreath', 10),
+     _nft('bigyear',      8),
+     _nft('poolfloat',    6),
+     _nft('jesterhat',    4),
+     _nft('lolpop',       2),
+     _nft('cookieheart',  1),
+     _nft('hexhot',       0.5),
+     _nft('snowglobe',    0.3),
+     _nft('bdaycandle',   0.15),
+     _nft('bowtie',       0.08),
+     _nft('moonpendant',  0.04),
+     _nft('crystalball',  0.01),
+     _nft('toybear',      0.005),
+     _nft('nekohelmet',   0.002),
+     _nft('astralshards', 0.0005),
+   ]},
+
+  // ── 2. SPRING — 0.7 TON — весняна тематика ───────────────────────────────
+  {id:'spring', name:'SPRING', emoji:'🌸', price:0.7, color:'#7dd87a',
+   gradient:'linear-gradient(135deg,#143a1a,#1f5028)',
+   accent:'#7ded7a',
+   previewNFTs:['sakuraflower','bunnymuffin','lushbouquet'],
+   items:[
+     _nft('petsnake',     22),
+     _nft('easteregg',    20),
+     _nft('partysparkler',18),
+     _nft('happybrownie', 15),
+     _nft('gingercookie', 12),
+     _nft('starnotepad',  10),
+     _nft('lushbouquet',  8),
+     _nft('moonpendant',  6),
+     _nft('snowmittens',  5),
+     _nft('faithamulet',  4),
+     _nft('jollychimp',   3),
+     _nft('swagbag',      2),
+     _nft('sakuraflower', 1),
+     _nft('flyingbroom',  0.6),
+     _nft('tophat',       0.4),
+     _nft('lovepotion',   0.2),
+     _nft('skullflower',  0.1),
+     _nft('eternalrose',  0.05),
+     _nft('genielamp',    0.02),
+     _nft('swisswatch',   0.01),
+     _nft('artisanbrick', 0.003),
+     _nft('durovscap',    0.0005),
+   ]},
+
+  // ── 3. BAZA — 0.9 TON — базові NFT ───────────────────────────────────────
+  {id:'baza', name:'BAZA', emoji:'⚗️', price:0.9, color:'#3ddc84',
+   gradient:'linear-gradient(135deg,#0d2a1a,#103a25)',
+   accent:'#3ddc84',
+   previewNFTs:['tamagadget','freshsocks','inputkey'],
+   items:[
+     _nft('tamagadget',   20),
+     _nft('freshsocks',   18),
+     _nft('hypnolollipop',16),
+     _nft('jackinthebox', 14),
+     _nft('spicedwine',   12),
+     _nft('moodpack',     10),
+     _nft('stellarrocket',8),
+     _nft('cookieheart',  6),
+     _nft('inputkey',     4),
+     _nft('clovelpin',    3),
+     _nft('timelessbook', 2.5),
+     _nft('snoopdog',     2),
+     _nft('eternalcandle',1.5),
+     _nft('berrybox',     1),
+     _nft('valentinebox', 0.7),
+     _nft('crystalball',  0.4),
+     _nft('madpumpkin',   0.2),
+     _nft('cupidcharm',   0.1),
+     _nft('diamondring',  0.05),
+     _nft('lowrider',     0.02),
+     _nft('magicpotion',  0.008),
+     _nft('heroichelmet', 0.002),
+   ]},
+
+  // ── 4. RISK — 1.1 TON — високий розкид, шанс на велике ───────────────────
+  {id:'risk', name:'RISK', emoji:'⚡', price:1.1, color:'#ff4d6d',
+   gradient:'linear-gradient(135deg,#3a0a14,#5a0f20)',
+   accent:'#ff4d6d',
+   previewNFTs:['electricskull','snoopdog','evileye'],
+   items:[
+     _nft('chillflame',   28),
+     _nft('snakebox',     22),
+     _nft('hypnolollipop',18),
+     _nft('snoopdog',     8),     // одразу шанс на rare
+     _nft('evileye',      6),
+     _nft('skullflower',  4),
+     _nft('madpumpkin',   3),
+     _nft('snoopcigar',   2),
+     _nft('trappedheart', 1.5),
+     _nft('skystiletto',  1),
+     _nft('recordplayer', 0.7),
+     _nft('cupidcharm',   0.5),
+     _nft('electricskull',0.3),
+     _nft('voodoodoll',   0.15),
+     _nft('toybear',      0.08),
+     _nft('lowrider',     0.04),
+     _nft('genielamp',    0.02),
+     _nft('magicpotion',  0.01),
+     _nft('artisanbrick', 0.005),
+     _nft('westsideside', 0.002),
+     _nft('heroichelmet', 0.0008),
+     _nft('durovscap',    0.0002),
+   ]},
+
+  // ── 5. INFINITY — 1.1 TON — космос / зірки ───────────────────────────────
+  {id:'infinity', name:'INFINITY', emoji:'✨', price:1.1, color:'#4d8fff',
+   gradient:'linear-gradient(135deg,#0a1a3a,#142a55)',
+   accent:'#4d8fff',
+   previewNFTs:['hangingstar','crystalball','moonpendant'],
+   items:[
+     _nft('chillflame',    24),
+     _nft('bigyear',       20),
+     _nft('stellarrocket', 16),
+     _nft('partysparkler', 12),
+     _nft('starnotepad',   10),
+     _nft('hangingstar',   8),
+     _nft('moonpendant',   6),
+     _nft('lightsword',    4),
+     _nft('inputkey',      3),
+     _nft('jinglebells',   2),
+     _nft('crystalball',   1.5),
+     _nft('flyingbroom',   1),
+     _nft('ionicdrier',    0.6),
+     _nft('electricskull', 0.3),
+     _nft('voodoodoll',    0.15),
+     _nft('diamondring',   0.08),
+     _nft('genielamp',     0.04),
+     _nft('swisswatch',    0.02),
+     _nft('ionicgem',      0.008),
+     _nft('astralshards',  0.002),
+   ]},
+
+  // ── 6. FEIN — 1.6 TON — преміум common+rare ──────────────────────────────
+  {id:'fein', name:'FEIN', emoji:'💧', price:1.6, color:'#4dd0e1',
+   gradient:'linear-gradient(135deg,#0a2a3a,#0f3a4a)',
+   accent:'#4dd0e1',
+   previewNFTs:['snowglobe','bowtie','swagbag'],
+   items:[
+     _nft('snowglobe',    20),
+     _nft('cookieheart',  18),
+     _nft('hexhot',       15),
+     _nft('happybrownie', 12),
+     _nft('lolpop',       10),
+     _nft('bdaycandle',   8),
+     _nft('bowtie',       6),
+     _nft('faithamulet',  5),
+     _nft('snowmittens',  4),
+     _nft('lushbouquet',  3),
+     _nft('spyagaric',    2),
+     _nft('snoopdog',     1.5),
+     _nft('joyfulbundle', 1),
+     _nft('jollychimp',   0.7),
+     _nft('swagbag',      0.5),
+     _nft('hangingstar',  0.3),
+     _nft('valentinebox', 0.2),
+     _nft('crystalball',  0.1),
+     _nft('lovepotion',   0.05),
+     _nft('skystiletto',  0.02),
+     _nft('toybear',      0.008),
+     _nft('nekohelmet',   0.002),
+   ]},
+
+  // ── 7. MINT — 1.7 TON — мятні / свіжі (зелений) ──────────────────────────
+  {id:'mint', name:'MINT', emoji:'🌿', price:1.7, color:'#7dd87a',
+   gradient:'linear-gradient(135deg,#143a1a,#0d4a25)',
+   accent:'#7dd87a',
+   previewNFTs:['vicecream','sakuraflower','jollychimp'],
+   items:[
+     _nft('vicecream',    20),
+     _nft('whipcupcake',  16),
+     _nft('poolfloat',    14),
+     _nft('gingercookie', 12),
+     _nft('moodpack',     10),
+     _nft('clovelpin',    8),
+     _nft('lushbouquet',  6),
+     _nft('moonpendant',  5),
+     _nft('inputkey',     4),
+     _nft('eternalcandle',3),
+     _nft('jollychimp',   2),
+     _nft('hangingstar',  1.5),
+     _nft('berrybox',     1),
+     _nft('sakuraflower', 0.7),
+     _nft('flyingbroom',  0.4),
+     _nft('madpumpkin',   0.2),
+     _nft('eternalrose',  0.1),
+     _nft('voodoodoll',   0.05),
+     _nft('lowrider',     0.02),
+     _nft('gemsignet',    0.008),
+     _nft('artisanbrick', 0.002),
+   ]},
+
+  // ── 8. UNI — 2.3 TON — universal, широкий мікс ──────────────────────────
+  {id:'uni', name:'UNI', emoji:'🦄', price:2.3, color:'#ff6b9d',
+   gradient:'linear-gradient(135deg,#3a0a2a,#5a1450)',
+   accent:'#ff6b9d',
+   previewNFTs:['lovepotion','sakuraflower','tophat'],
+   items:[
+     _nft('lunarsnake',   16),
+     _nft('jesterhat',    14),
+     _nft('petsnake',     12),
+     _nft('easteregg',    10),
+     _nft('spicedwine',   8),
+     _nft('bowtie',       7),
+     _nft('clovelpin',    6),
+     _nft('swagbag',      5),
+     _nft('evileye',      4),
+     _nft('jinglebells',  3),
+     _nft('berrybox',     2.5),
+     _nft('lovecandle',   2),
+     _nft('sakuraflower', 1.5),
+     _nft('lovepotion',   1.2),
+     _nft('tophat',       0.9),
+     _nft('snoopcigar',   0.7),
+     _nft('ionicdrier',   0.5),
+     _nft('cupidcharm',   0.3),
+     _nft('eternalrose',  0.15),
+     _nft('electricskull',0.08),
+     _nft('toybear',      0.04),
+     _nft('swisswatch',   0.015),
+     _nft('magicpotion',  0.005),
+     _nft('perfumebottle',0.002),
+     _nft('durovscap',    0.0003),
+   ]},
+
+  // ── 9. PINK — 3.1 TON — оригінальний PINK ────────────────────────────────
+  {id:'pink', name:'PINK', emoji:'💋', price:3.1, color:'#ff6b9d',
+   gradient:'linear-gradient(135deg,#2a0a1a,#5a0a3a)',
+   accent:'#ff1493',
+   previewNFTs:['eternalrose','sakuraflower','lovepotion'],
+   items:[
+     _nft('snakebox',     18),
+     _nft('candycane',    16),
+     _nft('jesterhat',    14),
+     _nft('lolpop',       13),
+     _nft('spicedwine',   11),
+     _nft('cookieheart',  9),
+     _nft('deskcalendar', 6),
+     _nft('joyfulbundle', 5),
+     _nft('berrybox',     4),
+     _nft('valentinebox', 3),
+     _nft('lovecandle',   2),
+     _nft('sakuraflower', 1.5),
+     _nft('lovepotion',   1.2),
+     _nft('starnotepad',  1),
+     _nft('eternalrose',  0.6),
+     _nft('toybear',      0.4),
+     _nft('nekohelmet',   0.08),
+     _nft('astralshards', 0.02),
+   ]},
+
+  // ── 10. QUANT — 3.2 TON — high-tech, дорогі предмети ─────────────────────
+  {id:'quant', name:'QUANT', emoji:'📊', price:3.2, color:'#4dd0ff',
+   gradient:'linear-gradient(135deg,#0a1a3a,#0a2a55)',
+   accent:'#00e5ff',
+   previewNFTs:['diamondring','swisswatch','genielamp'],
+   items:[
+     _nft('chillflame',    14),
+     _nft('xmasstocking',  12),
+     _nft('vicecream',     11),
+     _nft('snakebox',      10),
+     _nft('inputkey',      9),
+     _nft('timelessbook',  7),
+     _nft('snoopdog',      6),
+     _nft('lightsword',    5),
+     _nft('eternalcandle', 4),
+     _nft('hangingstar',   3),
+     _nft('crystalball',   2.5),
+     _nft('tophat',        2),
+     _nft('ionicdrier',    1.5),
+     _nft('recordplayer',  1.2),
+     _nft('cupidcharm',    1),
+     _nft('electricskull', 0.7),
+     _nft('diamondring',   0.5),
+     _nft('voodoodoll',    0.3),
+     _nft('toybear',       0.2),
+     _nft('genielamp',     0.12),
+     _nft('swisswatch',    0.08),
+     _nft('magicpotion',   0.04),
+     _nft('gemsignet',     0.02),
+     _nft('artisanbrick',  0.01),
+     _nft('ionicgem',      0.005),
+     _nft('perfumebottle', 0.003),
+     _nft('heroichelmet',  0.001),
+     _nft('astralshards',  0.0005),
+     _nft('durovscap',     0.0001),
+   ]},
 ];
 let curCase=null,spinAnim=null,lastWin=null;
 let caseWinProcessed=false; // SECURITY: захист від подвійного caseWinKeep+Sell
@@ -2765,36 +3142,37 @@ function renderTrack(items){
 
 function openCases(){
   document.getElementById('cases-screen').classList.add('open');
-  const tonSvg=`<svg width="14" height="14" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
+  const tonSvg=`<svg width="13" height="13" viewBox="0 0 56 56" fill="none" style="flex-shrink:0"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
 
-  // Єдиний кейс PINK — великий центрований
-  const c = CASES[0];
-  document.getElementById('cases-featured').innerHTML = `
-    <div onclick="openSpin('${c.id}')" style="
-      background:linear-gradient(135deg,#1a0828,#2a0a3a,#1a0828);
-      border:1.5px solid rgba(255,105,180,0.4);
-      border-radius:24px;
-      padding:24px 20px;
-      text-align:center;
-      cursor:pointer;
-      margin:0 16px 14px;
-      box-shadow:0 0 40px rgba(255,0,128,0.15),0 8px 32px rgba(0,0,0,0.4);
-      transition:transform .15s;
-      position:relative;
-      overflow:hidden;
-    " onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
-      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,105,180,0.12) 0%,transparent 60%);pointer-events:none"></div>
-      <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 20px rgba(255,0,128,0.5))">💋</div>
-      <div style="font-family:'Fredoka One',cursive;font-size:28px;color:#fff;margin-bottom:6px;letter-spacing:2px;text-shadow:0 0 20px rgba(255,105,180,0.8)">PINK</div>
-      <div style="font-size:12px;color:#cc66aa;margin-bottom:16px;font-family:'Nunito',sans-serif;font-weight:700">NFT Gifts · ${c.items.filter(i=>i.isNFT).length} предметів</div>
-      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,105,180,0.4);border-radius:20px;padding:8px 20px">
-        ${tonSvg}<span style="font-family:'Fredoka One',cursive;font-size:18px;color:#fff">${c.price} TON</span>
-      </div>
-    </div>
+  // Розкладаємо всі кейси у grid 2 колонки (як на скріні CASEMINT)
+  const cards = CASES.map(c => {
+    const itemsCount = c.items.filter(i=>i.isNFT).length;
+    const grad = c.gradient || 'linear-gradient(135deg,#141f35,#0f1829)';
+    const accent = c.accent || '#4d8fff';
 
-  `;
-  // Очищаємо грід — він не потрібен
-  document.getElementById('cases-list').innerHTML = '';
+    // прев'юшки до 3 NFT з кейсу — як міні-айконки в зображенні
+    const previews = (c.previewNFTs||[]).slice(0,3).map(id => {
+      const ph = typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[id];
+      return ph
+        ? `<img src="${ph}" style="width:42px;height:42px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,0.15);box-shadow:0 4px 12px rgba(0,0,0,0.4)">`
+        : `<div style="width:42px;height:42px;border-radius:8px;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15)"></div>`;
+    }).join('');
+
+    return `
+      <div class="case-card-v2" onclick="openSpin('${c.id}')" style="background:${grad};border-color:${accent}33;box-shadow:0 8px 24px ${accent}1a">
+        <div class="cc-glow" style="background:radial-gradient(ellipse at 50% 0%, ${accent}22 0%, transparent 60%)"></div>
+        <div class="cc-badge"># ${itemsCount}</div>
+        <div class="cc-image">
+          <div class="cc-emoji" style="filter:drop-shadow(0 0 16px ${accent}cc)">${c.emoji}</div>
+          <div class="cc-previews">${previews}</div>
+        </div>
+        <div class="cc-name" style="text-shadow:0 0 14px ${accent}66">${c.name}</div>
+        <div class="cc-price">${tonSvg}<span>${c.price}</span></div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('cases-featured').innerHTML = '';
+  document.getElementById('cases-list').innerHTML = cards;
 }
 function closeCases(){document.getElementById('cases-screen').classList.remove('open');}
 
@@ -4189,7 +4567,7 @@ function _hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt
 function _applyPrices(prices){
   let updated = 0;
 
-  // CASES (кейс PINK) — ціна та floor беруться з prices.json як є
+  // CASES — floor з prices.json, ціна = floor * NFT_MARGIN (+8%), як у каталозі
   if (typeof CASES !== 'undefined') {
     for (let i = 0; i < CASES.length; i++) {
       const items = CASES[i].items;
@@ -4197,8 +4575,8 @@ function _applyPrices(prices){
         const item = items[j];
         const p = prices[item.id];
         if (item.isNFT && p != null) {
-          item.price = p;
           item.floor = p;
+          item.price = +(p * NFT_MARGIN).toFixed(2);
           updated++;
         }
       }
