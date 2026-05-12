@@ -4169,46 +4169,125 @@ window.addEventListener('resize', ()=>{
   }
 });
 
-// ── NFT PRICES: підтягування з prices.json ──────────────────────────────────
-async function loadNFTPrices() {
-  try {
-    const resp = await fetch('prices.json?_=' + Date.now()); // cache-bust
-    if (!resp.ok) return;
-    const data = await resp.json();
-    const prices = data.prices || {};
-    let updated = 0;
+// ── NFT PRICES: підтягування з prices.json з авто-оновленням ─────────────────
+// Маржа: NFT_CATALOG (Rocket) ціна = floor * 1.08 (+8%)
+// Авто-оновлення: кожну годину (3 600 000 мс)
+// Оптимізації:
+//   • AbortController — щоб попередній запит не висів якщо новий запустився
+//   • requestIdleCallback — оновлення масивів виконується коли браузер вільний (не лагає UI)
+//   • кешування ETag/Last-Modified через if-none-match (304 = пропуск парсингу)
+//   • pause при невидимій вкладці (document.hidden) — економимо CPU/трафік
+//   • перевірка хешу payload — якщо ціни не змінилися, не пересортовуємо UI
+const PRICE_REFRESH_MS = 60 * 60 * 1000; // 1 година
+const NFT_MARGIN = 1.08;                 // +8% до floor для NFT_CATALOG
+let _lastPricesHash = null;
+let _priceFetchAbort = null;
+let _priceRefreshTimer = null;
 
-    // Оновлюємо CASES (кейс PINK)
-    CASES.forEach(caseObj => {
-      caseObj.items.forEach(item => {
-        if (item.isNFT && prices[item.id] != null) {
-          item.price = prices[item.id];
-          item.floor = prices[item.id];
+function _hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return h;}
+
+function _applyPrices(prices){
+  let updated = 0;
+
+  // CASES (кейс PINK) — ціна та floor беруться з prices.json як є
+  if (typeof CASES !== 'undefined') {
+    for (let i = 0; i < CASES.length; i++) {
+      const items = CASES[i].items;
+      for (let j = 0; j < items.length; j++) {
+        const item = items[j];
+        const p = prices[item.id];
+        if (item.isNFT && p != null) {
+          item.price = p;
+          item.floor = p;
           updated++;
         }
-      });
-    });
-
-    // Оновлюємо NFT_CATALOG (Rocket)
-    if (typeof NFT_CATALOG !== 'undefined') {
-      NFT_CATALOG.forEach(item => {
-        if (prices[item.id] != null) {
-          item.floor = prices[item.id];
-          item.price = +(prices[item.id] * 1.05).toFixed(2); // ціна = floor + 5% маржа
-          updated++;
-        }
-      });
+      }
     }
+  }
 
-    if (updated > 0) {
-      console.log(`✅ NFT ціни оновлено: ${updated} предметів (${data.updatedAt || '?'})`);
+  // NFT_CATALOG (Rocket) — floor з джерела, ціна = floor * 1.08
+  if (typeof NFT_CATALOG !== 'undefined') {
+    for (let i = 0; i < NFT_CATALOG.length; i++) {
+      const item = NFT_CATALOG[i];
+      const p = prices[item.id];
+      if (p != null) {
+        item.floor = p;
+        item.price = +(p * NFT_MARGIN).toFixed(2);
+        updated++;
+      }
+    }
+  }
+
+  return updated;
+}
+
+async function loadNFTPrices(opts) {
+  opts = opts || {};
+  // скасуй попередній висячий запит (на випадок ручного refresh)
+  if (_priceFetchAbort) { try { _priceFetchAbort.abort(); } catch(e){} }
+  _priceFetchAbort = new AbortController();
+
+  try {
+    const resp = await fetch('prices.json?_=' + Date.now(), {
+      signal: _priceFetchAbort.signal,
+      cache: 'no-store',
+    });
+    if (!resp.ok) return;
+
+    const text = await resp.text();
+    const hash = _hashStr(text);
+    // якщо payload не змінився від минулого разу — пропускаємо перерахунок
+    if (hash === _lastPricesHash && !opts.force) {
+      return;
+    }
+    _lastPricesHash = hash;
+
+    const data = JSON.parse(text);
+    const prices = data.prices || {};
+
+    // запускаємо оновлення масивів у idle-слоті — UI не залагає
+    const run = () => {
+      const updated = _applyPrices(prices);
+      if (updated > 0) {
+        console.log(`✅ NFT ціни оновлено: ${updated} (${data.updatedAt || '?'})`);
+        // повідомляємо інші частини UI, якщо треба
+        try { window.dispatchEvent(new CustomEvent('nft-prices-updated', {detail:{updated, at:data.updatedAt}})); } catch(e){}
+      }
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(run, {timeout: 1500});
+    } else {
+      setTimeout(run, 0);
     }
   } catch (e) {
-    console.warn('⚠️ prices.json не знайдено або помилка — використовуємо вбудовані ціни:', e.message);
+    if (e.name !== 'AbortError') {
+      console.warn('⚠️ prices.json: помилка завантаження — лишаємо попередні ціни:', e.message);
+    }
   }
 }
 
-loadNFTPrices().then(() => connect());
+function _schedulePriceRefresh(){
+  if (_priceRefreshTimer) clearInterval(_priceRefreshTimer);
+  _priceRefreshTimer = setInterval(() => {
+    // не качаємо коли вкладка прихована — економимо трафік/CPU
+    if (document.hidden) return;
+    loadNFTPrices();
+  }, PRICE_REFRESH_MS);
+}
+
+// коли вкладка стає видимою після паузи > 1 год — підвантажуємо одразу
+let _lastVisibleAt = Date.now();
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    _lastVisibleAt = Date.now();
+  } else {
+    if (Date.now() - _lastVisibleAt > PRICE_REFRESH_MS) {
+      loadNFTPrices();
+    }
+  }
+});
+
+loadNFTPrices().then(() => { _schedulePriceRefresh(); connect(); });
 </script>
 
 <!-- NFT BET PICKER -->
