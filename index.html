@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>🚀 Rocket</title>
+<title>🚀 Rocket v3</title>
+<meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <style>
@@ -618,6 +619,56 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
   position:relative;
   z-index:1;
 }
+.case-avatar{
+  position:relative;
+  width:min(132px,86%);
+  aspect-ratio:1;
+  display:grid;
+  place-items:center;
+  isolation:isolate;
+}
+.case-avatar::before{
+  content:"";
+  position:absolute;
+  inset:12%;
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 20px 48px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.18);
+  transform:rotate(8deg);
+  z-index:-1;
+}
+.case-avatar-main{
+  width:76%;
+  aspect-ratio:1;
+  border-radius:24px;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.26);
+  box-shadow:0 16px 34px rgba(0,0,0,.34);
+  background:rgba(255,255,255,.08);
+}
+.case-avatar-chip{
+  position:absolute;
+  width:38%;
+  aspect-ratio:1;
+  border-radius:16px;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.32);
+  box-shadow:0 10px 24px rgba(0,0,0,.34);
+  background:rgba(10,12,20,.78);
+}
+.case-avatar-chip.left{left:0;bottom:7%;transform:rotate(-9deg)}
+.case-avatar-chip.right{right:0;top:8%;transform:rotate(10deg)}
+.case-avatar-fallback{
+  width:76%;
+  aspect-ratio:1;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  font-size:48px;
+  background:linear-gradient(145deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.18);
+}
 .case-card-v2 .cc-previews{
   display:flex;
   gap:4px;
@@ -707,6 +758,373 @@ body.light-theme .case-card-v2 .cc-name{color:#fff}
 .prize-card .pc-emoji{font-size:48px;margin-bottom:8px;display:block}
 .prize-card .pc-name{font-size:11px;font-weight:700;color:var(--cream);margin-bottom:6px;line-height:1.3;font-family:'Nunito',sans-serif}
 .prize-card .pc-price{display:flex;align-items:center;justify-content:center;gap:4px;background:var(--bg);border-radius:20px;padding:4px 10px;width:fit-content;margin:0 auto;font-size:12px;font-weight:700;color:var(--cream);font-family:'Fredoka One',cursive}
+
+/* Professional polish layer */
+:root{
+  --bg:#090d16;
+  --bg2:#101622;
+  --bg3:#151d2c;
+  --acc:#5dd8ff;
+  --acc2:#5b7cfa;
+  --pepe:#3478f6;
+  --pepe-dark:#2457d6;
+  --pepe-light:#7de3ff;
+  --cream:#f4f8ff;
+  --gold:#f6c76a;
+  --green:#35d39f;
+  --red:#ff526d;
+  --text-muted:#91a4c3;
+  --border:rgba(141,166,210,0.16);
+  --glass:rgba(16,22,34,0.74);
+  --shadow:0 18px 50px rgba(0,0,0,0.34);
+}
+html,body{
+  background:
+    radial-gradient(circle at 18% -8%,rgba(52,120,246,0.26),transparent 34%),
+    radial-gradient(circle at 88% 10%,rgba(93,216,255,0.18),transparent 30%),
+    linear-gradient(180deg,#070b12 0%,#0b101a 45%,#080b12 100%);
+  color:var(--cream);
+  font-family:'Nunito',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+#app{
+  max-width:480px;
+  margin:0 auto;
+  background:linear-gradient(180deg,rgba(10,15,24,0.94),rgba(8,11,18,0.98));
+  box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 80px rgba(0,0,0,0.48);
+}
+#sky{
+  flex-basis:252px;
+  border-radius:0 0 26px 26px;
+  background:
+    radial-gradient(circle at 50% 54%,rgba(93,216,255,0.18),transparent 28%),
+    radial-gradient(circle at 18% 18%,rgba(52,120,246,0.22),transparent 30%),
+    linear-gradient(180deg,#0e1830 0%,#081426 48%,#07101c 100%);
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,0.06),0 18px 44px rgba(0,0,0,0.24);
+}
+#sky::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,0.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.028) 1px,transparent 1px);
+  background-size:36px 36px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent 82%);
+}
+#sky::after{
+  content:'';
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:12px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(125,227,255,0.6),transparent);
+  pointer-events:none;
+}
+#gc{filter:drop-shadow(0 12px 28px rgba(93,216,255,0.16))}
+#topbar{padding:12px 14px;gap:10px}
+#rlbl,#conn{
+  background:rgba(9,13,22,0.72);
+  border:1px solid rgba(255,255,255,0.08);
+  color:#b9c7df;
+  backdrop-filter:blur(14px);
+  box-shadow:0 10px 28px rgba(0,0,0,0.18);
+}
+#rlbl{font-size:10px;padding:7px 11px;border-radius:14px}
+#deposit-btn{
+  min-height:36px;
+  padding:6px 8px 6px 10px;
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(18,26,40,0.92),rgba(12,18,29,0.92));
+  border:1px solid rgba(125,227,255,0.22);
+  box-shadow:0 12px 32px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.08);
+}
+#deposit-btn .dep-bal{font-size:13px;color:#f6f9ff}
+#deposit-btn .dep-plus{
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  box-shadow:0 8px 18px rgba(93,216,255,0.24);
+}
+#mult{
+  font-size:66px;
+  color:#fff;
+  letter-spacing:0;
+  text-shadow:0 0 26px rgba(93,216,255,0.62),0 8px 28px rgba(0,0,0,0.62);
+}
+#mult.waiting{
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(9,13,22,0.55);
+  border:1px solid rgba(255,255,255,0.08);
+  color:#b8c7de;
+  backdrop-filter:blur(10px);
+}
+#hist{
+  margin:10px 12px 0;
+  padding:8px;
+  border-radius:16px;
+  background:rgba(16,22,34,0.64);
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.hc{
+  padding:5px 10px;
+  border-radius:12px;
+  font-size:11px;
+  background:rgba(255,255,255,0.055);
+  border:1px solid rgba(255,255,255,0.075);
+}
+.hl{color:#58e8a8;background:rgba(53,211,159,0.10);border-color:rgba(53,211,159,0.22)}
+.hm{color:#8fd7ff;background:rgba(93,216,255,0.10);border-color:rgba(93,216,255,0.22)}
+.hh{color:#ffd98a;background:rgba(246,199,106,0.10);border-color:rgba(246,199,106,0.24)}
+.hmoon{color:#c6b1ff;background:rgba(118,100,255,0.12);border-color:rgba(118,100,255,0.24)}
+#ctrls{
+  padding:10px 12px 8px;
+  gap:9px;
+}
+.card{
+  border-radius:18px;
+  background:linear-gradient(180deg,rgba(21,29,44,0.92),rgba(14,20,31,0.92));
+  border:1px solid rgba(255,255,255,0.075);
+  box-shadow:0 12px 34px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.055);
+}
+.cl{
+  color:#8ea1bd;
+  letter-spacing:1.25px;
+  font-size:9px;
+  margin-bottom:8px;
+}
+.inp,.ai,#cton,#cstars{
+  min-height:38px;
+  border-radius:12px;
+  background:rgba(5,9,16,0.58);
+  border:1px solid rgba(145,164,195,0.18);
+  color:#f8fbff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.035);
+}
+.inp:focus,.ai:focus,#cton:focus,#cstars:focus{
+  border-color:rgba(93,216,255,0.62);
+  box-shadow:0 0 0 3px rgba(93,216,255,0.10),inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.qbtns{gap:5px;margin-top:8px}
+.qb{
+  min-height:26px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.055);
+  border:1px solid rgba(255,255,255,0.075);
+  color:#b7c5d9;
+}
+.qb:hover,.qb.active-preset{
+  background:linear-gradient(135deg,rgba(93,216,255,0.24),rgba(91,124,250,0.22));
+  color:#fff;
+  border-color:rgba(93,216,255,0.42);
+}
+.tl{color:#afbdd1}
+.tog{
+  width:42px;
+  height:24px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.08);
+  border-color:rgba(255,255,255,0.12);
+}
+.tog::after{width:16px;height:16px;top:3px;left:4px}
+.tog.on{
+  background:linear-gradient(135deg,var(--acc2),var(--acc));
+  box-shadow:0 0 18px rgba(93,216,255,0.24);
+}
+.tog.on::after{left:20px}
+#bb,#bb-nft{
+  min-height:58px;
+  border-radius:18px!important;
+  border:1px solid rgba(125,227,255,0.48)!important;
+  background:
+    linear-gradient(135deg,#3478f6 0%,#5168ff 48%,#4bc8ff 100%)!important;
+  box-shadow:0 16px 34px rgba(52,120,246,0.26),inset 0 1px 0 rgba(255,255,255,0.22)!important;
+  text-shadow:0 1px 8px rgba(0,0,0,0.22);
+}
+#bb.co{
+  background:linear-gradient(135deg,#079b6f 0%,#20c895 52%,#77f2c0 100%)!important;
+  border-color:rgba(119,242,192,0.55)!important;
+}
+#bb:disabled{filter:saturate(0.25);opacity:.42}
+#nft-hint{
+  margin:0 12px 6px;
+  padding:7px 10px;
+  border-radius:12px;
+  background:rgba(246,199,106,0.08);
+  border:1px solid rgba(246,199,106,0.12);
+  color:#b7a884;
+}
+#nft-hint span{color:#ffd98a}
+#react-bar{padding:5px 12px 7px}
+.rbtn{
+  min-width:54px;
+  justify-content:center;
+  border-radius:14px;
+  background:rgba(255,255,255,0.06);
+  border-color:rgba(255,255,255,0.09);
+}
+#pw{
+  margin:0 12px 8px;
+  padding:10px;
+  border-radius:18px;
+  background:rgba(16,22,34,0.42);
+  border:1px solid rgba(255,255,255,0.055);
+}
+.st{margin-bottom:8px;color:#8fa2be}
+.pc{background:rgba(93,216,255,0.12);color:#9feaff;border:1px solid rgba(93,216,255,0.16)}
+#pl{gap:6px}
+.pr{
+  min-height:50px;
+  border-radius:15px;
+  padding:8px 10px;
+  background:rgba(255,255,255,0.045);
+  border:1px solid rgba(255,255,255,0.06);
+}
+.pr.me{background:rgba(52,120,246,0.13);border-color:rgba(93,216,255,0.28)}
+.pr.won{background:rgba(53,211,159,0.10);border-color:rgba(53,211,159,0.22)}
+.pr.lost{background:rgba(255,82,109,0.10);border-color:rgba(255,82,109,0.18)}
+.pav{width:34px;height:34px;background:linear-gradient(135deg,#23304b,#101827)}
+.pn{color:#b2c0d4;font-size:12px}
+.pn.m{color:#fff}
+.pr-bet,.pr-win{
+  background:rgba(5,9,16,0.46);
+  border:1px solid rgba(255,255,255,0.06);
+}
+#bottomnav{
+  padding:8px 8px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(8,11,18,0.88);
+  border-top:1px solid rgba(255,255,255,0.07);
+  backdrop-filter:blur(18px);
+  box-shadow:0 -18px 44px rgba(0,0,0,0.28);
+}
+.tabn{
+  min-height:46px;
+  border-radius:14px;
+  color:#71829c;
+  font-size:10px;
+}
+.tabn.active{color:#eaf8ff}
+.tabn.active::after{display:none}
+.tabn.active:not(#tab-game){
+  background:rgba(93,216,255,0.10);
+  box-shadow:inset 0 0 0 1px rgba(93,216,255,0.13);
+}
+.tabn svg{opacity:.62}
+.tabn.active svg{filter:drop-shadow(0 0 8px rgba(93,216,255,0.42))}
+#game-btn-circle{
+  width:60px;
+  height:60px;
+  background:linear-gradient(145deg,#5dd8ff 0%,#3478f6 46%,#5b7cfa 100%);
+  border-color:rgba(255,255,255,0.22);
+  box-shadow:0 14px 28px rgba(52,120,246,0.32),0 0 34px rgba(93,216,255,0.26),inset 0 1px 0 rgba(255,255,255,0.32);
+}
+#modal-overlay,#mbg,#nft-bet-bg,#case-win-popup,#nft-confirm-bg{
+  background:rgba(5,8,14,0.72)!important;
+  backdrop-filter:blur(18px)!important;
+}
+#modal-sheet,#mod,#nft-bet-sheet{
+  max-width:480px;
+  margin:0 auto;
+  border-radius:26px 26px 0 0;
+  background:linear-gradient(180deg,rgba(20,28,42,0.98),rgba(10,14,22,0.98));
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 -24px 70px rgba(0,0,0,0.42);
+}
+.wallet-row,.so,.inv-card,.case-card,.case-card-featured,.case-card-v2,.prize-card{
+  background:linear-gradient(180deg,rgba(21,29,44,0.94),rgba(13,19,30,0.94));
+  border-color:rgba(255,255,255,0.075);
+  box-shadow:0 10px 28px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.so.sel{
+  border-color:rgba(93,216,255,0.5);
+  box-shadow:0 0 0 3px rgba(93,216,255,0.08),0 12px 28px rgba(0,0,0,0.24);
+}
+#pbtn,#pbtn-stars,#ws-btn,.inv-btn,#cwb-keep{
+  background:linear-gradient(135deg,#3478f6,#5dd8ff)!important;
+  box-shadow:0 12px 26px rgba(52,120,246,0.22);
+}
+#paid-btn{
+  background:rgba(53,211,159,0.10);
+  border-color:rgba(53,211,159,0.24);
+}
+#mcl,#wp-close{color:#9aabc4}
+#wp,#case-win-box,#nft-confirm-box{
+  background:linear-gradient(180deg,rgba(20,28,42,0.98),rgba(10,14,22,0.98))!important;
+  border:1px solid rgba(125,227,255,0.22)!important;
+  box-shadow:0 24px 70px rgba(0,0,0,0.48),0 0 50px rgba(93,216,255,0.12)!important;
+}
+#toast{
+  top:calc(16px + env(safe-area-inset-top));
+  border-radius:14px;
+  background:rgba(255,82,109,0.94);
+  box-shadow:0 16px 40px rgba(0,0,0,0.32);
+}
+#toast.win{background:rgba(53,211,159,0.94)}
+#toast.info{background:rgba(52,120,246,0.94)}
+#cases-screen,#spin-screen,#prizes-modal{
+  max-width:480px;
+  width:100%;
+  left:50%;
+  right:auto;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#0d1422 0%,#090d16 100%);
+}
+#cases-header{
+  background:rgba(9,13,22,0.86);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  backdrop-filter:blur(16px);
+}
+.cases-grid{gap:12px}
+.case-card,.case-card-v2{border-radius:18px}
+.case-card:hover,.case-card-v2:hover{border-color:rgba(93,216,255,0.25);box-shadow:0 18px 42px rgba(0,0,0,0.26)}
+body.light-theme{
+  --bg:#f5f7fb;
+  --bg2:#ffffff;
+  --bg3:#edf2f8;
+  --cream:#172033;
+  --text-muted:#6b7890;
+  --border:rgba(35,61,100,0.12);
+}
+body.light-theme{
+  background:linear-gradient(180deg,#f7faff,#eef3fb);
+}
+body.light-theme #app{
+  background:#f7faff;
+  box-shadow:0 0 0 1px rgba(28,44,70,0.06),0 24px 80px rgba(34,54,88,0.16);
+}
+body.light-theme #sky{
+  background:linear-gradient(180deg,#eaf4ff 0%,#dfeaff 56%,#f7faff 100%);
+}
+body.light-theme .card,
+body.light-theme #hist,
+body.light-theme #pw,
+body.light-theme .pr,
+body.light-theme #bottomnav,
+body.light-theme #modal-sheet,
+body.light-theme #mod{
+  background:rgba(255,255,255,0.86);
+  border-color:rgba(28,44,70,0.08);
+  box-shadow:0 14px 38px rgba(34,54,88,0.10);
+}
+body.light-theme .inp,body.light-theme .ai,body.light-theme #cton,body.light-theme #cstars{
+  background:#f4f7fb;
+  color:#172033;
+  border-color:rgba(35,61,100,0.12);
+}
+body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.18)}
+@media (min-width:520px){
+  body{display:flex;align-items:center;justify-content:center;padding:18px}
+  #app{height:min(900px,100vh);border-radius:28px;overflow:hidden}
+  #sky{border-radius:28px 28px 26px 26px}
+}
+@media (max-height:720px){
+  #sky{flex-basis:218px}
+  #mult{font-size:54px}
+  #ctrls{padding-top:8px}
+  #pw{padding:8px}
+  .pr{min-height:44px;padding:7px 9px}
+}
 </style>
 </head>
 <body>
@@ -1360,6 +1778,50 @@ function updBal(){
   document.getElementById('bal').textContent=balance.toFixed(2);
 }
 function saveNFTs(){localStorage.setItem('rkt_nfts_'+userId,JSON.stringify(myNFTs));}
+function makeNFTUid(nft){
+  return 'nft_'+(nft?.id||'gift')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+}
+function ensureNFTUid(nft){
+  if(!nft)return '';
+  if(!nft.uid)nft.uid=nft.localId||makeNFTUid(nft);
+  return nft.uid;
+}
+function normalizeNFTInventory(){
+  if(!Array.isArray(myNFTs))myNFTs=[];
+  let changed=false;
+  myNFTs.forEach(n=>{
+    if(!n.uid){ensureNFTUid(n);changed=true;}
+    const fresh=getPhotoById(n);
+    if(fresh&&n.photo!==fresh){n.photo=fresh;changed=true;}
+  });
+  if(changed)saveNFTs();
+}
+function refreshInventoryLabel(){
+  const el=document.getElementById('inv-tab-lbl');
+  if(el)el.textContent=myNFTs.length?`${t('inv')} (${myNFTs.length})`:t('inv');
+}
+function findNFTByKey(key){
+  return myNFTs.find(n=>n.uid===key||n.localId===key||n.id===key)||null;
+}
+function removeNFTByKey(key){
+  let removed=null;
+  myNFTs=myNFTs.filter(n=>{
+    if(!removed&&(n.uid===key||n.localId===key||n.id===key)){removed=n;return false;}
+    return true;
+  });
+  return removed;
+}
+function creditLocalBalance(amount,reason){
+  const v=Number(amount)||0;
+  if(v<=0)return;
+  serverBalanceSynced=true;
+  balance=Math.max(0,balance+v);
+  updBal();
+  saveBal();
+  try{
+    if(wsReady&&window.ws)ws.send(JSON.stringify({a:'client_balance_event',type:reason||'credit',amount:v,balance}));
+  }catch(e){}
+}
 // Refresh saved NFT photos after NFT_PHOTOS updates, otherwise old localStorage images keep showing.
 if(Array.isArray(myNFTs)){
   let _nftPhotosChanged=false;
@@ -1369,6 +1831,7 @@ if(Array.isArray(myNFTs)){
   });
   if(_nftPhotosChanged)saveNFTs();
 }
+normalizeNFTInventory();
 
 const canvas=document.getElementById('gc');
 const ctx=canvas.getContext('2d');
@@ -1708,6 +2171,7 @@ function showWinPopup(mx,win,nft){
 function addNFTToInventory(nft,winTon,mx){
   const photo=getPhotoById(nft);
   const entry={
+    uid:makeNFTUid(nft),
     id:nft.id,
     name:nft.name,
     emoji:nft.emoji||'🎁',
@@ -1721,8 +2185,7 @@ function addNFTToInventory(nft,winTon,mx){
     ts:Date.now()
   };
   myNFTs.push(entry);
-  const cnt=myNFTs.length;
-  document.getElementById('inv-tab-lbl').textContent=cnt?`${t('inv')} (${cnt})`:t('inv');
+  refreshInventoryLabel();
   saveNFTs();
 }
 
@@ -1736,9 +2199,11 @@ function openModal(type){
   const body=document.getElementById('modal-body');
   if(type==='inv'){
     document.getElementById('modal-title').textContent=t('my_nfts');
+    normalizeNFTInventory();
     if(!myNFTs.length){body.innerHTML=`<div style="text-align:center;color:#334;padding:40px;font-size:13px">${t('no_nfts')}<br><small style="color:#223">${t('win_nft')}</small></div>`;return;}
     body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${
       myNFTs.slice().reverse().map((nft,i)=>{
+        const nftKey=ensureNFTUid(nft);
         const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
         const imgHtml=ph
           ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
@@ -1751,8 +2216,8 @@ function openModal(type){
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
             <div class="inv-mult">+${(+(nft.winTon||nft.price||0)).toFixed(2)} TON</div>
-            <button class="inv-btn" style="margin-bottom:4px" onclick="withdrawNFT('${nft.id}','${nft.name}',${nft.floor||nft.price||0})">${t('withdraw_btn')}</button>
-            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick="sellNFT('${nft.id}','${nft.name}',${nft.price||nft.floor||0})">${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
+            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>${t('withdraw_btn')}</button>
+            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
         </div>`;
       }).join('')
@@ -1763,7 +2228,7 @@ function openModal(type){
     body.innerHTML=`
       <div style="background:#6c4fff15;border-radius:14px;padding:16px;margin-bottom:12px;display:flex;gap:12px;align-items:center">
         <div style="width:48px;height:48px;background:#6c4fff22;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👥</div>
-        <div><div style="font-size:14px;font-weight:700">${t('invite_earn')} <span style="color:var(--pepe-light)">5%</span></div><div style="font-size:12px;color:#556">${t('invite_from')}</div></div>
+        <div><div style="font-size:14px;font-weight:700">${t('invite_earn')} <span style="color:var(--pepe-light)">10%</span></div><div style="font-size:12px;color:#556">${t('invite_from')}</div></div>
       </div>
       <button onclick="inviteFriend()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:14px;cursor:pointer;margin-bottom:8px">${t('invite_btn')}</button>
       <button onclick="copyRefLink()" style="width:100%;background:var(--bg3);border:0.5px solid #ffffff10;border-radius:12px;color:#aaa;font-size:13px;padding:13px;cursor:pointer;margin-bottom:16px">${t('copy_btn')}</button>
@@ -1846,15 +2311,17 @@ function withdrawNFT(id,name,floor){
 }
 
 async function doWithdrawWithStars(id,name,floor){
+  const nft=findNFTByKey(id)||{id,name,floor,price:floor};
+  const realId=nft.id||id;
   if(!tg?.openInvoice){
     // Fallback: якщо не в Telegram — надсилаємо WS напряму (для тесту в браузері)
-    if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,price:0,type:'withdraw'}));
+    if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
     else showToast(t('error'));
     return;
   }
   try{
     showToast('⭐ ...','info');
-    const resp = await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(id)}/${encodeURIComponent(name)}`);
+    const resp = await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(realId)}/${encodeURIComponent(name)}`);
     const data = await resp.json();
     if(!data.ok || !data.invoice_link){
       showToast(data.error || t('error'));
@@ -1903,6 +2370,70 @@ function sellNFT(id,name,price){
 }
 
 // ── STARS PAYMENT ─────────────────────────────────────────────────────────
+async function doWithdrawWithStarsPatched(id,name,floor){
+  const nft=findNFTByKey(id)||{id,name,floor,price:floor};
+  const realId=nft.id||id;
+  if(!tg?.openInvoice){
+    if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
+    else showToast(t('error'));
+    return;
+  }
+  try{
+    showToast('Stars invoice...','info');
+    const resp=await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(realId)}/${encodeURIComponent(name)}`);
+    const data=await resp.json();
+    if(!data.ok||!data.invoice_link){showToast(data.error||t('error'));return;}
+    tg.openInvoice(data.invoice_link,status=>{
+      if(status==='paid'){
+        const text=`NFT withdraw request. User: ${userId}. NFT: ${name}. ID: ${realId}. Fee: ${NFT_WITHDRAW_STARS} Stars paid.`;
+        localStorage.setItem('rkt_pending_withdraw_'+userId,JSON.stringify({uid:id,nft_id:realId,name,fee:NFT_WITHDRAW_STARS,ts:Date.now()}));
+        const url='https://t.me/Pepe_bot_support?text='+encodeURIComponent(text);
+        if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank');
+        showNFTConfirm({
+          icon:'⭐',
+          title:'Stars paid',
+          desc:'Send the prepared message to <b>@Pepe_bot_support</b>. Then press confirm here. Admin notification is sent only after this step and must be verified by backend.',
+          btnLabel:'I messaged support',
+          btnColor:'linear-gradient(135deg,#1a4fd6,#2563eb)',
+          onOk:()=>{
+            if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft_support_confirmed',nft_id:realId,nft_uid:id,price:0,type:'withdraw',support:'@Pepe_bot_support'}));
+            showToast('Withdraw request sent for verification','info');
+          }
+        });
+      }else if(status==='cancelled')showToast(t('cancelled'));
+      else if(status==='failed')showToast(t('error'));
+    });
+  }catch(e){
+    console.error('withdraw stars error:',e);
+    showToast(t('error'));
+  }
+}
+doWithdrawWithStars=doWithdrawWithStarsPatched;
+
+function sellNFTPatched(id,name,price){
+  const nft=findNFTByKey(id)||{id,name,price,floor:price};
+  const sellPrice=+(price||nft.price||nft.floor||0);
+  showNFTConfirm({
+    icon:'рџ’°',
+    title:t('confirm_sell'),
+    desc:`${t('confirm_sell_desc')} <b style="color:#ffd700">${sellPrice.toFixed(2)} TON</b>?<br><small style="color:#778">${name}</small>`,
+    btnLabel:`${t('confirm_btn_sell')} ${sellPrice.toFixed(2)} TON`,
+    btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
+    onOk:()=>{
+      const removedNFT=removeNFTByKey(id);
+      if(!removedNFT){showToast(t('error'));return;}
+      saveNFTs();
+      refreshInventoryLabel();
+      creditLocalBalance(sellPrice,'nft_sell');
+      showToast(`${t('nft_sold')} ${sellPrice.toFixed(2)} TON!`,'win');
+      spawnGems(3,'рџ’°');
+      closeModal();
+      if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removedNFT.id,nft_uid:removedNFT.uid,name:removedNFT.name,price:sellPrice,type:'sell'}));
+    }
+  });
+}
+sellNFT=sellNFTPatched;
+
 const STARS_TO_TON_RATE = 0.0084; // 100 Stars = ~0.84 TON → 1 Star = 0.0084 TON
 let currentDepTab = 'ton';
 
@@ -2110,6 +2641,10 @@ function handleBet(){
 
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
+    if(window._activeNFTBet&&typeof cashoutActiveNFTBetLocal==='function'){
+      cashoutActiveNFTBetLocal();
+      return;
+    }
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
     return;
   }
@@ -3122,6 +3657,16 @@ let caseWinProcessed=false; // SECURITY: захист від подвійног�
 const ITW=110;
 function rc(r){return r==='Legendary'?'#ffd700':r==='Epic'?'var(--pepe-light)':r==='Rare'?'#44aaff':'#3ddc84';}
 function wRand(arr){let t=arr.reduce((s,i)=>s+i.weight,0),r=Math.random()*t;for(const i of arr){r-=i.weight;if(r<=0)return i;}return arr[arr.length-1];}
+function renderCaseAvatar(c){
+  const ids=(c.previewNFTs&&c.previewNFTs.length?c.previewNFTs:c.items.filter(i=>i.isNFT).slice(0,3).map(i=>i.id)).slice(0,3);
+  const imgs=ids.map(id=>typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[id]).filter(Boolean);
+  if(!imgs.length)return `<div class="case-avatar"><div class="case-avatar-fallback">${c.emoji||'🎁'}</div></div>`;
+  return `<div class="case-avatar">
+    <img class="case-avatar-main" src="${imgs[0]}" alt="">
+    ${imgs[1]?`<img class="case-avatar-chip left" src="${imgs[1]}" alt="">`:''}
+    ${imgs[2]?`<img class="case-avatar-chip right" src="${imgs[2]}" alt="">`:''}
+  </div>`;
+}
 
 function renderTrack(items){
   const tonSvg=`<svg width="12" height="12" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>`;
@@ -3163,8 +3708,7 @@ function openCases(){
         <div class="cc-glow" style="background:radial-gradient(ellipse at 50% 0%, ${accent}22 0%, transparent 60%)"></div>
         <div class="cc-badge"># ${itemsCount}</div>
         <div class="cc-image">
-          <div class="cc-emoji" style="filter:drop-shadow(0 0 16px ${accent}cc)">${c.emoji}</div>
-          <div class="cc-previews">${previews}</div>
+          ${renderCaseAvatar(c)}
         </div>
         <div class="cc-name" style="text-shadow:0 0 14px ${accent}66">${c.name}</div>
         <div class="cc-price">${tonSvg}<span>${c.price}</span></div>
@@ -3705,6 +4249,7 @@ function caseWinKeep(){
   // Зберігаємо фото напряму з NFT_PHOTOS щоб в інвентарі показувалось правильне зображення
   const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[lastWin.id])||null;
   const nftEntry={
+    uid:makeNFTUid(lastWin),
     id:lastWin.id,
     name:lastWin.name,
     emoji:lastWin.emoji||'🎁',
@@ -3720,8 +4265,7 @@ function caseWinKeep(){
   };
   myNFTs.push(nftEntry);
   saveNFTs();
-  const cnt=myNFTs.length;
-  document.getElementById('inv-tab-lbl').textContent=cnt?t('inv')+' ('+cnt+')':t('inv');
+  refreshInventoryLabel();
   // Повідомляємо сервер але не чекаємо відповіді — вже збережено локально
   if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
   showToast(t('nft_added'),'win');
@@ -3734,9 +4278,11 @@ function caseWinSell(){
   caseWinProcessed=true;
   if(lastWin.isNFT){
     // SECURITY: ціну визначає сервер, баланс оновиться через WS відповідь
-    if(wsReady)ws.send(JSON.stringify({a:'case_win_sell',nft_id:lastWin.id}));
+    creditLocalBalance(lastWin.price,'case_nft_sell');
+    if(wsReady)ws.send(JSON.stringify({a:'case_win_sell_client',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
     showToast(t('nft_sold')+' '+lastWin.price+' TON!','win');
   } else {
+    creditLocalBalance(lastWin.ton,'case_ton_win');
     if(wsReady)ws.send(JSON.stringify({a:'case_ton_win',amount:lastWin.ton}));
     showToast('+'+lastWin.ton+' TON '+t('case_ton_win'),'win');
   }
@@ -4547,27 +5093,77 @@ window.addEventListener('resize', ()=>{
   }
 });
 
-// ── NFT PRICES: підтягування з prices.json з авто-оновленням ─────────────────
-// Маржа: NFT_CATALOG (Rocket) ціна = floor * 1.08 (+8%)
-// Авто-оновлення: кожну годину (3 600 000 мс)
-// Оптимізації:
-//   • AbortController — щоб попередній запит не висів якщо новий запустився
-//   • requestIdleCallback — оновлення масивів виконується коли браузер вільний (не лагає UI)
-//   • кешування ETag/Last-Modified через if-none-match (304 = пропуск парсингу)
-//   • pause при невидимій вкладці (document.hidden) — економимо CPU/трафік
-//   • перевірка хешу payload — якщо ціни не змінилися, не пересортовуємо UI
-const PRICE_REFRESH_MS = 60 * 60 * 1000; // 1 година
-const NFT_MARGIN = 1.08;                 // +8% до floor для NFT_CATALOG
-let _lastPricesHash = null;
-let _priceFetchAbort = null;
-let _priceRefreshTimer = null;
+// ── NFT PRICES: ПРЯМЕ ЗВЕРНЕННЯ ДО tgmrkt.io API ────────────────────────────
+// HTML моніторить ціни сам, без VPS / prices.json.
+// Працює так:
+//   1. На старті — миттєво підтягуємо кеш з localStorage (якщо є)
+//   2. Паралельно тягнемо свіжі ціни з tgmrkt API (по 6 запитів одночасно)
+//   3. Раз на годину повторюємо
+//   4. Зберігаємо результат у localStorage для наступного відкриття
+//   5. Якщо CORS блокує → автоматичний fallback на prices.json (через VPS)
+//
+// Маржа: +8% до floor для ціни продажу.
 
-function _hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h<<5)-h+s.charCodeAt(i);h|=0;}return h;}
+const PRICE_REFRESH_MS = 60 * 60 * 1000; // 1 година
+const NFT_MARGIN = 1.08;
+const TGMRKT_API   = 'https://api.tgmrkt.io/api/v1/gifts/saling';
+const TGMRKT_AUTH  = '6719edf2-b2a9-49ca-bdac-add1fd7ba128';
+const TGMRKT_REFERER = 'https://cdn.tgmrkt.io/';
+const CONCURRENCY  = 6;        // скільки колекцій тягти паралельно
+const CACHE_KEY    = 'nft_prices_cache_v1';
+
+// id з кейсів/каталогу → точна назва колекції на tgmrkt.io
+const NFT_COLLECTION_MAP = {
+  // CASES (PINK)
+  'snakebox':'Snake Box','candycane':'Candy Cane','jesterhat':'Jester Hat',
+  'lolpop':'Lol Pop','spicedwine':'Spiced Wine','cookieheart':'Cookie Heart',
+  'deskcalendar':'Desk Calendar','joyfullbundle':'Joyful Bundle',
+  'bunnymuffin':'Bunny Muffin','berrybox':'Berry Box','valentinebox':'Valentine Box',
+  'lovecandle':'Love Candle','sakuraflower':'Sakura Flower','lovepotion':'Love Potion',
+  'starnotepad':'Star Notepad','eternalrose':'Eternal Rose','toybear':'Toy Bear',
+  'sharptongue':'Sharp Tongue','nekohelmet':'Neko Helmet',
+  'nailbracelet':'Nail Bracelet','astralshard':'Astral Shard',
+  // NFT_CATALOG (Rocket)
+  'artisanbrick':'Artisan Brick','astralshards':'Astral Shard','bdaycandle':'B-Day Candle',
+  'bigyear':'Big Year','bowtie':'Bow Tie','chillflame':'Chill Flame',
+  'clovelpin':'Clover Pin','crystalball':'Crystal Ball','cupidcharm':'Cupid Charm',
+  'diamondring':'Diamond Ring','easteregg':'Easter Egg','electricskull':'Electric Skull',
+  'eternalcandle':'Eternal Candle','evileye':'Evil Eye','flyingbroom':'Flying Broom',
+  'gemsignet':'Gem Signet','genielamp':'Genie Lamp','gingercookie':'Ginger Cookie',
+  'hangingstar':'Hanging Star','happybrownie':'Happy Brownie','heartlocket':'Heart Locket',
+  'heroichelmet':'Heroic Helmet','hexhot':'Hex Pot','holidaydrink':'Holiday Drink',
+  'homemadecake':'Homemade Cake','hypnolollipop':'Hypno Lollipop','icecream':'Ice Cream',
+  'inputkey':'Input Key','instantramen':'Instant Ramen','ionicdrier':'Ionic Dryer',
+  'iongem':'Ion Gem','jackinthebox':'Jack-in-the-Box','jellybunny':'Jelly Bunny',
+  'jinglebells':'Jingle Bells','jollychimp':'Jolly Chimp','joyfulbundle':'Joyful Bundle',
+  'joyfulbundle2':'Joyful Bundle','kissedfrog':'Kissed Frog','lightsword':'Light Sword',
+  'lolpop2':'Lol Pop','lootbag':'Loot Bag','lowrider':'Low Rider','lunarsnake':'Lunar Snake',
+  'lunarsnak':'Lunar Snake','lushbouquet':'Lush Bouquet','madpumpkin':'Mad Pumpkin',
+  'magicpotion':'Magic Potion','mightyarm':'Mighty Arm','minioscars':'Mini Oscar',
+  'minioscal':'Mini Oscar','moodpack':'Mood Pack','moonpendant':'Moon Pendant',
+  'moonpencil':'Moon Pendant','moussecake':'Mousse Cake','oillamp':'Oil Lamp',
+  'partysparkler':'Party Sparkler','partysparker':'Party Sparkler',
+  'perfumebottle':'Perfume Bottle','petsnake':'Pet Snake','plushpepe':'Plush Pepe',
+  'poolfloat':'Pool Float','preciouspeach':'Precious Peach','recordplayer':'Record Player',
+  'restlessjar':'Restless Jar','santahat':'Santa Hat','scaredcat':'Scared Cat',
+  'signetring':'Signet Ring','skullflower':'Skull Flower','skystiletto':'Sky Stilettos',
+  'skystillettos':'Sky Stilettos','sleighbell':'Sleigh Bell','snoopcigar':'Snoop Cigar',
+  'snoopdog':'Snoop Dogg','snowglobe':'Snow Globe','snowmittens':'Snow Mittens',
+  'springbasket':'Spring Basket','spyagaric':'Spy Agaric','stellarrocket':'Stellar Rocket',
+  'swagbag':'Swag Bag','swisswatch':'Swiss Watch','tamagadget':'Tama Gadget',
+  'timelessbook':'Timeless Book','tophat':'Top Hat','trappedheart':'Trapped Heart',
+  'vicecream':'Vice Cream','vintagecigar':'Vintage Cigar','voodoodoll':'Voodoo Doll',
+  'westsideside':'Westside Sign','whipcupcake':'Whip Cupcake','winterwreath':'Winter Wreath',
+  'witchhat':'Witch Hat','xmasstocking':'Xmas Stocking','bondedring':'Bonded Ring',
+  'freshsocks':'Fresh Socks','faithamulet':'Faith Amulet','cloverpin':'Clover Pin',
+  'artisanbread':'Artisan Brick','happybroom':'Happy Brownie',
+};
+
+let _priceRefreshTimer = null;
+let _isLoading = false;
 
 function _applyPrices(prices){
   let updated = 0;
-
-  // CASES — floor з prices.json, ціна = floor * NFT_MARGIN (+8%), як у каталозі
   if (typeof CASES !== 'undefined') {
     for (let i = 0; i < CASES.length; i++) {
       const items = CASES[i].items;
@@ -4582,8 +5178,6 @@ function _applyPrices(prices){
       }
     }
   }
-
-  // NFT_CATALOG (Rocket) — floor з джерела, ціна = floor * 1.08
   if (typeof NFT_CATALOG !== 'undefined') {
     for (let i = 0; i < NFT_CATALOG.length; i++) {
       const item = NFT_CATALOG[i];
@@ -4595,76 +5189,169 @@ function _applyPrices(prices){
       }
     }
   }
-
   return updated;
 }
 
-async function loadNFTPrices(opts) {
-  opts = opts || {};
-  // скасуй попередній висячий запит (на випадок ручного refresh)
-  if (_priceFetchAbort) { try { _priceFetchAbort.abort(); } catch(e){} }
-  _priceFetchAbort = new AbortController();
-
+// Запит floor-ціни однієї колекції з tgmrkt API
+async function _fetchFloorFromAPI(collectionName, signal){
   try {
-    const resp = await fetch('prices.json?_=' + Date.now(), {
-      signal: _priceFetchAbort.signal,
-      cache: 'no-store',
+    const resp = await fetch(TGMRKT_API, {
+      method: 'POST',
+      signal,
+      headers: {
+        'Authorization': TGMRKT_AUTH,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        collectionNames: [collectionName],
+        modelNames: [], backdropNames: [], symbolNames: [],
+        ordering: 'Price', lowToHigh: true,
+        maxPrice: null, minPrice: null, mintable: null,
+        number: null, count: 1, cursor: '', query: null,
+        promotedFirst: false,
+      }),
     });
-    if (!resp.ok) return;
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const gifts = data.gifts || [];
+    if (!gifts.length) return null;
+    const salePrice = gifts[0].salePrice;
+    if (salePrice == null) return null;
+    return +(salePrice / 1_000_000_000).toFixed(2);
+  } catch(e) {
+    if (e.name !== 'AbortError') console.warn('fetch err', collectionName, e.message);
+    return null;
+  }
+}
 
-    const text = await resp.text();
-    const hash = _hashStr(text);
-    // якщо payload не змінився від минулого разу — пропускаємо перерахунок
-    if (hash === _lastPricesHash && !opts.force) {
-      return;
-    }
-    _lastPricesHash = hash;
+// Тягнемо ВСІ ціни паралельно (з лімітом конкурентності)
+async function _fetchAllPricesFromAPI(){
+  // 1. Збираємо унікальні колекції
+  const uniqueCollections = [...new Set(Object.values(NFT_COLLECTION_MAP).filter(Boolean))];
 
-    const data = JSON.parse(text);
-    const prices = data.prices || {};
+  const collectionFloors = {};
+  const queue = uniqueCollections.slice();
+  const signal = (new AbortController()).signal;
 
-    // запускаємо оновлення масивів у idle-слоті — UI не залагає
-    const run = () => {
-      const updated = _applyPrices(prices);
-      if (updated > 0) {
-        console.log(`✅ NFT ціни оновлено: ${updated} (${data.updatedAt || '?'})`);
-        // повідомляємо інші частини UI, якщо треба
-        try { window.dispatchEvent(new CustomEvent('nft-prices-updated', {detail:{updated, at:data.updatedAt}})); } catch(e){}
-      }
-    };
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(run, {timeout: 1500});
-    } else {
-      setTimeout(run, 0);
-    }
-  } catch (e) {
-    if (e.name !== 'AbortError') {
-      console.warn('⚠️ prices.json: помилка завантаження — лишаємо попередні ціни:', e.message);
+  // 2. Worker: бере колекцію з черги, тягне її floor, повторює
+  async function worker(){
+    while (queue.length){
+      const coll = queue.shift();
+      if (!coll) break;
+      const floor = await _fetchFloorFromAPI(coll, signal);
+      if (floor != null) collectionFloors[coll] = floor;
     }
   }
+
+  // 3. Запускаємо CONCURRENCY workers паралельно
+  const workers = [];
+  for (let i = 0; i < CONCURRENCY; i++) workers.push(worker());
+  await Promise.all(workers);
+
+  // 4. Розкладаємо: collection_name → всі id які на неї мапляться
+  const prices = {};
+  for (const [id, coll] of Object.entries(NFT_COLLECTION_MAP)) {
+    if (!coll) continue;
+    const floor = collectionFloors[coll];
+    if (floor != null) prices[id] = floor;
+  }
+  return prices;
+}
+
+// Fallback: завантажити prices.json з того ж домену (якщо є на сервері)
+async function _fetchPricesFromJSON(){
+  try {
+    const resp = await fetch('prices.json?_=' + Date.now(), {cache:'no-store'});
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.prices || null;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function loadNFTPrices(){
+  if (_isLoading) return;
+  _isLoading = true;
+  try {
+    console.log('🔄 Підтягуємо ціни з tgmrkt API...');
+    const t0 = performance.now();
+
+    let prices = await _fetchAllPricesFromAPI();
+    let source = 'tgmrkt API';
+
+    // якщо API заблокувало CORS / нічого не повернув — fallback на prices.json
+    if (!prices || Object.keys(prices).length === 0) {
+      console.warn('⚠️ API не повернув даних (можливо CORS). Fallback на prices.json...');
+      prices = await _fetchPricesFromJSON();
+      source = 'prices.json (fallback)';
+    }
+
+    if (!prices || Object.keys(prices).length === 0) {
+      console.warn('❌ Ціни не отримано — лишаємо вбудовані значення.');
+      return;
+    }
+
+    // Зберігаємо в localStorage щоб наступного разу одразу мати останні ціни
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        prices: prices,
+        savedAt: Date.now(),
+        source: source,
+      }));
+    } catch(e){}
+
+    // Оновлюємо UI у idle-слоті, щоб не лагало
+    const run = () => {
+      const updated = _applyPrices(prices);
+      const took = Math.round(performance.now() - t0);
+      console.log(`✅ NFT ціни оновлено: ${updated} предметів за ${took}ms (${source})`);
+      try { window.dispatchEvent(new CustomEvent('nft-prices-updated', {detail:{updated, source}})); } catch(e){}
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(run, {timeout:1500});
+    else setTimeout(run, 0);
+
+  } finally {
+    _isLoading = false;
+  }
+}
+
+// При старті — миттєво застосовуємо КЕШ із localStorage (якщо є)
+// поки фоном тягнуться свіжі ціни. Користувач не бачить старих 2.59.
+function _applyCachedPrices(){
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    const cached = JSON.parse(raw);
+    if (!cached || !cached.prices) return false;
+    const age = Date.now() - (cached.savedAt || 0);
+    const ageMin = Math.round(age / 60000);
+    const updated = _applyPrices(cached.prices);
+    console.log(`📦 Кеш цін застосовано: ${updated} (вік: ${ageMin} хв, з ${cached.source||'?'})`);
+    return true;
+  } catch(e) { return false; }
 }
 
 function _schedulePriceRefresh(){
   if (_priceRefreshTimer) clearInterval(_priceRefreshTimer);
   _priceRefreshTimer = setInterval(() => {
-    // не качаємо коли вкладка прихована — економимо трафік/CPU
-    if (document.hidden) return;
+    if (document.hidden) return; // не качаємо у фоні
     loadNFTPrices();
   }, PRICE_REFRESH_MS);
 }
 
-// коли вкладка стає видимою після паузи > 1 год — підвантажуємо одразу
+// Коли вкладка стає видимою після паузи > 1 год — оновлюємо одразу
 let _lastVisibleAt = Date.now();
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     _lastVisibleAt = Date.now();
-  } else {
-    if (Date.now() - _lastVisibleAt > PRICE_REFRESH_MS) {
-      loadNFTPrices();
-    }
+  } else if (Date.now() - _lastVisibleAt > PRICE_REFRESH_MS) {
+    loadNFTPrices();
   }
 });
 
+// Старт: кеш → API → планувальник
+_applyCachedPrices();
 loadNFTPrices().then(() => { _schedulePriceRefresh(); connect(); });
 </script>
 
@@ -4751,42 +5438,64 @@ function selectNFTBet(idx){
   var nft=myNFTs[idx],btn=document.getElementById('nft-bet-confirm');
   btn.disabled=false;btn.textContent='Bet '+nft.name+' ('+(+(nft.price||nft.floor||0)).toFixed(2)+')';
 }
+function cashoutActiveNFTBetLocal(){
+  var active=window._activeNFTBet;
+  if(!active)return;
+  var cur=typeof mult!=='undefined'?+mult:1;
+  var base=+(active.price||active.floor||betAmt||0);
+  var winValue=+(base*cur).toFixed(2);
+  var winNFT=(typeof getNFTSafe==='function'&&getNFTSafe(winValue,cur))||Object.assign({},active,{price:winValue,floor:winValue});
+  winNFT.price=+(winNFT.price||winNFT.floor||winValue);
+  winNFT.floor=+(winNFT.floor||winNFT.price||winValue);
+  addNFTToInventory(winNFT,winValue,cur);
+  showWinPopup(cur,winValue,winNFT);
+  if(typeof showToast==='function')showToast('NFT cashout '+cur.toFixed(2)+'x','win');
+  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_local',nft_id:active.id,win_nft_id:winNFT.id,win_value:winValue,mult:cur}));
+  window._activeNFTBet=null;
+  window._pendingNFTBet=null;
+  hasBet=false;
+  betAmt=0;
+  var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';
+  var bb=document.getElementById('bb');if(bb){bb.className='bet';bb.innerHTML=(typeof t==='function'?t('bet'):'Bet');bb.disabled=true;}
+}
 function confirmNFTBet(){
   if(_nftBetIdx===null)return;
   if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
   if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
-  if(!(typeof wsReady!=='undefined'&&wsReady&&window.ws)){if(typeof showToast==='function')showToast('No server connection');return;}
   var nft=myNFTs[_nftBetIdx];
   if(!nft)return;
+  var nftKey=ensureNFTUid(nft);
+  var removedNFT=removeNFTByKey(nftKey);
+  if(!removedNFT){if(typeof showToast==='function')showToast('NFT not found');return;}
+  saveNFTs();
+  refreshInventoryLabel();
   closeNFTBetPicker();
-  window._activeNFTBet=Object.assign({},nft);
-  window._pendingNFTBet={idx:_nftBetIdx,nft:Object.assign({},nft)};
+  window._activeNFTBet=Object.assign({},removedNFT);
+  window._pendingNFTBet=null;
   var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+nft.name;
   var nftPrice=+(nft.price||nft.floor||0);
   betAmt=nftPrice;
-  // Send as regular bet so server registers it and sends bet_ok (which triggers player card).
-  // The NFT is removed from inventory only after bet_ok, so failed/rejected bets do not eat it.
-  ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:nft.id,nft_price:nftPrice,nft_name:nft.name}}));
-  // hasBet will be set to true by bet_ok handler
+  hasBet=true;
+  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:removedNFT.id,nft_uid:removedNFT.uid,nft_price:nftPrice,nft_name:removedNFT.name}}));
   var bb=document.getElementById('bb');
   if(bb){bb.innerHTML='<span style="font-size:11px;opacity:.8">🎁 NFT: '+nft.name+'</span>';bb.disabled=false;bb.className='co';}
   if(typeof showToast==='function')showToast('NFT bet placed!','win');
   if(navigator.vibrate)navigator.vibrate([30,15,60]);
 }
 
-var _crashN=0,_crashLastBig=0;
+var _crashN=0,_crashLastBig=0,_crashLastMid=0;
 window._smartCrashPoint=function(activeBets){
-  _crashN++;var since=_crashN-_crashLastBig;
-  if(!activeBets){var r0=Math.random();if(r0<0.06)return+(1.5+Math.random()*6.5).toFixed(2);if(r0<0.25)return+(1.2+Math.random()*1.3).toFixed(2);return+(1.0+Math.random()*0.85).toFixed(2);}
-  if(since>=95&&Math.random()<0.35){_crashLastBig=_crashN;return Math.min(+(10+Math.random()*90).toFixed(2),100);}
-  if(since>=18&&Math.random()<0.25){_crashLastBig=_crashN;return+(3+Math.random()*5).toFixed(2);}
+  _crashN++;var sinceBig=_crashN-_crashLastBig,sinceMid=_crashN-_crashLastMid;
+  if(!activeBets){var r0=Math.random();if(r0<0.03)return+(1.45+Math.random()*3.55).toFixed(2);if(r0<0.16)return+(1.15+Math.random()*0.95).toFixed(2);return+(1.0+Math.random()*0.45).toFixed(2);}
+  if(sinceBig>=130&&Math.random()<0.18){_crashLastBig=_crashN;return Math.min(+(8+Math.random()*42).toFixed(2),50);}
+  if(sinceMid>=28&&Math.random()<0.14){_crashLastMid=_crashN;return+(2.5+Math.random()*3.5).toFixed(2);}
   var r=Math.random();
-  if(r<0.40)return+(1.0+Math.random()*0.6).toFixed(2);
-  if(r<0.65)return+(1.6+Math.random()*1.1).toFixed(2);
-  if(r<0.80)return+(2.0+Math.random()*2.0).toFixed(2);
-  if(r<0.92)return+(3.0+Math.random()*2.0).toFixed(2);
-  if(r<0.97)return+(5+Math.random()*5).toFixed(2);
-  return+(10+Math.random()*15).toFixed(2);
+  if(r<0.58)return+(1.0+Math.random()*0.35).toFixed(2);
+  if(r<0.78)return+(1.35+Math.random()*0.55).toFixed(2);
+  if(r<0.90)return+(1.9+Math.random()*1.1).toFixed(2);
+  if(r<0.96)return+(3.0+Math.random()*1.5).toFixed(2);
+  if(r<0.99)return+(4.5+Math.random()*3.5).toFixed(2);
+  return+(8+Math.random()*7).toFixed(2);
 };
 
 var _adminTargetUser=null;
@@ -4872,6 +5581,22 @@ function adminUserClearNFTs(){if(!_adminTargetUser){if(typeof showToast==='funct
 function adminAddNFT(){if(typeof CASES==='undefined'||!CASES.length)return;var items=CASES[0].items.filter(function(i){return i.isNFT;});var nft=items[Math.floor(Math.random()*items.length)];if(typeof addNFTToInventory==='function')addNFTToInventory(nft,nft.price,1);if(typeof showToast==='function')showToast('Added '+nft.name,'win');closeAdminPanel();openAdminPanel();}
 function adminClearNFTs(){if(typeof myNFTs==='undefined'||!myNFTs.length){if(typeof showToast==='function')showToast('Inventory empty');return;}if(!confirm('Delete all '+myNFTs.length+' NFTs?'))return;myNFTs=[];if(typeof saveNFTs==='function')saveNFTs();var l=document.getElementById('inv-tab-lbl');if(l)l.textContent=typeof t==='function'?t('inv'):'Backpack';if(typeof showToast==='function')showToast('Cleared','info');closeAdminPanel();openAdminPanel();}
 function adminResetAll(){if(!confirm('Reset everything?'))return;if(typeof balance!=='undefined'){balance=0;if(typeof updBal==='function')updBal();if(typeof saveBal==='function')saveBal();}if(typeof myNFTs!=='undefined'){myNFTs=[];if(typeof saveNFTs==='function')saveNFTs();}var l=document.getElementById('inv-tab-lbl');if(l)l.textContent=typeof t==='function'?t('inv'):'Backpack';if(typeof showToast==='function')showToast('Reset done','info');closeAdminPanel();openAdminPanel();}
+function adminSearchUserPatched(){
+  var el=document.getElementById('admin-user-search');if(!el)return;
+  var raw=(el.value||'').trim(),q=raw.replace(/^@+/,'').trim();
+  if(!q){if(typeof showToast==='function')showToast('Enter @username or user ID');return;}
+  var c=document.getElementById('admin-user-card');if(c)c.style.display='none';
+  var nf=document.getElementById('admin-user-not-found');if(nf){nf.style.display='';nf.textContent='Connecting to server...';}
+  if(typeof wsReady==='undefined'||!wsReady||!window.ws){
+    try{if(typeof connect==='function')connect();}catch(e){}
+    if(typeof showToast==='function')showToast('Connecting to server, try again in a moment','info');
+    return;
+  }
+  nf&&(nf.style.display='none');
+  ws.send(JSON.stringify({a:'admin_find_user',query:q,admin_uid:typeof userId!=='undefined'?userId:null}));
+  if(typeof showToast==='function')showToast('Searching for: '+q,'info');
+}
+adminSearchUser=adminSearchUserPatched;
 </script>
 </body>
 </html>
