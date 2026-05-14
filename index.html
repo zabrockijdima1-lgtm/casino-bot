@@ -429,7 +429,7 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 }
 #bb.co::before{display:none}
 #bb:disabled{opacity:.25;cursor:not-allowed}
-#nft-hint{font-size:10px;color:var(--text-muted);text-align:center;padding:3px 0 2px;flex-shrink:0;font-family:'Nunito',sans-serif;font-weight:700}
+#nft-hint{display:none;font-size:10px;color:var(--text-muted);text-align:center;padding:3px 0 2px;flex-shrink:0;font-family:'Nunito',sans-serif;font-weight:700}
 #nft-hint span{color:var(--pepe-light)}
 #pw{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:0 12px;min-height:0}
 .st{font-size:9px;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;flex-shrink:0;display:flex;align-items:center;gap:6px;font-family:'Nunito',sans-serif;font-weight:700}
@@ -1170,8 +1170,6 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
     <button id="bb" onclick="handleBet()">🚀 PLACE BET</button>
     <button id="bb-nft" onclick="openNFTBetPicker()" style="grid-column:1/-1;display:none;background:linear-gradient(135deg,#1a0a2e,#2e1060,#1a0a2e);border:1.5px solid rgba(192,132,252,0.5);border-radius:20px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:15px;padding:11px;cursor:pointer;align-items:center;justify-content:center;gap:8px;">&#x1F381; BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
   </div>
-
-  <div id="nft-hint">Win ≥2.8 TON → get <span>Telegram Gift NFT</span></div>
 
   <!-- Панель реакцій — видима тільки під час польоту -->
   <div id="react-bar">
@@ -2650,10 +2648,23 @@ function connect(){
       hasBet=false;balance=d.bal;updBal();saveBal();
       stopFlightTicks();
       playCashoutSound();
+      
+      // Перевірка чи був це NFT bet
+      const wasNFTBet = !!window._activeNFTBet;
+      
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
       if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
       showWinPopup(d.mx,d.win,nftAllowed?d.nft:null);
       triggerBigWin(+d.mx); // конфеті/зірки залежно від множника
+      
+      // Очистити NFT bet після cashout
+      if(wasNFTBet){
+        window._activeNFTBet=null;
+        window._pendingNFTBet=null;
+        var inf=document.getElementById('bb-nft-info');
+        if(inf)inf.textContent='';
+      }
+      
       BB().className='';BB().innerHTML=t('place_bet');
     }
     else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
@@ -4261,6 +4272,14 @@ function spinCase(){
       }
     }
     
+    // В dev mode (userId === 0) дозволяємо відкрити без перевірки
+    if(!IS_TELEGRAM || userId === 0){
+      localStorage.setItem('free_case_last_open_'+userId, Date.now().toString());
+      // Продовжити відкриття кейсу без перевірки підписки
+      continueFreeCaseSpin();
+      return;
+    }
+    
     // Перевірка підписки на канал через WebSocket
     if(wsReady && window.ws){
       ws.send(JSON.stringify({a:'check_subscription',channel:curCase.requireChannel,user_id:userId}));
@@ -4269,7 +4288,17 @@ function spinCase(){
       showToast('Checking subscription...');
       return;
     } else {
-      showToast('Connect to server first');
+      showToast('Connecting to server...');
+      // Спробувати підключитися
+      if(typeof connect === 'function') connect();
+      setTimeout(() => {
+        if(wsReady && window.ws){
+          ws.send(JSON.stringify({a:'check_subscription',channel:curCase.requireChannel,user_id:userId}));
+          _pendingFreeCaseOpen = true;
+        } else {
+          showToast('Connection failed. Try again.');
+        }
+      }, 1000);
       return;
     }
   }
