@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -289,7 +288,7 @@ body.light-theme .spin-item.winner{box-shadow:0 0 0 3px #7c3aed,0 0 20px rgba(12
 .rbtn .rcnt{font-size:10px;color:rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;font-weight:700;min-width:10px}
 html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunito',sans-serif;overflow:hidden}
 #app{display:flex;flex-direction:column;height:100vh;max-height:100vh;position:relative;z-index:1}
-#sky{position:relative;flex:0 0 190px;overflow:hidden;background:linear-gradient(180deg,#060d1a 0%,#030d22 40%,#050f28 100%)}
+#sky{position:relative;flex:0 0 160px;overflow:hidden;background:linear-gradient(180deg,#060d1a 0%,#030d22 40%,#050f28 100%)}
 /* Кракен CSS анімації */
 @keyframes tentacle1{0%,100%{d:path("M-10,200 Q25,160 8,125 Q-5,95 28,82 Q52,74 42,102 Q32,125 55,136 Q75,147 63,168 Q52,180 72,190")}50%{d:path("M-10,200 Q30,155 12,118 Q-2,88 32,75 Q55,68 45,96 Q35,118 58,130 Q78,141 66,163 Q55,177 76,188")}}
 @keyframes tentacle2{0%,100%{d:path("M-15,225 Q18,188 5,155 Q-8,122 22,108 Q40,100 33,127 Q25,148 45,158 Q62,168 52,188")}50%{d:path("M-15,225 Q22,182 9,149 Q-4,116 26,102 Q44,94 37,121 Q29,142 49,152 Q66,162 56,182")}}
@@ -794,7 +793,7 @@ html,body{
   box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 80px rgba(0,0,0,0.48);
 }
 #sky{
-  flex-basis:190px;
+  flex-basis:160px;
   border-radius:0 0 26px 26px;
   background:
     radial-gradient(circle at 50% 54%,rgba(93,216,255,0.18),transparent 28%),
@@ -1738,7 +1737,7 @@ function getPhotoById(nft){
   return'';
 }
 function getNFT(win){
-  if(!win||win<2.72)return null;
+  if(!win||win<0.1)return null;
   // NFT тільки якщо множник >= 1.1 (перевіряється окремо де викликається)
   const ok=NFT_CATALOG.filter(n=>n.price<=win);
   return ok.length?ok.reduce((a,b)=>a.floor>b.floor?a:b):null;
@@ -1771,6 +1770,62 @@ try{const s=localStorage.getItem('rkt_nfts_'+userId);if(s)myNFTs=JSON.parse(s);}
 let phase='waiting',mult=1.0,startTs=0,hasBet=false,betAmt=0;
 let autoOn=false,selTon=1,lastPayAmount=0,lastPayTxId=null;
 let points=[],loopId=null,ws=null,wsReady=false;
+let _pendingFreeCaseOpen=false;
+
+function continueFreeCaseSpin(){
+  if(!curCase)return;
+  if(spinAnim){return;}
+  caseWinProcessed=false;
+  playSpinSound();
+  document.getElementById('spin-btn').disabled=true;
+
+  // 1. Чесний winner
+  const winner=wRand(curCase.items);
+  lastWin=winner;
+
+  // 2. Трек: позиція WINNER_IDX — реальний winner, решта — декор
+  const WINNER_IDX=55;
+  const ITEM_GAP=12;
+  const ITEM_FULL=ITW+ITEM_GAP;
+
+  const nftItems=curCase.items.filter(i=>i.isNFT);
+  const tonItems=curCase.items.filter(i=>i.isTon);
+  const items=Array.from({length:120},(_,idx)=>{
+    if(idx===WINNER_IDX) return winner;
+    if(nftItems.length&&tonItems.length){
+      return Math.random()<0.75?nftItems[Math.floor(Math.random()*nftItems.length)]:tonItems[Math.floor(Math.random()*tonItems.length)];
+    }
+    if(nftItems.length) return nftItems[Math.floor(Math.random()*nftItems.length)];
+    return tonItems[Math.floor(Math.random()*tonItems.length)];
+  });
+
+  const tr=document.getElementById('spin-track');
+  tr.innerHTML=renderTrack(items);
+  tr.style.transform='translateX(0)';
+
+  const ww=tr.parentElement.offsetWidth||320;
+  const tx=-(WINNER_IDX*ITEM_FULL-(ww/2-ITW/2));
+  const dur=7000,st=performance.now();
+
+  function ease(p){
+    if(p<0.6) return p*p*1.5;
+    const q=(p-0.6)/0.4;
+    return 0.54+0.46*(1-Math.pow(1-q,4));
+  }
+  function anim(now){
+    const p=Math.min((now-st)/dur,1);
+    tr.style.transform='translateX('+tx*ease(p)+'px)';
+    if(p<1){
+      spinAnim=requestAnimationFrame(anim);
+    } else {
+      spinAnim=null;
+      const el=tr.children[WINNER_IDX];
+      if(el) el.classList.add('winner');
+      setTimeout(()=>showCaseWin(lastWin),600);
+    }
+  }
+  spinAnim=requestAnimationFrame(anim);
+}
 
 function saveBal(){localStorage.setItem('rkt_bal_'+userId,balance.toFixed(4));}
 function updBal(){
@@ -2150,7 +2205,7 @@ function showWinPopup(mx,win,nft){
     document.getElementById('wp-ton-section').style.display='none';
     const lc=document.getElementById('wp-lottie');
     const ph=getPhotoById(nft);
-    lc.innerHTML=ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px">🎁</div>';
+    lc.innerHTML=ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;background:#1a1a2e"></div>';
     document.getElementById('wp-nft-name').textContent=nft.name;
     document.getElementById('wp-nft-rarity').textContent=nft.rarity;
     document.getElementById('wp-nft-rarity').className=`rare-${nft.rarity}`;
@@ -2166,7 +2221,8 @@ function showWinPopup(mx,win,nft){
     spawnGems(Math.min(10,Math.floor(win*3)));
   }
   wp.className='show';
-  setTimeout(()=>wp.className='',5000);
+  // Видалити автозакриття
+  // setTimeout(()=>wp.className='',5000);
 }
 
 function addNFTToInventory(nft,winTon,mx){
@@ -2615,6 +2671,23 @@ function connect(){
       closeModal();
     }
     else if(d.t==='ref_bonus'){balance=d.bal;updBal();saveBal();showToast(`👥 +${d.bonus} TON bonus!`,'win');}
+    else if(d.t==='subscription_checked'){
+      // Відповідь від сервера про перевірку підписки
+      if(d.subscribed && _pendingFreeCaseOpen){
+        _pendingFreeCaseOpen = false;
+        // Зберегти час відкриття
+        localStorage.setItem('free_case_last_open_'+userId, Date.now().toString());
+        // Продовжити відкриття кейсу
+        continueFreeCaseSpin();
+      } else if(!d.subscribed){
+        _pendingFreeCaseOpen = false;
+        showToast(`Please subscribe to ${curCase.requireChannel} first!`);
+        // Відкрити канал у Telegram
+        if(tg?.openTelegramLink){
+          tg.openTelegramLink(`https://t.me/${curCase.requireChannel.replace('@','')}`);
+        }
+      }
+    }
     // SECURITY: баланс від сервера після підтверджених операцій
     else if(d.t==='withdraw_ok'){
       if(d.bal){balance=d.bal;updBal();saveBal();}
@@ -3349,26 +3422,49 @@ function _nft(id, weight){
 }
 
 const CASES=[
-  // ── 1. BICHUGAN — 0.4 TON — найдешевший, common only ─────────────────────
-  {id:'bichugan', name:'BICHUGAN', emoji:'🏆', price:0.4, color:'#a87d3a',
+  // ── FREE DAILY CASE — можна відкрити 1 раз на 24 години з підпискою ─────────
+  {id:'free_daily', name:'FREE DAILY', emoji:'🎁', price:0, color:'#ffd700',
+   gradient:'linear-gradient(135deg,#3a2a10,#5a3a15)',
+   accent:'#ffd700',
+   isFree:true,
+   requireChannel:'@pepe_GiftsNFT',
+   cooldown:86400000, // 24 години в мілісекундах
+   previewNFTs:['snakebox','candycane','jesterhat'],
+   items:[
+     _nft('snakebox',     35),
+     _nft('candycane',    30),
+     _nft('xmasstocking', 25),
+     _nft('chillflame',   20),
+     _nft('vicecream',    15),
+     _nft('lunarsnake',   12),
+     _nft('holidaydrink', 10),
+     _nft('whipcupcake',  8),
+     _nft('winterwreath', 6),
+     _nft('bigyear',      4),
+     _nft('poolfloat',    2),
+     _nft('jesterhat',    1),
+   ]},
+
+  // ── 1. BICHUGAN — 2.0 TON ─────────────────────
+  {id:'bichugan', name:'BICHUGAN', emoji:'🏆', price:2.0, color:'#a87d3a',
    gradient:'linear-gradient(135deg,#2a1f10,#3a2a15)',
    accent:'#f5a623',
    previewNFTs:['snakebox','candycane','jesterhat'],
    items:[
-     _nft('snakebox',     30),
-     _nft('candycane',    28),
-     _nft('xmasstocking', 25),
-     _nft('chillflame',   22),
-     _nft('vicecream',    22),
-     _nft('lunarsnake',   18),
-     _nft('holidaydrink', 15),
-     _nft('whipcupcake',  12),
-     _nft('winterwreath', 10),
-     _nft('bigyear',      8),
-     _nft('poolfloat',    6),
-     _nft('jesterhat',    4),
-     _nft('lolpop',       2),
-     _nft('cookieheart',  1),
+     _nft('snakebox',     20),
+     _nft('candycane',    18),
+     _nft('xmasstocking', 15),
+     _nft('chillflame',   12),
+     _nft('vicecream',    12),
+     _nft('lunarsnake',   10),
+     _nft('holidaydrink', 8),
+     _nft('whipcupcake',  6),
+     _nft('winterwreath', 5),
+     _nft('bigyear',      4),
+     _nft('poolfloat',    3),
+     _nft('jesterhat',    2),
+     _nft('lolpop',       1),
+     _nft('cookieheart',  0.7),
      _nft('hexhot',       0.5),
      _nft('snowglobe',    0.3),
      _nft('bdaycandle',   0.15),
@@ -3380,24 +3476,24 @@ const CASES=[
      _nft('astralshards', 0.0005),
    ]},
 
-  // ── 2. SPRING — 0.7 TON — весняна тематика ───────────────────────────────
-  {id:'spring', name:'SPRING', emoji:'🌸', price:0.7, color:'#7dd87a',
+  // ── 2. SPRING — 2.5 TON ───────────────────────────────
+  {id:'spring', name:'SPRING', emoji:'🌸', price:2.5, color:'#7dd87a',
    gradient:'linear-gradient(135deg,#143a1a,#1f5028)',
    accent:'#7ded7a',
    previewNFTs:['sakuraflower','bunnymuffin','lushbouquet'],
    items:[
-     _nft('petsnake',     22),
-     _nft('easteregg',    20),
-     _nft('partysparkler',18),
-     _nft('happybrownie', 15),
-     _nft('gingercookie', 12),
-     _nft('starnotepad',  10),
-     _nft('lushbouquet',  8),
-     _nft('moonpendant',  6),
-     _nft('snowmittens',  5),
-     _nft('faithamulet',  4),
-     _nft('jollychimp',   3),
-     _nft('swagbag',      2),
+     _nft('petsnake',     15),
+     _nft('easteregg',    13),
+     _nft('partysparkler',11),
+     _nft('happybrownie', 9),
+     _nft('gingercookie', 7),
+     _nft('starnotepad',  6),
+     _nft('lushbouquet',  5),
+     _nft('moonpendant',  4),
+     _nft('snowmittens',  3),
+     _nft('faithamulet',  2.5),
+     _nft('jollychimp',   2),
+     _nft('swagbag',      1.5),
      _nft('sakuraflower', 1),
      _nft('flyingbroom',  0.6),
      _nft('tophat',       0.4),
@@ -3410,20 +3506,20 @@ const CASES=[
      _nft('durovscap',    0.0005),
    ]},
 
-  // ── 3. BAZA — 0.9 TON — базові NFT ───────────────────────────────────────
-  {id:'baza', name:'BAZA', emoji:'⚗️', price:0.9, color:'#3ddc84',
+  // ── 3. BAZA — 3.0 TON ───────────────────────────────────────
+  {id:'baza', name:'BAZA', emoji:'⚗️', price:3.0, color:'#3ddc84',
    gradient:'linear-gradient(135deg,#0d2a1a,#103a25)',
    accent:'#3ddc84',
    previewNFTs:['tamagadget','freshsocks','inputkey'],
    items:[
-     _nft('tamagadget',   20),
-     _nft('freshsocks',   18),
-     _nft('hypnolollipop',16),
-     _nft('jackinthebox', 14),
-     _nft('spicedwine',   12),
-     _nft('moodpack',     10),
-     _nft('stellarrocket',8),
-     _nft('cookieheart',  6),
+     _nft('tamagadget',   12),
+     _nft('freshsocks',   11),
+     _nft('hypnolollipop',10),
+     _nft('jackinthebox', 9),
+     _nft('spicedwine',   8),
+     _nft('moodpack',     7),
+     _nft('stellarrocket',6),
+     _nft('cookieheart',  5),
      _nft('inputkey',     4),
      _nft('clovelpin',    3),
      _nft('timelessbook', 2.5),
@@ -3440,8 +3536,8 @@ const CASES=[
      _nft('heroichelmet', 0.002),
    ]},
 
-  // ── 4. RISK — 1.1 TON — високий розкид, шанс на велике ───────────────────
-  {id:'risk', name:'RISK', emoji:'⚡', price:1.1, color:'#ff4d6d',
+  // ── 4. RISK — 4.0 TON ───────────────────
+  {id:'risk', name:'RISK', emoji:'⚡', price:4.0, color:'#ff4d6d',
    gradient:'linear-gradient(135deg,#3a0a14,#5a0f20)',
    accent:'#ff4d6d',
    previewNFTs:['electricskull','snoopdog','evileye'],
@@ -3470,8 +3566,8 @@ const CASES=[
      _nft('durovscap',    0.0002),
    ]},
 
-  // ── 5. INFINITY — 1.1 TON — космос / зірки ───────────────────────────────
-  {id:'infinity', name:'INFINITY', emoji:'✨', price:1.1, color:'#4d8fff',
+  // ── 5. INFINITY — 4.5 TON — космос / зірки ───────────────────────────────
+  {id:'infinity', name:'INFINITY', emoji:'✨', price:4.5, color:'#4d8fff',
    gradient:'linear-gradient(135deg,#0a1a3a,#142a55)',
    accent:'#4d8fff',
    previewNFTs:['hangingstar','crystalball','moonpendant'],
@@ -3498,8 +3594,8 @@ const CASES=[
      _nft('astralshards',  0.002),
    ]},
 
-  // ── 6. FEIN — 1.6 TON — преміум common+rare ──────────────────────────────
-  {id:'fein', name:'FEIN', emoji:'💧', price:1.6, color:'#4dd0e1',
+  // ── 6. FEIN — 5.0 TON — преміум common+rare ──────────────────────────────
+  {id:'fein', name:'FEIN', emoji:'💧', price:5.0, color:'#4dd0e1',
    gradient:'linear-gradient(135deg,#0a2a3a,#0f3a4a)',
    accent:'#4dd0e1',
    previewNFTs:['snowglobe','bowtie','swagbag'],
@@ -3528,8 +3624,8 @@ const CASES=[
      _nft('nekohelmet',   0.002),
    ]},
 
-  // ── 7. MINT — 1.7 TON — мятні / свіжі (зелений) ──────────────────────────
-  {id:'mint', name:'MINT', emoji:'🌿', price:1.7, color:'#7dd87a',
+  // ── 7. MINT — 5.5 TON — мятні / свіжі (зелений) ──────────────────────────
+  {id:'mint', name:'MINT', emoji:'🌿', price:5.5, color:'#7dd87a',
    gradient:'linear-gradient(135deg,#143a1a,#0d4a25)',
    accent:'#7dd87a',
    previewNFTs:['vicecream','sakuraflower','jollychimp'],
@@ -3557,8 +3653,8 @@ const CASES=[
      _nft('artisanbrick', 0.002),
    ]},
 
-  // ── 8. UNI — 2.3 TON — universal, широкий мікс ──────────────────────────
-  {id:'uni', name:'UNI', emoji:'🦄', price:2.3, color:'#ff6b9d',
+  // ── 8. UNI — 6.5 TON — universal, широкий мікс ──────────────────────────
+  {id:'uni', name:'UNI', emoji:'🦄', price:6.5, color:'#ff6b9d',
    gradient:'linear-gradient(135deg,#3a0a2a,#5a1450)',
    accent:'#ff6b9d',
    previewNFTs:['lovepotion','sakuraflower','tophat'],
@@ -4151,6 +4247,33 @@ function initAudio(){
 
 function spinCase(){
   if(!curCase)return;
+  
+  // Перевірка для безкоштовного кейсу
+  if(curCase.isFree){
+    // Перевірка кулдауну
+    const lastOpen = localStorage.getItem('free_case_last_open_'+userId);
+    if(lastOpen){
+      const timeSince = Date.now() - parseInt(lastOpen);
+      if(timeSince < curCase.cooldown){
+        const hoursLeft = Math.ceil((curCase.cooldown - timeSince) / 3600000);
+        showToast(`Wait ${hoursLeft}h to open again`);
+        return;
+      }
+    }
+    
+    // Перевірка підписки на канал через WebSocket
+    if(wsReady && window.ws){
+      ws.send(JSON.stringify({a:'check_subscription',channel:curCase.requireChannel,user_id:userId}));
+      // Чекаємо відповідь від сервера
+      _pendingFreeCaseOpen = true;
+      showToast('Checking subscription...');
+      return;
+    } else {
+      showToast('Connect to server first');
+      return;
+    }
+  }
+  
   if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
