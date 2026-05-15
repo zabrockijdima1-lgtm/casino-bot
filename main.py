@@ -571,7 +571,12 @@ async def ws_ep(ws: WebSocket, uid: int):
                 channel = d.get("channel", "@pepe_GiftsNFT")
                 user_id = int(d.get("user_id", uid))
                 
-                is_subscribed = await check_subscription(user_id, channel)
+                # DEBUG MODE: завжди True для тестування
+                # Закоментуйте наступний рядок колиbot token буде налаштований
+                is_subscribed = True  # DEBUG
+                
+                # Розкоментуйте коли bot налаштований:
+                # is_subscribed = await check_subscription(user_id, channel)
                 
                 await ws.send_text(json.dumps({
                     "t": "subscription_checked",
