@@ -773,18 +773,6 @@ async def admin_topup_get(uid: int, amount: float, request: Request):
 async def root():
     return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients)}
 
-@app.options("/{path:path}")
-async def options_handler(path: str):
-    """Handle CORS preflight requests"""
-    return JSONResponse(
-        content={},
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS, DELETE, PUT",
-            "Access-Control-Allow-Headers": "*",
-        }
-    )
-
 @app.get("/proxy/nft/{path:path}")
 async def proxy_nft_api(path: str):
     """Проксі для NFT API щоб обійти CORS"""
