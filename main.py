@@ -772,3 +772,22 @@ async def admin_topup_get(uid: int, amount: float, request: Request):
 @app.get("/")
 async def root():
     return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients)}
+
+@app.get("/proxy/nft/{path:path}")
+async def proxy_nft_api(path: str):
+    """Проксі для NFT API щоб обійти CORS"""
+    url = f"https://api.tgmrkt.io/{path}"
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.get(url)
+            return JSONResponse(
+                content=response.json(),
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "*",
+                }
+            )
+    except Exception as e:
+        print(f"NFT Proxy error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
