@@ -773,13 +773,30 @@ async def admin_topup_get(uid: int, amount: float, request: Request):
 async def root():
     return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients)}
 
-@app.get("/proxy/nft/{path:path}")
-async def proxy_nft_api(path: str):
+@app.api_route("/proxy/nft/{path:path}", methods=["GET", "POST", "OPTIONS"])
+async def proxy_nft_api(path: str, request: Request):
     """Проксі для NFT API щоб обійти CORS"""
     url = f"https://api.tgmrkt.io/{path}"
+    
+    # Handle OPTIONS preflight
+    if request.method == "OPTIONS":
+        return JSONResponse(
+            content={},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+    
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.get(url)
+            if request.method == "POST":
+                body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+                response = await client.post(url, json=body)
+            else:
+                response = await client.get(url)
+                
             return JSONResponse(
                 content=response.json(),
                 headers={
