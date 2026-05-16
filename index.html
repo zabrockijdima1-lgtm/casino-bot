@@ -3353,21 +3353,11 @@ const CASES=[
    gradient:'linear-gradient(135deg,#3a2f0a,#4a3f1a)',
    accent:'#ffd700',
    cooldown: 86400000, // 24 години в мілісекундах
-   previewNFTs:['icecream','santahat','moussecake'],
+   requireChannel: '@pepe_GiftsNFT',  // Вимагає підписку
+   previewNFTs:['icecream'],
    items:[
-     _nft('icecream',     40),
-     _nft('santahat',     35),
-     _nft('moussecake',   30),
-     _nft('lolpop',       25),
-     _nft('instantramen', 20),
-     _nft('springbasket', 15),
-     _nft('homemadecake', 10),
-     _nft('restlessjar',  8),
-     _nft('witchhat',     5),
-     _nft('chillflame',   3),
-     {ton:0.5, weight:8, isTon:true},
-     {ton:1.0, weight:4, isTon:true},
-     {ton:2.0, weight:2, isTon:true},
+     {ton:0.01, weight:9999, isTon:true},  // 99.99% шанс
+     _nft('icecream', 1),  // 0.01% шанс на NFT
    ]},
   // ── 1. BICHUGAN — 0.4 TON — найдешевший, common only ─────────────────────
   {id:'bichugan', name:'BICHUGAN', emoji:'🏆', price:0.4, color:'#a87d3a',
