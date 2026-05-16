@@ -789,15 +789,24 @@ async def proxy_nft_api(path: str, request: Request):
         )
     
     try:
+        # Отримуємо Authorization header з запиту клієнта
+        auth_header = request.headers.get("Authorization", "")
+        
+        headers = {
+            "Content-Type": "application/json",
+        }
+        if auth_header:
+            headers["Authorization"] = auth_header
+            
         async with httpx.AsyncClient(timeout=15) as client:
             if request.method == "POST":
                 try:
                     body = await request.json()
                 except:
                     body = {}
-                response = await client.post(url, json=body)
+                response = await client.post(url, json=body, headers=headers)
             else:
-                response = await client.get(url)
+                response = await client.get(url, headers=headers)
                 
             return JSONResponse(
                 content=response.json(),
