@@ -8,7 +8,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],@app.api_route("/proxy/nft/{path:path}", methods=["GET", "POST", "OPTIONS"])
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
