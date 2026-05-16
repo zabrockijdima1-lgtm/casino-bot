@@ -3348,6 +3348,27 @@ function _nft(id, weight){
 }
 
 const CASES=[
+  // ── FREE DAILY — безкоштовний 1 раз на 24 год ─────────────────────────────
+  {id:'free_daily', name:'FREE DAILY', emoji:'🎁', price:0, color:'#ffd700',
+   gradient:'linear-gradient(135deg,#3a2f0a,#4a3f1a)',
+   accent:'#ffd700',
+   cooldown: 86400000, // 24 години в мілісекундах
+   previewNFTs:['icecream','santahat','moussecake'],
+   items:[
+     _nft('icecream',     40),
+     _nft('santahat',     35),
+     _nft('moussecake',   30),
+     _nft('lolpop',       25),
+     _nft('instantramen', 20),
+     _nft('springbasket', 15),
+     _nft('homemadecake', 10),
+     _nft('restlessjar',  8),
+     _nft('witchhat',     5),
+     _nft('chillflame',   3),
+     {ton:0.5, weight:8, isTon:true},
+     {ton:1.0, weight:4, isTon:true},
+     {ton:2.0, weight:2, isTon:true},
+   ]},
   // ── 1. BICHUGAN — 0.4 TON — найдешевший, common only ─────────────────────
   {id:'bichugan', name:'BICHUGAN', emoji:'🏆', price:0.4, color:'#a87d3a',
    gradient:'linear-gradient(135deg,#2a1f10,#3a2a15)',
@@ -4150,6 +4171,23 @@ function initAudio(){
 
 function spinCase(){
   if(!curCase)return;
+  
+  // Перевірка cooldown для FREE DAILY
+  if(curCase.cooldown){
+    const storageKey = 'free_case_last_open_' + userId;
+    const lastOpen = localStorage.getItem(storageKey);
+    if(lastOpen){
+      const timeSince = Date.now() - parseInt(lastOpen);
+      if(timeSince < curCase.cooldown){
+        const hoursLeft = Math.ceil((curCase.cooldown - timeSince) / 3600000);
+        showToast(`Wait ${hoursLeft}h to open again`);
+        return;
+      }
+    }
+    // Зберігаємо час відкриття
+    localStorage.setItem(storageKey, Date.now().toString());
+  }
+  
   if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
