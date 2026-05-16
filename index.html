@@ -2913,6 +2913,10 @@ const LANGS = {
     case_ton_win:'credited!',
     nft_added:'NFT added to inventory!',
     nft_sold:'Sold for',
+    sub_modal_title:'Subscribe to channel',
+    sub_modal_desc:'To open the free case, subscribe to our channel',
+    sub_modal_go:'Go to channel',
+    sub_modal_check:'I subscribed',
   },
   ru: {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
@@ -2975,13 +2979,84 @@ const LANGS = {
     case_ton_win:'зачислено!',
     nft_added:'NFT добавлен в инвентарь!',
     nft_sold:'Продано за',
+    sub_modal_title:'Подпишитесь на канал',
+    sub_modal_desc:'Чтобы открыть бесплатный кейс, подпишитесь на наш канал',
+    sub_modal_go:'Перейти к каналу',
+    sub_modal_check:'Я подписался',
+  },
+  ua: {
+    game:'Гра', inv:'Інвентар', invite:'Запросити', settings:'Налаштування',
+    place_bet:'🚀 ПОСТАВИТИ', cashout:'ЗАБРАТИ', bet_accepted:'✅ Ставку прийнято',
+    bet_label:'СТАВКА TON', auto_label:'АВТО-ВИПЛАТА', auto:'Авто',
+    nft_hint:'Виграш ≥2.8 TON при ≥1.1× → отримаєш', players:'ГРАВЦІ',
+    lang_title:'Мова', deposit:'Поповнити', sell:'Продати за', withdraw:'📤 Вивести',
+    sell_confirm:'Продати за', earn:'Заробити', from_deposits:'Від депозитів',
+    total_earned:'Всього зароблено', my_invites:'Мої запрошення',
+    copy_link:'Копіювати посилання',
+    waiting:'Очікування...', start_in:'Старт через', wallet_connected:'Гаманець підключено ✓',
+    wallet_connect:'Підключити', wallet_disconnect:'Відключити', wallet_status:'Не підключено',
+    wallet_connected_lbl:'Підключено', cancel:'Скасувати', send_ton:'Відправити TON',
+    already_paid:'✅ Вже оплачено — підтвердити', min_ton:'Мін. 0.1 TON',
+    not_enough:'Недостатньо TON', sent:'◈ Відправлено! Очікування підтвердження...',
+    cancelled:'Скасовано', error:'Помилка', credited:'◈ зараховано!',
+    link_copied:'Посилання скопійовано! 🔗', no_nfts:'Тут з\'являться ваші NFT',
+    win_nft:'Виграй ≥2.8 TON', my_nfts:'🎁 Мої NFT Gifts',
+    sell_btn:'💰 Продати за', withdraw_btn:'📤 Вивести',
+    invite_earn:'Заробити', invite_from:'запрошуючи рефералів',
+    invite_btn:'🔗 Запросити друзів', copy_btn:'📋 Копіювати посилання',
+    total_earned_lbl:'Всього зароблено', my_invites_lbl:'Мої запрошення',
+    no_invites:'Поки немає запрошень',
+    confirm_withdraw:'Вивести NFT', confirm_sell:'Продати NFT',
+    confirm_withdraw_desc:'Вивести у ваш Telegram гаманець?',
+    confirm_sell_desc:'Продати за',
+    confirm_btn_withdraw:'📤 Вивести', confirm_btn_sell:'💰 Продати за',
+    stars_rate:'Курс обміну', stars_auto:'Зарахування автоматичне',
+    stars_amount:'Кількість Stars (10 – 10 000)',
+    stars_topup:'Поповнити',
+    withdraw_fee:'Комісія виведення',
+    crash:'КРАШ', round:'Раунд #',
+    music_title:'Фонова музика', music_desc:'Атмосферний саундтрек казино',
+    sfx_title:'Звукові ефекти', sfx_desc:'Краш, cashout, тіки польоту',
+    sound_on:'Увімк', sound_off:'Вимк',
+    theme_dark:'Темна тема', theme_light:'Світла тема',
+    theme_hint:'Натисніть щоб змінити',
+    theme_btn_dark:'🌙 Темна', theme_btn_light:'☀️ Світла',
+    lang_subtitle:'Виберіть вашу мову',
+    bet_label_html:'СТАВКА TON', auto_label_html:'АВТО-ВИПЛАТА', auto_toggle:'Авто',
+    place_bet_html:'🚀 ПОСТАВИТИ', cashout_html:'💰 ЗАБРАТИ',
+    players_label:'ГРАВЦІ', no_bets:'Ставок ще немає',
+    win_popup_close:'Закрити', win_credited:'Зараховано на баланс',
+    available_case:'🔥 Доступний кейс',
+    spin_btn:'Крутити за', prizes_btn:'🎁 Призи',
+    case_sell_nft:'💰 Продати за', case_take:'✅ Взяти',
+    case_keep_nft:'Залишити NFT',
+    case_choice_label:'Що ви хочете зробити?',
+    you_badge:'ви',
+    auto_min_error:'Авто виплата мін 1.1×',
+    bet_queued:'Ставка у черзі на наступний раунд',
+    bet_next_round:'⏳ Наступний раунд...',
+    deposit_subtitle:'Виграш ≥2.8 TON = Telegram Gift NFT',
+    wallet_not_connected:'Гаманець не підключено',
+    other_amount:'Інша сума...',
+    stars_min_error:'Stars: від 10 до 10 000',
+    ton_credited:'зараховано!',
+    stars_topup_btn:'Поповнити ⭐',
+    case_credited:'Зараховується на баланс',
+    case_ton_win:'зараховано!',
+    nft_added:'NFT додано до інвентаря!',
+    nft_sold:'Продано за',
+    sub_modal_title:'Підпишіться на канал',
+    sub_modal_desc:'Щоб відкрити безкоштовний кейс, підпишіться на наш канал',
+    sub_modal_go:'Перейти до каналу',
+    sub_modal_check:'Я підписався',
   }
 };
 let currentLang = (() => {
   const saved = localStorage.getItem('rkt_lang');
-  if(saved === 'en' || saved === 'ru') return saved;
+  if(saved === 'en' || saved === 'ru' || saved === 'ua') return saved;
   // Автовизначення мови Telegram
   const tgLang = tg?.initDataUnsafe?.user?.language_code || navigator.language || 'en';
+  if(tgLang.startsWith('uk')) return 'ua';
   return tgLang.startsWith('ru') ? 'ru' : 'en';
 })();
 function t(key){ return LANGS[currentLang]?.[key] || LANGS['en'][key] || key; }
@@ -4158,12 +4233,18 @@ function showSubscriptionModal(channel){
   const content = document.createElement('div');
   content.style.cssText = 'background:#1a2332;border-radius:24px;padding:32px 24px;max-width:90%;width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6)';
   
+  const texts = {
+    ru: {title: 'Выполните условия', desc: 'Нажмите, чтобы подписаться', btn1: 'Перейти', btn2: 'Открыть кейс'},
+    en: {title: 'Complete the conditions', desc: 'Click to subscribe', btn1: 'Go', btn2: 'Open case'}
+  };
+  const txt = texts[lang] || texts.ru;
+  
   content.innerHTML = `
-    <div style="font-size:48px;margin-bottom:16px">🎁</div>
-    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">Підпишіться на канал</div>
-    <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">Щоб відкрити безкоштовний кейс, підпишіться на наш канал</div>
-    <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">Перейти до каналу</button>
-    <button id="sub-check-btn" style="width:100%;padding:16px;background:rgba(77,143,255,0.15);border:2px solid #4d8fff;border-radius:16px;color:#4d8fff;font-size:16px;font-weight:700;cursor:pointer">Я підписався</button>
+    <div style="margin-bottom:16px"><img src="https://i.ibb.co/9ZM3fNy/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="font-size:64px;display:none">🎁</div></div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">${txt.title}</div>
+    <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">${txt.desc}</div>
+    <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">${txt.btn1}</button>
+    <button id="sub-check-btn" style="width:100%;padding:16px;background:rgba(77,143,255,0.15);border:2px solid #4d8fff;border-radius:16px;color:#4d8fff;font-size:16px;font-weight:700;cursor:pointer">${txt.btn2}</button>
   `;
   
   modal.appendChild(content);
@@ -4176,10 +4257,48 @@ function showSubscriptionModal(channel){
   };
   
   document.getElementById('sub-check-btn').onclick = () => {
-    document.body.removeChild(modal);
-    spinCase(); // Повторна спроба
+    // Швидка перевірка підписки
+    if(!wsReady) {
+      showToast('Connection lost');
+      document.body.removeChild(modal);
+      return;
+    }
+    
+    ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
+    
+    const btn = document.getElementById('sub-check-btn');
+    btn.disabled = true;
+    btn.textContent = '...';
+    
+    const handler = (e) => {
+      const d = JSON.parse(e.data);
+      if(d.t === 'subscription_checked'){
+        ws.removeEventListener('message', handler);
+        document.body.removeChild(modal);
+        
+        if(d.subscribed){
+          // Зберігаємо час відкриття
+          if(curCase.cooldown){
+            const storageKey = 'free_case_last_open_' + userId;
+            localStorage.setItem(storageKey, Date.now().toString());
+          }
+          continueSpinCase();
+        } else {
+          showToast(texts[lang]?.desc || 'Please subscribe first');
+        }
+      }
+    };
+    
+    ws.addEventListener('message', handler);
+    
+    setTimeout(() => {
+      ws.removeEventListener('message', handler);
+      document.body.removeChild(modal);
+      showToast('Timeout');
+    }, 5000);
   };
 }
+
 
 function spinCase(){
   if(!curCase)return;
