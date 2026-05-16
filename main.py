@@ -764,6 +764,20 @@ async def set_referral_endpoint(request: Request):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+# DEBUG endpoint - додати реферала вручну
+@app.get("/debug_add_ref")
+async def debug_add_referral(user_id: int, referrer_id: int, admin_uid: int = 0):
+    """Тестовий endpoint - додати реферала вручну"""
+    if admin_uid not in ADMIN_IDS:
+        return {"error": "Access denied"}
+    
+    if user_id in referrals:
+        return {"error": f"User {user_id} вже має реферера: {referrals[user_id]}"}
+    
+    referrals[user_id] = referrer_id
+    return {"success": True, "user_id": user_id, "referrer_id": referrer_id, "referrals": dict(referrals)}
+
+
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request):
