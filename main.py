@@ -708,7 +708,7 @@ async def post_topup(uid: int, amount: float):
 @app.get("/ref/{uid}")
 async def get_ref(uid: int):
     my_refs = [r for r, by in referrals.items() if by == uid]
-    return {"link": f"https://t.me/caso312bot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0), "referrals": [{"uid": r, "name": players.get(r, {}).get("name", "?")} for r in my_refs]}
+    return {"link": f"https://t.me/Pepe_GiftsBot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0), "referrals": [{"uid": r, "name": players.get(r, {}).get("name", "?")} for r in my_refs]}
 
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request):
