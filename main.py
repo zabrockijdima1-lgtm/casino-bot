@@ -710,6 +710,61 @@ async def get_ref(uid: int):
     my_refs = [r for r, by in referrals.items() if by == uid]
     return {"link": f"https://t.me/Pepe_GiftsBot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0), "referrals": [{"uid": r, "name": players.get(r, {}).get("name", "?")} for r in my_refs]}
 
+@app.get("/referrals")
+async def get_referrals(uid: int):
+    """Endpoint для bot.py - отримати інфо про рефералів"""
+    my_refs = [r for r, by in referrals.items() if by == uid]
+    return {"link": f"https://t.me/Pepe_GiftsBot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0)}
+
+@app.get("/get_balance")
+async def get_balance_endpoint(uid: int):
+    """Endpoint для bot.py - отримати баланс"""
+    if uid not in players:
+        return {"balance": 0}
+    return {"balance": players[uid].get("balance", 0)}
+
+@app.post("/set_referral")
+async def set_referral_endpoint(request: Request):
+    """Endpoint для bot.py - зберегти реферала"""
+    try:
+        data = await request.json()
+        user_id = int(data.get("user_id"))
+        referrer_id = int(data.get("referrer_id"))
+        username = data.get("username", "")
+        first_name = data.get("first_name", "User")
+        
+        # Перевірка: не можна бути рефералом самого себе
+        if user_id == referrer_id:
+            return {"success": False, "error": "Cannot refer yourself"}
+        
+        # Перевірка: чи вже є реферер
+        if user_id in referrals:
+            return {"success": False, "error": "Referrer already set"}
+        
+        # Зберігаємо реферала
+        referrals[user_id] = referrer_id
+        
+        # Створюємо гравця якщо не існує
+        if user_id not in players:
+            players[user_id] = {
+                "name": first_name,
+                "nick": username,
+                "balance": 0,
+                "nfts": []
+            }
+        
+        add_log("referrals", {
+            "user": user_id,
+            "name": first_name,
+            "referred_by": referrer_id,
+            "referrer_name": players.get(referrer_id, {}).get("name", "?")
+        })
+        
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel(request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
