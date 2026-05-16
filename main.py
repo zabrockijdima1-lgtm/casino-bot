@@ -351,21 +351,20 @@ class G:
     round_id = 0
     next_hook = random.randint(8, 25)
     history: list = []
-    def calc_mult(self, t): return round(math.exp(t * 0.07), 2)
+    def calc_mult(self, t): return round(math.exp(t * 0.06), 2)  # Трохи повільніше для реалізму
 
 g = G()
 
 def gen_crash():
     r = random.random()
-    if r < 0.08: return 1.00
-    if r < 0.22: return round(random.uniform(1.01, 1.5), 2)
-    if r < 0.40: return round(random.uniform(1.5,  2.5), 2)
-    if r < 0.58: return round(random.uniform(2.5,  5.0), 2)
-    if r < 0.72: return round(random.uniform(5.0,  12.0), 2)
-    if r < 0.83: return round(random.uniform(12.0, 25.0), 2)
-    if r < 0.91: return round(random.uniform(25.0, 50.0), 2)
-    if r < 0.97: return round(random.uniform(50.0, 80.0), 2)
-    return round(random.uniform(80.0, 100.0), 2)
+    # Новий розподіл - низький RTP (~85%), казино заробляє
+    if r < 0.15: return 1.00  # 15% - instant crash
+    if r < 0.50: return round(random.uniform(1.01, 1.5), 2)  # 35% - малий виграш
+    if r < 0.75: return round(random.uniform(1.5,  2.5), 2)  # 25% - середній
+    if r < 0.90: return round(random.uniform(2.5,  5.0), 2)  # 15% - добрий
+    if r < 0.97: return round(random.uniform(5.0,  20.0), 2) # 7% - великий
+    if r < 0.99: return round(random.uniform(20.0, 50.0), 2) # 2% - дуже великий
+    return round(random.uniform(50.0, 100.0), 2)  # 1% - джекпот
 
 def gen_crash_no_bets():
     return round(random.uniform(30.0, 100.0), 2)
