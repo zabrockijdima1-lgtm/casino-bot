@@ -4275,36 +4275,10 @@ function spinCase(){
       }
     }
     
-    // В dev mode (userId === 0) дозволяємо відкрити без перевірки
-    if(!IS_TELEGRAM || userId === 0){
-      localStorage.setItem('free_case_last_open_'+userId, Date.now().toString());
-      // Продовжити відкриття кейсу без перевірки підписки
-      continueFreeCaseSpin();
-      return;
-    }
-    
-    // Перевірка підписки на канал через WebSocket
-    if(wsReady && window.ws){
-      ws.send(JSON.stringify({a:'check_subscription',channel:curCase.requireChannel,user_id:userId}));
-      // Чекаємо відповідь від сервера
-      _pendingFreeCaseOpen = true;
-      showToast('Checking subscription...');
-      return;
-    } else {
-      showToast('Connecting to server...');
-      // Спробувати підключитися
-      if(typeof connect === 'function') connect();
-      setTimeout(() => {
-        if(wsReady && window.ws){
-          ws.send(JSON.stringify({a:'check_subscription',channel:curCase.requireChannel,user_id:userId}));
-          _pendingFreeCaseOpen = true;
-        } else {
-          showToast('Connection failed. Try again.');
-        }
-      }, 1000);
-      return;
-    }
-  }
+    // FREE DAILY працює БЕЗ перевірки підписки - просто таймер 24 год
+    localStorage.setItem('free_case_last_open_'+userId, Date.now().toString());
+    continueFreeCaseSpin();
+    return;
   
   if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
