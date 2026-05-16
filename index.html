@@ -3364,12 +3364,22 @@ const CASES=[
   {id:'bichugan', name:'BICHUGAN', emoji:'', price:0.4, color:'#a87d3a',
    gradient:'linear-gradient(135deg,#2a1f10,#3a2a15)',
    accent:'#f5a623',
-   previewNFTs:['snakebox'],
+   previewNFTs:['icecream','santahat','moussecake'],
    items:[
      {ton:0.1, weight:33, isTon:true},
      {ton:0.2, weight:33, isTon:true},
      {ton:0.3, weight:33, isTon:true},
-     _nft('icecream', 1),
+     _nft('icecream', 0.15),
+     _nft('santahat', 0.12),
+     _nft('moussecake', 0.10),
+     _nft('lolpop2', 0.08),
+     _nft('instantramen', 0.06),
+     _nft('springbasket', 0.05),
+     _nft('homemadecake', 0.04),
+     _nft('restlessjar', 0.03),
+     _nft('witchhat', 0.02),
+     _nft('chillflame', 0.015),
+     _nft('xmasstocking', 0.01),
    ]},
 
   // ── 2. SPRING — 0.7 TON — весняна тематика ───────────────────────────────
@@ -4141,6 +4151,36 @@ function initAudio(){
 }
 
 
+function showSubscriptionModal(channel){
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center';
+  
+  const content = document.createElement('div');
+  content.style.cssText = 'background:#1a2332;border-radius:24px;padding:32px 24px;max-width:90%;width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6)';
+  
+  content.innerHTML = `
+    <div style="font-size:48px;margin-bottom:16px">🎁</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">Підпишіться на канал</div>
+    <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">Щоб відкрити безкоштовний кейс, підпишіться на наш канал</div>
+    <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">Перейти до каналу</button>
+    <button id="sub-check-btn" style="width:100%;padding:16px;background:rgba(77,143,255,0.15);border:2px solid #4d8fff;border-radius:16px;color:#4d8fff;font-size:16px;font-weight:700;cursor:pointer">Я підписався</button>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  document.getElementById('sub-go-btn').onclick = () => {
+    const channelUrl = `https://t.me/${channel.replace('@', '')}`;
+    if(tg?.openTelegramLink) tg.openTelegramLink(channelUrl);
+    else window.open(channelUrl, '_blank');
+  };
+  
+  document.getElementById('sub-check-btn').onclick = () => {
+    document.body.removeChild(modal);
+    spinCase(); // Повторна спроба
+  };
+}
+
 function spinCase(){
   if(!curCase)return;
   
@@ -4156,10 +4196,55 @@ function spinCase(){
         return;
       }
     }
-    // Зберігаємо час відкриття
+  }
+  
+  // Перевірка підписки для FREE DAILY
+  if(curCase.requireChannel && IS_TELEGRAM){
+    const channel = curCase.requireChannel;
+    ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
+    
+    // Чекаємо відповідь від сервера
+    const checkSub = new Promise((resolve) => {
+      const handler = (e) => {
+        const d = JSON.parse(e.data);
+        if(d.t === 'subscription_checked'){
+          ws.removeEventListener('message', handler);
+          resolve(d.subscribed);
+        }
+      };
+      ws.addEventListener('message', handler);
+      setTimeout(() => {
+        ws.removeEventListener('message', handler);
+        resolve(false);
+      }, 5000);
+    });
+    
+    checkSub.then((subscribed) => {
+      if(!subscribed){
+        showSubscriptionModal(channel);
+      } else {
+        // Зберігаємо час відкриття після підтвердження підписки
+        if(curCase.cooldown){
+          const storageKey = 'free_case_last_open_' + userId;
+          localStorage.setItem(storageKey, Date.now().toString());
+        }
+        continueSpinCase();
+      }
+    });
+    return;
+  }
+  
+  // Зберігаємо час відкриття для звичайних кейсів з cooldown
+  if(curCase.cooldown){
+    const storageKey = 'free_case_last_open_' + userId;
     localStorage.setItem(storageKey, Date.now().toString());
   }
   
+  continueSpinCase();
+}
+
+function continueSpinCase(){
+  if(!curCase)return;
   if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
   if(balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
