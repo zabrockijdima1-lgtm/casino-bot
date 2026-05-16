@@ -791,7 +791,10 @@ async def proxy_nft_api(path: str, request: Request):
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             if request.method == "POST":
-                body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+                try:
+                    body = await request.json()
+                except:
+                    body = {}
                 response = await client.post(url, json=body)
             else:
                 response = await client.get(url)
@@ -806,4 +809,4 @@ async def proxy_nft_api(path: str, request: Request):
             )
     except Exception as e:
         print(f"NFT Proxy error: {e}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(e), "url": url}, status_code=500)
