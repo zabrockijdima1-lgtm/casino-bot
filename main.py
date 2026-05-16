@@ -15,7 +15,7 @@ app.add_middleware(
 
 TON_WALLET    = "UQAfazCyjGjugOf73_LrxUuLvxSmExM_8loArhgATwKXU6yA"
 TONCENTER_KEY = "062f53efeb759f033896aab86a1f423f4102443694799e2dd34e8c14e7f4e9f0"
-BOT_TOKEN     = os.getenv("BOT_TOKEN", "8757352545:AAGlu9yQu97JHfGljZH4ocqOBU_-sJm1KR8")
+BOT_TOKEN     = os.getenv("BOT_TOKEN", "8736629642:AAHe9ZvyuHRGJV4C2t-zv6STyYXbeOxu4Io")
 ADMIN_IDS     = {1256452126, 6479535975}
 ADMIN_ID      = 1256452126
 STARS_TO_TON  = 0.0084
@@ -577,18 +577,13 @@ async def ws_ep(ws: WebSocket, uid: int):
                 channel = d.get("channel", "@pepe_GiftsNFT")
                 user_id = int(d.get("user_id", uid))
                 
-                # DEBUG MODE: завжди True для тестування
-                # Закоментуйте наступний рядок колиbot token буде налаштований
-                is_subscribed = True  # DEBUG
-                
-                # Розкоментуйте коли bot налаштований:
-                # is_subscribed = await check_subscription(user_id, channel)
+                # РЕАЛЬНА перевірка підписки
+                is_subscribed = await check_subscription(user_id, channel)
                 
                 await ws.send_text(json.dumps({
                     "t": "subscription_checked",
                     "subscribed": is_subscribed
                 }))
-
             elif a == "topup_start":
                 amt = float(d.get("amount", 0))
                 if amt >= 0.1:
