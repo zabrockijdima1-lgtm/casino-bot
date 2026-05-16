@@ -187,7 +187,7 @@ async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     players[uid]["balance"] = round(players[uid]["balance"] + amount, 4)
     if uid in referrals:
         ref_uid = referrals[uid]
-        bonus = round(amount * 0.05, 4)
+        bonus = round(amount * 0.10, 4)  # 10% реферальний бонус
         if ref_uid not in players:
             players[ref_uid] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
         players[ref_uid]["balance"] = round(players[ref_uid]["balance"] + bonus, 4)
@@ -197,7 +197,7 @@ async def credit_balance(uid: int, amount: float, source: str = "deposit"):
             try:
                 await clients[ref_uid].send_text(json.dumps({"t": "ref_bonus", "bonus": bonus, "bal": players[ref_uid]["balance"]}))
             except: pass
-        await send_tg(ref_uid, f"👥 <b>Реферальний бонус!</b>\nВаш реферал поповнив баланс на {amount} TON\nВаш бонус: <b>+{bonus} TON</b>")
+        await send_tg(ref_uid, f"👥 <b>Реферальний бонус!</b>\nВаш реферал поповнив баланс на {amount} TON\nВаш бонус: <b>+{bonus} TON</b> (10%)")
     if uid in clients:
         try:
             await clients[uid].send_text(json.dumps({"t": "topup_ok", "credited": amount, "bal": players[uid]["balance"], "source": source}))
