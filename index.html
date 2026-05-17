@@ -4317,7 +4317,7 @@ function spinCase(){
   }
   
   // Перевірка підписки для FREE DAILY
-  if(curCase.requireChannel && IS_TELEGRAM){
+  if(curCase.requireChannel && IS_TELEGRAM && false){ // ТИМЧАСОВО ВИМКНЕНО для тесту
     const channel = curCase.requireChannel;
     console.log('🔍 Checking subscription for:', channel, 'user:', userId);
     
