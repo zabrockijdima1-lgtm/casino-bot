@@ -793,12 +793,13 @@ async def admin_panel(request: Request):
     total_stars_ton = sum(l.get("ton", 0) for l in logs["stars"])
     pnl = total_bets - total_wins
     players_list_html = "".join([
-        f'<tr><td>{uid}</td><td>{p.get("name","?")}</td><td>{"@"+p.get("nick") if p.get("nick") else "-"}</td>'
+        f'<tr><td><a href="/admin/player/{uid}?uid={admin_uid}" style="color:#4d8fff">{uid}</a></td><td>{p.get("name","?")}</td><td>{"@"+p.get("nick") if p.get("nick") else "-"}</td>'
         f'<td>{p.get("balance",0):.2f}</td><td>{len(p.get("nfts",[]))}</td>'
         f'<td style="font-size:10px;color:#888">{", ".join(player_ips.get(uid,[])[:2]) or "-"}</td>'
+        f'<td>{"🚫" if p.get("banned") else "✅"}</td>'
         f'<td><a href="/admin/topup/{uid}/1?uid={admin_uid}" style="background:#0098ea;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px;margin-right:2px">+1</a>'
         f'<a href="/admin/topup/{uid}/5?uid={admin_uid}" style="background:#6c4fff;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px;margin-right:2px">+5</a>'
-        f'<a href="/admin/topup/{uid}/10?uid={admin_uid}" style="background:#00e676;color:#000;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px">+10</a></td></tr>'
+        f'<a href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}" style="background:#ff4d4d;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px">-ALL</a></td></tr>'
         for uid, p in list(players.items())[:100]
     ])
     bets_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("amount",0):.2f}</td><td>{l.get("nft","")}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["bets"][:20]])
@@ -818,7 +819,12 @@ async def admin_panel(request: Request):
   <div class="stat"><div class="v" style="color:{"#00e676" if pnl>=0 else "#ff1744"}">{pnl:+.1f}</div><div class="l">TON прибуток</div></div>
 </div>
 <h2>👥 Всі гравці</h2>
-<table><tr><th>UID</th><th>Ім'я</th><th>@</th><th>Баланс</th><th>NFT</th><th>IP</th><th>Дія</th></tr>{players_list_html}</table>
+<form action="/admin/player" method="get" style="margin-bottom:12px">
+<input type="hidden" name="uid" value="{admin_uid}">
+<input type="number" name="uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;margin-right:8px">
+<button type="submit" style="padding:8px 16px;background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">🔍 Search</button>
+</form>
+<table><tr><th>UID</th><th>Ім'я</th><th>@</th><th>Баланс</th><th>NFT</th><th>IP</th><th>Status</th><th>Дія</th></tr>{players_list_html}</table>
 <h2>⭐ Stars депозити</h2><table><tr><th>Гравець</th><th>UID</th><th>Stars</th><th>TON</th><th>Час</th></tr>{stars_html}</table>
 <h2>💰 Ставки</h2><table><tr><th>Гравець</th><th>Ставка</th><th>NFT</th><th>Раунд</th><th>Час</th></tr>{bets_html}</table>
 <h2>🚀 Кешаути</h2><table><tr><th>Гравець</th><th>Ставка</th><th>Виграш</th><th>Множник</th><th>NFT</th><th>Час</th></tr>{cashouts_html}</table>
@@ -834,6 +840,100 @@ async def admin_topup_get(uid: int, amount: float, request: Request):
         return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
     await get_topup(uid, amount)
     return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/set_balance/{uid}")
+async def admin_set_balance(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    amount = float(request.query_params.get("amount", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}"}
+    old_balance = players[uid].get("balance", 0)
+    players[uid]["balance"] = round(amount, 4)
+    save_players()
+    logs["deposits"].append({"uid": uid, "name": players[uid].get("name", "?"), "amount": amount - old_balance, "note": f"Admin set to {amount}", "ts": time.time()})
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/ban/{uid}")
+async def admin_ban(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}"}
+    players[uid]["banned"] = True
+    save_players()
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/unban/{uid}")
+async def admin_unban(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid in players:
+        players[uid]["banned"] = False
+        save_players()
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/player/{uid}")
+async def admin_player_detail(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    player = players.get(uid, {})
+    player_bets = [l for l in logs["bets"] if l.get("uid") == uid]
+    player_cashouts = [l for l in logs["cashouts"] if l.get("uid") == uid]
+    player_deposits = [l for l in logs["deposits"] if l.get("uid") == uid]
+    
+    total_bets = sum(b.get("amount", 0) for b in player_bets)
+    total_wins = sum(c.get("win", 0) for c in player_cashouts)
+    total_deposits = sum(d.get("amount", 0) for d in player_deposits)
+    
+    bets_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_bets[-50:]])
+    cashouts_html = "".join([f'<tr><td>{l.get("bet",0):.2f}</td><td>{l.get("win",0):.2f}</td><td>{l.get("mult",0):.2f}x</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cashouts[-50:]])
+    deposits_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("note","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_deposits[-50:]])
+    
+    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Player {uid}</title>
+    <style>body{{font-family:monospace;background:#0a0e27;color:#fff;padding:20px}}table{{border-collapse:collapse;width:100%;margin:20px 0}}td,th{{border:1px solid #333;padding:8px;text-align:left}}th{{background:#1a1a2e}}a{{color:#4d8fff;text-decoration:none}}.btn{{background:#4d8fff;color:#fff;padding:8px 16px;border-radius:8px;display:inline-block;margin:4px;text-decoration:none}}.danger{{background:#ff4d4d}}input,button{{padding:8px;margin:4px}}</style>
+    </head><body>
+    <h1>👤 Player: {uid}</h1>
+    <p><a href="/admin?uid={admin_uid}">← Back</a></p>
+    <h2>📊 Stats</h2>
+    <p>Name: <b>{player.get("name", "Unknown")}</b></p>
+    <p>Username: <b>@{player.get("nick", "none")}</b></p>
+    <p>Balance: <b>{player.get("balance", 0):.4f} TON</b></p>
+    <p>NFTs: <b>{len(player.get("nfts", []))}</b></p>
+    <p>Banned: <b>{"❌ Yes" if player.get("banned") else "✅ No"}</b></p>
+    <p>Total Bets: <b>{total_bets:.2f} TON</b></p>
+    <p>Total Wins: <b>{total_wins:.2f} TON</b></p>
+    <p>Total Deposits: <b>{total_deposits:.2f} TON</b></p>
+    <p>P/L: <b style="color:{'#0f0' if (total_wins - total_bets) > 0 else '#f00'}">{(total_wins - total_bets):.2f} TON</b></p>
+    
+    <h3>⚙️ Actions</h3>
+    <a class="btn danger" href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}">Set Balance to 0</a>
+    <a class="btn danger" href="/admin/ban/{uid}?uid={admin_uid}">🚫 Ban</a>
+    <a class="btn" href="/admin/unban/{uid}?uid={admin_uid}">✅ Unban</a>
+    
+    <h4>💰 Set Custom Balance</h4>
+    <form action="/admin/set_balance/{uid}" method="get">
+    <input type="hidden" name="uid" value="{admin_uid}">
+    <input type="number" name="amount" step="0.01" placeholder="Amount TON" style="background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:4px">
+    <button type="submit" style="background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">Set</button>
+    </form>
+    
+    <h2>🎲 Bets ({len(player_bets)})</h2>
+    <table><tr><th>Amount</th><th>Round</th><th>Time</th></tr>{bets_html}</table>
+    
+    <h2>💰 Cashouts ({len(player_cashouts)})</h2>
+    <table><tr><th>Bet</th><th>Win</th><th>Mult</th><th>Time</th></tr>{cashouts_html}</table>
+    
+    <h2>💳 Deposits ({len(player_deposits)})</h2>
+    <table><tr><th>Amount</th><th>Note</th><th>Time</th></tr>{deposits_html}</table>
+    
+    </body></html>"""
+
 
 @app.get("/")
 async def root():
