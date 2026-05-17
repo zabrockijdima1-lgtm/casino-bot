@@ -4263,17 +4263,59 @@ function showSubscriptionModal(channel){
   };
   
   document.getElementById('sub-check-btn').onclick = () => {
-    console.log('✅ Opening case without server check (user responsibility to subscribe)');
+    console.log('🔍 Checking subscription...');
     
-    const m = document.getElementById('subscription-modal');
-    if(m) document.body.removeChild(m);
-    
-    // Зберігаємо час відкриття
-    if(curCase && curCase.cooldown){
-      const storageKey = 'free_case_last_open_' + userId;
-      localStorage.setItem(storageKey, Date.now().toString());
+    if(!wsReady || !ws) {
+      console.log('❌ WebSocket not ready');
+      showToast('Connection lost');
+      const m = document.getElementById('subscription-modal');
+      if(m) document.body.removeChild(m);
+      return;
     }
-    continueSpinCase();
+    
+    ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
+    
+    const btn = document.getElementById('sub-check-btn');
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = '...';
+    }
+    
+    const handler = (e) => {
+      try {
+        const d = JSON.parse(e.data);
+        if(d.t === 'subscription_checked'){
+          console.log('📩 Subscription result:', d.subscribed);
+          ws.removeEventListener('message', handler);
+          const m = document.getElementById('subscription-modal');
+          if(m) document.body.removeChild(m);
+          
+          if(d.subscribed){
+            console.log('✅ User IS subscribed, opening case');
+            if(curCase && curCase.cooldown){
+              const storageKey = 'free_case_last_open_' + userId;
+              localStorage.setItem(storageKey, Date.now().toString());
+            }
+            continueSpinCase();
+          } else {
+            console.log('❌ User NOT subscribed');
+            showToast(txt.desc || 'Please subscribe first');
+          }
+        }
+      } catch(err) {
+        console.error('Error parsing message:', err);
+      }
+    };
+    
+    ws.addEventListener('message', handler);
+    
+    setTimeout(() => {
+      console.log('⏱️ Subscription check timeout');
+      ws.removeEventListener('message', handler);
+      const m = document.getElementById('subscription-modal');
+      if(m) document.body.removeChild(m);
+      showToast('Please try again');
+    }, 5000);
   };
 }
 
