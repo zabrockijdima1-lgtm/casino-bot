@@ -4436,7 +4436,7 @@ function showCaseWin(item){
     keepBtn.style.display='';
     if(choiceLabel) choiceLabel.style.display='';
   } else {
-    emojiEl.innerHTML=`<div style="font-size:48px">💰</div>`;
+    emojiEl.innerHTML=`<img src="https://i.ibb.co/Fm0qYVW/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:48px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
     document.getElementById('case-win-val').textContent=t('case_credited');
     document.getElementById('case-win-sub').textContent=item.rarity;
