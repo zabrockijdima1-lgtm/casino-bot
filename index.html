@@ -2520,6 +2520,23 @@ function connect(){
   };
   ws.onmessage=e=>{
     const d=JSON.parse(e.data);
+    
+    // Перевірка ban
+    if(d.t==='banned'){
+      document.body.innerHTML=`
+        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0e27;color:#fff;font-family:system-ui;text-align:center;padding:20px">
+          <div style="max-width:400px">
+            <div style="font-size:80px;margin-bottom:20px">🚫</div>
+            <h1 style="font-size:28px;margin-bottom:12px">You are blocked</h1>
+            <p style="color:#8fa2be;margin-bottom:32px">Ви заблоковані. Зверніться до служби підтримки.</p>
+            <a href="https://t.me/Pepe_bot_support" style="display:inline-block;background:#4d8fff;color:#fff;padding:16px 32px;border-radius:12px;text-decoration:none;font-weight:600">📞 Support / Підтримка</a>
+          </div>
+        </div>
+      `;
+      ws.close();
+      return;
+    }
+    
     if(d.t==='init'){
       // SECURITY: баланс тільки від сервера, встановлюємо прапор синхронізації
       serverBalanceSynced=true;
