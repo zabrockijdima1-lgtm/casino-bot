@@ -456,8 +456,11 @@ async def game_loop():
             await asyncio.sleep(1)
         g.phase = "flying"; g.start_ts = time.time()
         await broadcast({"t": "st", "ts": g.start_ts, "ca": g.crash_at, "rid": g.round_id, "now": time.time()})
+        max_fly_time = 120  # Максимум 120 секунд (достатньо для 100x)
         while True:
-            el = time.time() - g.start_ts; g.mult = g.calc_mult(el)
+            el = time.time() - g.start_ts
+            if el > max_fly_time: break  # Захист від нескінченного польоту
+            g.mult = g.calc_mult(el)
             if g.mult >= g.crash_at: g.mult = g.crash_at; break
             for uid, bet in list(bets.items()):
                 if bet.get("cashed") or bet.get("lost"): continue
