@@ -293,21 +293,28 @@ async def tg_webhook(request: Request):
     msg = update.get("message", {})
     payment = msg.get("successful_payment")
     if payment and payment.get("currency") == "XTR":
+        print(f"💳 Stars payment received: {payment}")
         try:
             payload = json.loads(payment["invoice_payload"])
-        except:
+            print(f"📦 Payload: {payload}")
+        except Exception as e:
+            print(f"❌ Payload parse error: {e}")
             return JSONResponse({"ok": True})
         pay_type = payload.get("type", "deposit")
+        print(f"🔍 Payment type: {pay_type}")
         if pay_type == "nft_withdraw":
             uid = int(payload["uid"])
             nft_id = payload["nft_id"]
+            print(f"👤 UID: {uid}, NFT ID: {nft_id}")
             p = players.get(uid)
             if p:
                 nfts = p.get("nfts", [])
+                print(f"🎁 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
                 found_nft = None; new_nfts = []; removed = False
                 for n in nfts:
                     if n.get("id") == nft_id and not removed:
                         found_nft = n; removed = True
+                        print(f"✅ Found NFT: {n.get('name')}")
                     else:
                         new_nfts.append(n)
                 if found_nft:
@@ -319,6 +326,11 @@ async def tg_webhook(request: Request):
                         except: pass
                     await send_tg(uid, f"✅ <b>NFT виведено!</b>\n{found_nft.get('name')} відправлено у ваш гаманець\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
                     await send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT (Stars)</b>\nКористувач: {p.get('name','?')}\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
+                    print(f"✅ NFT withdrawal completed for {uid}")
+                else:
+                    print(f"❌ NFT {nft_id} not found in player inventory")
+            else:
+                print(f"❌ Player {uid} not found")
         else:
             try:
                 uid = int(payload["uid"]); stars = int(payload["stars"]); ton_amount = float(payload["ton"])
