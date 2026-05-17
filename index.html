@@ -4317,51 +4317,12 @@ function spinCase(){
   }
   
   // Перевірка підписки для FREE DAILY
-  if(curCase.requireChannel && IS_TELEGRAM && false){ // ТИМЧАСОВО ВИМКНЕНО для тесту
+  if(curCase.requireChannel && IS_TELEGRAM){
     const channel = curCase.requireChannel;
-    console.log('🔍 Checking subscription for:', channel, 'user:', userId);
+    console.log('🔍 FREE DAILY requires subscription to:', channel);
     
-    if(!wsReady || !ws){
-      console.log('❌ WebSocket not ready, showing modal directly');
-      showSubscriptionModal(channel);
-      return;
-    }
-    
-    ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
-    
-    // Чекаємо відповідь від сервера
-    const checkSub = new Promise((resolve) => {
-      const handler = (e) => {
-        const d = JSON.parse(e.data);
-        if(d.t === 'subscription_checked'){
-          console.log('✅ Subscription check response:', d.subscribed);
-          ws.removeEventListener('message', handler);
-          resolve(d.subscribed);
-        }
-      };
-      ws.addEventListener('message', handler);
-      setTimeout(() => {
-        console.log('⏱️ Subscription check timeout, assuming not subscribed');
-        ws.removeEventListener('message', handler);
-        resolve(false);
-      }, 5000);
-    });
-    
-    checkSub.then((subscribed) => {
-      console.log('📋 Final subscription status:', subscribed);
-      if(!subscribed){
-        console.log('🚫 Not subscribed, showing modal');
-        showSubscriptionModal(channel);
-      } else {
-        console.log('✅ Subscribed, continuing spin');
-        // Зберігаємо час відкриття після підтвердження підписки
-        if(curCase.cooldown){
-          const storageKey = 'free_case_last_open_' + userId;
-          localStorage.setItem(storageKey, Date.now().toString());
-        }
-        continueSpinCase();
-      }
-    });
+    // ЗАВЖДИ показуємо модалку спочатку в Telegram
+    showSubscriptionModal(channel);
     return;
   }
   
