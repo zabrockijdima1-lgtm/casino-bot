@@ -4404,9 +4404,15 @@ function showCaseWin(item){
     myNFTs.push(nftEntry);
     saveNFTs();
     refreshInventoryLabel();
-    // Повідомляємо сервер
-    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:item.id,price:item.price,name:item.name}));
+    // Повідомляємо сервер з назвою кейсу
+    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',nft_id:item.id,price:item.price,name:item.name,is_nft:true}));
     console.log('✅ NFT auto-saved:', item.name);
+  }
+  
+  // Логування TON виграшу з кейсу
+  if(!item.isNFT && !caseWinProcessed && wsReady){
+    caseWinProcessed = true;
+    ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',price:item.ton,name:item.ton+' TON',is_nft:false}));
   }
   
   const emojiEl=document.getElementById('case-win-emoji');
