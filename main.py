@@ -498,6 +498,13 @@ player_ips: dict = {}
 @app.websocket("/ws/{uid}")
 async def ws_ep(ws: WebSocket, uid: int):
     await ws.accept()
+    
+    # Перевірка ban
+    if players.get(uid, {}).get("banned"):
+        await ws.send_text(json.dumps({"t": "banned"}))
+        await ws.close()
+        return
+    
     clients[uid] = ws
     ip = ws.headers.get("x-forwarded-for", ws.client.host if ws.client else "unknown")
     ip = ip.split(",")[0].strip()
