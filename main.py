@@ -876,6 +876,16 @@ async def admin_unban(uid: int, request: Request):
         save_players()
     return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
 
+@app.get("/admin/player")
+async def admin_player_search(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    search_uid = int(request.query_params.get("search_uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if search_uid:
+        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
+    return RedirectResponse(url=f"/admin?uid={admin_uid}")
+
 @app.get("/admin/player/{uid}", response_class=HTMLResponse)
 async def admin_player_detail(uid: int, request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
@@ -937,16 +947,6 @@ async def admin_player_detail(uid: int, request: Request):
     
     </body></html>"""
 
-
-@app.get("/admin/player")
-async def admin_player_search(request: Request):
-    admin_uid = int(request.query_params.get("uid", 0))
-    search_uid = int(request.query_params.get("search_uid", 0))
-    if admin_uid not in ADMIN_IDS:
-        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
-    if search_uid:
-        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
-    return RedirectResponse(url=f"/admin?uid={admin_uid}")
 
 
 @app.get("/")
