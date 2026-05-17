@@ -4226,17 +4226,21 @@ function initAudio(){
 
 
 function showSubscriptionModal(channel){
+  console.log('📢 Showing subscription modal for:', channel);
+  
   const modal = document.createElement('div');
+  modal.id = 'subscription-modal';
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center';
   
   const content = document.createElement('div');
   content.style.cssText = 'background:#1a2332;border-radius:24px;padding:32px 24px;max-width:90%;width:400px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.6)';
   
+  const currentLang = (typeof lang !== 'undefined') ? lang : 'ru';
   const texts = {
     ru: {title: 'Выполните условия', desc: 'Нажмите, чтобы подписаться', btn1: 'Перейти', btn2: 'Открыть кейс'},
     en: {title: 'Complete the conditions', desc: 'Click to subscribe', btn1: 'Go', btn2: 'Open case'}
   };
-  const txt = texts[lang] || texts.ru;
+  const txt = texts[currentLang] || texts.ru;
   
   content.innerHTML = `
     <div style="margin-bottom:16px"><img src="https://i.ibb.co/9ZM3fNy/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="font-size:64px;display:none">🎁</div></div>
@@ -4249,41 +4253,53 @@ function showSubscriptionModal(channel){
   modal.appendChild(content);
   document.body.appendChild(modal);
   
+  console.log('✅ Modal added to DOM');
+  
   document.getElementById('sub-go-btn').onclick = () => {
+    console.log('🔗 Opening channel:', channel);
     const channelUrl = `https://t.me/${channel.replace('@', '')}`;
     if(tg?.openTelegramLink) tg.openTelegramLink(channelUrl);
     else window.open(channelUrl, '_blank');
   };
   
   document.getElementById('sub-check-btn').onclick = () => {
-    // Швидка перевірка підписки
-    if(!wsReady) {
+    console.log('🔍 Checking subscription...');
+    
+    if(!wsReady || !ws) {
+      console.log('❌ WebSocket not ready');
       showToast('Connection lost');
-      document.body.removeChild(modal);
+      const m = document.getElementById('subscription-modal');
+      if(m) document.body.removeChild(m);
       return;
     }
     
     ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
     
     const btn = document.getElementById('sub-check-btn');
-    btn.disabled = true;
-    btn.textContent = '...';
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = '...';
+    }
     
     const handler = (e) => {
       const d = JSON.parse(e.data);
       if(d.t === 'subscription_checked'){
+        console.log('📩 Subscription check result:', d.subscribed);
         ws.removeEventListener('message', handler);
-        document.body.removeChild(modal);
+        const m = document.getElementById('subscription-modal');
+        if(m) document.body.removeChild(m);
         
         if(d.subscribed){
+          console.log('✅ User subscribed, opening case');
           // Зберігаємо час відкриття
-          if(curCase.cooldown){
+          if(curCase && curCase.cooldown){
             const storageKey = 'free_case_last_open_' + userId;
             localStorage.setItem(storageKey, Date.now().toString());
           }
           continueSpinCase();
         } else {
-          showToast(texts[lang]?.desc || 'Please subscribe first');
+          console.log('❌ User not subscribed');
+          showToast(txt.desc || 'Please subscribe first');
         }
       }
     };
@@ -4291,8 +4307,10 @@ function showSubscriptionModal(channel){
     ws.addEventListener('message', handler);
     
     setTimeout(() => {
+      console.log('⏱️ Subscription check timeout');
       ws.removeEventListener('message', handler);
-      document.body.removeChild(modal);
+      const m = document.getElementById('subscription-modal');
+      if(m) document.body.removeChild(m);
       showToast('Timeout');
     }, 5000);
   };
