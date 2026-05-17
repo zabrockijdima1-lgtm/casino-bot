@@ -163,7 +163,7 @@ referrals: dict = {}
 ref_earnings: dict = {}
 pending_topups: dict = {}
 
-logs = {"bets": [], "cashouts": [], "deposits": [], "withdrawals": [], "referrals": [], "stars": []}
+logs = {"bets": [], "cashouts": [], "deposits": [], "withdrawals": [], "referrals": [], "stars": [], "cases": []}
 MAX_LOGS = 500
 
 def add_log(category, entry):
@@ -683,6 +683,25 @@ async def ws_ep(ws: WebSocket, uid: int):
                     else:
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
 
+            elif a == "case_win_keep":
+                # Логування відкриття кейсу та виграшу
+                case_name = d.get("case_name", "Unknown")
+                nft_id = d.get("nft_id")
+                nft_name = d.get("name", "Unknown")
+                price = float(d.get("price", 0))
+                is_nft = d.get("is_nft", True)
+                name = players.get(uid, {}).get("name", "?")
+                add_log("cases", {
+                    "uid": uid,
+                    "name": name,
+                    "case_name": case_name,
+                    "won_item": nft_name if is_nft else f"{price} TON",
+                    "is_nft": is_nft,
+                    "value": price,
+                    "ts": time.time()
+                })
+
+
     except WebSocketDisconnect:
         clients.pop(uid, None)
     except Exception as e:
@@ -827,9 +846,10 @@ async def admin_panel(request: Request):
   <div class="stat"><div class="v" style="color:{"#00e676" if pnl>=0 else "#ff1744"}">{pnl:+.1f}</div><div class="l">TON прибуток</div></div>
 </div>
 <h2>👥 Всі гравці</h2>
-<form action="/admin/player" method="get" style="margin-bottom:12px">
+<form action="/admin/player" method="get" style="margin-bottom:12px;display:flex;gap:8px">
 <input type="hidden" name="uid" value="{admin_uid}">
-<input type="number" name="search_uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;margin-right:8px">
+<input type="number" name="search_uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;flex:1">
+<input type="text" name="search_username" placeholder="Search by @username" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;flex:1">
 <button type="submit" style="padding:8px 16px;background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">🔍 Search</button>
 </form>
 <table><tr><th>UID</th><th>Ім'я</th><th>@</th><th>Баланс</th><th>NFT</th><th>IP</th><th>Status</th><th>Дія</th></tr>{players_list_html}</table>
@@ -887,11 +907,29 @@ async def admin_unban(uid: int, request: Request):
 @app.get("/admin/player")
 async def admin_player_search(request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
-    search_uid = int(request.query_params.get("search_uid", 0))
+    search_uid = request.query_params.get("search_uid", "")
+    search_username = request.query_params.get("search_username", "")
+    
     if admin_uid not in ADMIN_IDS:
         return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    # Пошук по UID
     if search_uid:
-        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
+        try:
+            uid_to_find = int(search_uid)
+            return RedirectResponse(url=f"/admin/player/{uid_to_find}?uid={admin_uid}")
+        except:
+            pass
+    
+    # Пошук по username
+    if search_username:
+        search_username = search_username.strip().lower().replace("@", "")
+        for uid, p in players.items():
+            nick = p.get("nick", "").lower()
+            if nick == search_username:
+                return RedirectResponse(url=f"/admin/player/{uid}?uid={admin_uid}")
+        return HTMLResponse(f"<h2>User @{search_username} not found</h2><p><a href='/admin?uid={admin_uid}'>Back</a></p>", status_code=404)
+    
     return RedirectResponse(url=f"/admin?uid={admin_uid}")
 
 @app.get("/admin/player/{uid}", response_class=HTMLResponse)
@@ -907,29 +945,38 @@ async def admin_player_detail(uid: int, request: Request):
     player_bets = [l for l in logs["bets"] if l.get("uid") == uid]
     player_cashouts = [l for l in logs["cashouts"] if l.get("uid") == uid]
     player_deposits = [l for l in logs["deposits"] if l.get("uid") == uid]
+    player_cases = [l for l in logs["cases"] if l.get("uid") == uid]
+    player_nft_actions = [l for l in logs["withdrawals"] if l.get("uid") == uid]
     
     total_bets = sum(b.get("amount", 0) for b in player_bets)
     total_wins = sum(c.get("win", 0) for c in player_cashouts)
     total_deposits = sum(d.get("amount", 0) for d in player_deposits)
     
-    bets_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_bets[-50:]])
-    cashouts_html = "".join([f'<tr><td>{l.get("bet",0):.2f}</td><td>{l.get("win",0):.2f}</td><td>{l.get("mult",0):.2f}x</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cashouts[-50:]])
-    deposits_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("note","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_deposits[-50:]])
+    bets_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_bets[-100:]])
+    cashouts_html = "".join([f'<tr><td>{l.get("bet",0):.2f}</td><td>{l.get("win",0):.2f}</td><td>{l.get("mult",0):.2f}x</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cashouts[-100:]])
+    deposits_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("note","")}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_deposits[-100:]])
+    cases_html = "".join([f'<tr><td>{l.get("case_name","?")}</td><td>{"🎁 " + l.get("won_item","?") if l.get("is_nft") else "💰 " + l.get("won_item","?")}</td><td>{l.get("value",0):.2f} TON</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cases[-100:]])
+    nft_actions_html = "".join([f'<tr><td>{l.get("nft_name","?")}</td><td>{l.get("nft_floor",0):.2f}</td><td>{"💰 Sold" if l.get("type")=="sell" else "📤 Withdrawn"}</td><td>{l.get("sell_price",0):.2f if l.get("type")=="sell" else "-"}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_nft_actions[-100:]])
+    
+    current_nfts_html = "".join([f'<tr><td>{n.get("name","?")}</td><td>{n.get("rarity","?")}</td><td>{n.get("price",0):.2f}</td></tr>' for n in player.get("nfts", [])])
     
     return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Player {uid}</title>
-    <style>body{{font-family:monospace;background:#0a0e27;color:#fff;padding:20px}}table{{border-collapse:collapse;width:100%;margin:20px 0}}td,th{{border:1px solid #333;padding:8px;text-align:left}}th{{background:#1a1a2e}}a{{color:#4d8fff;text-decoration:none}}.btn{{background:#4d8fff;color:#fff;padding:8px 16px;border-radius:8px;display:inline-block;margin:4px;text-decoration:none}}.danger{{background:#ff4d4d}}input,button{{padding:8px;margin:4px}}</style>
+    <style>body{{font-family:monospace;background:#0a0e27;color:#fff;padding:20px;font-size:13px}}h1{{font-size:24px}}h2{{font-size:18px;margin-top:30px}}h3{{font-size:16px}}table{{border-collapse:collapse;width:100%;margin:20px 0;font-size:12px}}td,th{{border:1px solid #333;padding:6px;text-align:left}}th{{background:#1a1a2e;font-weight:600}}a{{color:#4d8fff;text-decoration:none}}.btn{{background:#4d8fff;color:#fff;padding:8px 16px;border-radius:8px;display:inline-block;margin:4px;text-decoration:none;font-size:13px}}.danger{{background:#ff4d4d}}input,button{{padding:8px;margin:4px}}</style>
     </head><body>
     <h1>👤 Player: {uid}</h1>
-    <p><a href="/admin?uid={admin_uid}">← Back</a></p>
+    <p><a href="/admin?uid={admin_uid}">← Back to Admin</a></p>
+    
     <h2>📊 Stats</h2>
     <p>Name: <b>{player.get("name", "Unknown")}</b></p>
     <p>Username: <b>@{player.get("nick", "none")}</b></p>
     <p>Balance: <b>{player.get("balance", 0):.4f} TON</b></p>
-    <p>NFTs: <b>{len(player.get("nfts", []))}</b></p>
+    <p>Current NFTs: <b>{len(player.get("nfts", []))}</b></p>
     <p>Banned: <b>{"❌ Yes" if player.get("banned") else "✅ No"}</b></p>
-    <p>Total Bets: <b>{total_bets:.2f} TON</b></p>
-    <p>Total Wins: <b>{total_wins:.2f} TON</b></p>
+    <p>Total Bets: <b>{total_bets:.2f} TON</b> ({len(player_bets)} bets)</p>
+    <p>Total Wins: <b>{total_wins:.2f} TON</b> ({len(player_cashouts)} cashouts)</p>
     <p>Total Deposits: <b>{total_deposits:.2f} TON</b></p>
+    <p>Cases Opened: <b>{len(player_cases)}</b></p>
+    <p>NFT Actions: <b>{len(player_nft_actions)}</b> (sold/withdrawn)</p>
     <p>P/L: <b style="color:{'#0f0' if (total_wins - total_bets) > 0 else '#f00'}">{(total_wins - total_bets):.2f} TON</b></p>
     
     <h3>⚙️ Actions</h3>
@@ -944,14 +991,23 @@ async def admin_player_detail(uid: int, request: Request):
     <button type="submit" style="background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">Set</button>
     </form>
     
+    <h2>🎁 Current NFTs ({len(player.get("nfts", []))})</h2>
+    <table><tr><th>Name</th><th>Rarity</th><th>Value</th></tr>{current_nfts_html or '<tr><td colspan="3">No NFTs</td></tr>'}</table>
+    
+    <h2>🎰 Cases Opened ({len(player_cases)})</h2>
+    <table><tr><th>Case</th><th>Won</th><th>Value</th><th>Time</th></tr>{cases_html or '<tr><td colspan="4">No cases opened</td></tr>'}</table>
+    
+    <h2>💎 NFT Actions ({len(player_nft_actions)})</h2>
+    <table><tr><th>NFT</th><th>Floor</th><th>Action</th><th>Amount</th><th>Time</th></tr>{nft_actions_html or '<tr><td colspan="5">No NFT actions</td></tr>'}</table>
+    
     <h2>🎲 Bets ({len(player_bets)})</h2>
-    <table><tr><th>Amount</th><th>Round</th><th>Time</th></tr>{bets_html}</table>
+    <table><tr><th>Amount</th><th>Round</th><th>Time</th></tr>{bets_html or '<tr><td colspan="3">No bets</td></tr>'}</table>
     
     <h2>💰 Cashouts ({len(player_cashouts)})</h2>
-    <table><tr><th>Bet</th><th>Win</th><th>Mult</th><th>Time</th></tr>{cashouts_html}</table>
+    <table><tr><th>Bet</th><th>Win</th><th>Mult</th><th>Time</th></tr>{cashouts_html or '<tr><td colspan="4">No cashouts</td></tr>'}</table>
     
     <h2>💳 Deposits ({len(player_deposits)})</h2>
-    <table><tr><th>Amount</th><th>Note</th><th>Time</th></tr>{deposits_html}</table>
+    <table><tr><th>Amount</th><th>Note</th><th>Time</th></tr>{deposits_html or '<tr><td colspan="3">No deposits</td></tr>'}</table>
     
     </body></html>"""
 
