@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -4244,7 +4243,7 @@ function showSubscriptionModal(channel){
   const txt = texts[currentLang] || texts.ru;
   
   content.innerHTML = `
-    <div style="margin-bottom:16px"><img src="https://i.postimg.cc/sgvFwBqQ/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="font-size:64px;display:none">🎁</div></div>
+    <div style="margin-bottom:16px"><img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:80px\\'>🎁</div>'"></div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">${txt.title}</div>
     <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">${txt.desc}</div>
     <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">${txt.btn1}</button>
@@ -4398,7 +4397,7 @@ function showCaseWin(item){
     keepBtn.style.display='';
     if(choiceLabel) choiceLabel.style.display='';
   } else {
-    emojiEl.innerHTML=`<img src="https://i.ibb.co/Fm0qYVW/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:48px\\'>💰</div>'">`;
+    emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
     document.getElementById('case-win-val').textContent=t('case_credited');
     document.getElementById('case-win-sub').textContent=item.rarity;
