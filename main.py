@@ -876,7 +876,7 @@ async def admin_unban(uid: int, request: Request):
         save_players()
     return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
 
-@app.get("/admin/player/{uid}")
+@app.get("/admin/player/{uid}", response_class=HTMLResponse)
 async def admin_player_detail(uid: int, request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
     if admin_uid not in ADMIN_IDS:
