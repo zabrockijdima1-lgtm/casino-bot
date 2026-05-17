@@ -2,6 +2,7 @@ import asyncio, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.add_middleware(
@@ -949,9 +950,13 @@ async def admin_player_detail(uid: int, request: Request):
 
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return FileResponse("index.html")
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse("<h1>Game loading...</h1><p>index.html not found. Please check deployment.</p>", status_code=500)
 
 @app.get("/api/status")
 async def api_status():
