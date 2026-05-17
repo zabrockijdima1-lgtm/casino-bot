@@ -1,7 +1,7 @@
 import asyncio, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
 
 app = FastAPI()
 app.add_middleware(
@@ -951,4 +951,8 @@ async def admin_player_detail(uid: int, request: Request):
 
 @app.get("/")
 async def root():
+    return FileResponse("index.html")
+
+@app.get("/api/status")
+async def api_status():
     return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients)}
