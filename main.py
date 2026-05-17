@@ -239,7 +239,7 @@ async def auto_check_topups():
                 add_log("deposits", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt})
                 await send_tg(ADMIN_ID, f"💰 <b>Депозит TON</b>\nКористувач: {players[uid].get('name','?')} (uid: {uid})\nСума: {amt} TON\nБаланс: {bal} TON")
 
-NFT_WITHDRAW_STARS = 25
+NFT_WITHDRAW_STARS = 1
 
 @app.get("/stars/withdraw-invoice/{uid}/{nft_id}/{nft_name}")
 async def create_withdraw_invoice(uid: int, nft_id: str, nft_name: str):
