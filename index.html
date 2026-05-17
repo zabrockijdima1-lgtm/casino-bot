@@ -4319,6 +4319,14 @@ function spinCase(){
   // Перевірка підписки для FREE DAILY
   if(curCase.requireChannel && IS_TELEGRAM){
     const channel = curCase.requireChannel;
+    console.log('🔍 Checking subscription for:', channel, 'user:', userId);
+    
+    if(!wsReady || !ws){
+      console.log('❌ WebSocket not ready, showing modal directly');
+      showSubscriptionModal(channel);
+      return;
+    }
+    
     ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
     
     // Чекаємо відповідь від сервера
@@ -4326,21 +4334,26 @@ function spinCase(){
       const handler = (e) => {
         const d = JSON.parse(e.data);
         if(d.t === 'subscription_checked'){
+          console.log('✅ Subscription check response:', d.subscribed);
           ws.removeEventListener('message', handler);
           resolve(d.subscribed);
         }
       };
       ws.addEventListener('message', handler);
       setTimeout(() => {
+        console.log('⏱️ Subscription check timeout, assuming not subscribed');
         ws.removeEventListener('message', handler);
         resolve(false);
       }, 5000);
     });
     
     checkSub.then((subscribed) => {
+      console.log('📋 Final subscription status:', subscribed);
       if(!subscribed){
+        console.log('🚫 Not subscribed, showing modal');
         showSubscriptionModal(channel);
       } else {
+        console.log('✅ Subscribed, continuing spin');
         // Зберігаємо час відкриття після підтвердження підписки
         if(curCase.cooldown){
           const storageKey = 'free_case_last_open_' + userId;
@@ -4425,7 +4438,6 @@ function handleWin(winner){
   if(el) el.classList.add('winner');
   setTimeout(()=>showCaseWin(winner),600);
 }
-
 
 function showCaseWin(item){
   const emojiEl=document.getElementById('case-win-emoji');
