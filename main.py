@@ -1035,4 +1035,16 @@ async def root():
 
 @app.get("/api/status")
 async def api_status():
-    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients)}
+    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v2_with_logging", "nft_withdraw_fee": NFT_WITHDRAW_STARS}
+
+@app.get("/debug/check_payment_handler")
+async def debug_payment_handler():
+    """Check if new payment handler code is deployed"""
+    import inspect
+    source = inspect.getsource(tg_webhook)
+    has_logging = "💳 Stars payment received" in source
+    return {
+        "payment_handler_updated": has_logging,
+        "nft_withdraw_stars": NFT_WITHDRAW_STARS,
+        "first_100_chars": source[:100]
+    }
