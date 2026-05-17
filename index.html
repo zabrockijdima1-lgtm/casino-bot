@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -4243,7 +4244,7 @@ function showSubscriptionModal(channel){
   const txt = texts[currentLang] || texts.ru;
   
   content.innerHTML = `
-    <div style="margin-bottom:16px"><img src="https://i.ibb.co/9ZM3fNy/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="font-size:64px;display:none">🎁</div></div>
+    <div style="margin-bottom:16px"><img src="https://i.postimg.cc/sgvFwBqQ/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="font-size:64px;display:none">🎁</div></div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">${txt.title}</div>
     <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">${txt.desc}</div>
     <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">${txt.btn1}</button>
@@ -4263,56 +4264,17 @@ function showSubscriptionModal(channel){
   };
   
   document.getElementById('sub-check-btn').onclick = () => {
-    console.log('🔍 Checking subscription...');
+    console.log('✅ Opening case without server check (user responsibility to subscribe)');
     
-    if(!wsReady || !ws) {
-      console.log('❌ WebSocket not ready');
-      showToast('Connection lost');
-      const m = document.getElementById('subscription-modal');
-      if(m) document.body.removeChild(m);
-      return;
+    const m = document.getElementById('subscription-modal');
+    if(m) document.body.removeChild(m);
+    
+    // Зберігаємо час відкриття
+    if(curCase && curCase.cooldown){
+      const storageKey = 'free_case_last_open_' + userId;
+      localStorage.setItem(storageKey, Date.now().toString());
     }
-    
-    ws.send(JSON.stringify({a:'check_subscription', channel, user_id:userId}));
-    
-    const btn = document.getElementById('sub-check-btn');
-    if(btn){
-      btn.disabled = true;
-      btn.textContent = '...';
-    }
-    
-    const handler = (e) => {
-      const d = JSON.parse(e.data);
-      if(d.t === 'subscription_checked'){
-        console.log('📩 Subscription check result:', d.subscribed);
-        ws.removeEventListener('message', handler);
-        const m = document.getElementById('subscription-modal');
-        if(m) document.body.removeChild(m);
-        
-        if(d.subscribed){
-          console.log('✅ User subscribed, opening case');
-          // Зберігаємо час відкриття
-          if(curCase && curCase.cooldown){
-            const storageKey = 'free_case_last_open_' + userId;
-            localStorage.setItem(storageKey, Date.now().toString());
-          }
-          continueSpinCase();
-        } else {
-          console.log('❌ User not subscribed');
-          showToast(txt.desc || 'Please subscribe first');
-        }
-      }
-    };
-    
-    ws.addEventListener('message', handler);
-    
-    setTimeout(() => {
-      console.log('⏱️ Subscription check timeout');
-      ws.removeEventListener('message', handler);
-      const m = document.getElementById('subscription-modal');
-      if(m) document.body.removeChild(m);
-      showToast('Timeout');
-    }, 5000);
+    continueSpinCase();
   };
 }
 
