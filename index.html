@@ -1127,6 +1127,18 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 </style>
 </head>
 <body>
+<!-- Loading Screen -->
+<div id="app-loader" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0a0e27,#1a1f3a);display:flex;align-items:center;justify-content:center;z-index:99999;transition:opacity 0.5s">
+  <div style="text-align:center">
+    <div style="width:60px;height:60px;margin:0 auto 24px;border:3px solid rgba(77,143,255,0.2);border-top-color:#4d8fff;border-radius:50%;animation:spin 1s linear infinite"></div>
+    <div style="color:#fff;font-size:16px;font-weight:500;margin-bottom:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Loading Game</div>
+    <div style="color:rgba(255,255,255,0.4);font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Connecting to server...</div>
+  </div>
+</div>
+<style>
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
 <div id="app">
   <div id="sky">
     <div id="pepe-bg" style="display:none">
@@ -2515,21 +2527,38 @@ function connect(){
   ws=new WebSocket(url);
   ws.onopen=()=>{
     wsReady=true;document.getElementById('conn').textContent='⚡';
+    // Hide loading screen
+    const loader=document.getElementById('app-loader');
+    if(loader){
+      loader.style.opacity='0';
+      setTimeout(()=>loader.remove(),500);
+    }
     // SECURITY: передаємо initData для серверної верифікації підпису
     ws.send(JSON.stringify({a:'auth',name:userName,nick:userNick,photo:userPhoto,ref_by:refBy,initData:tg?.initData||''}));
   };
   ws.onmessage=e=>{
     const d=JSON.parse(e.data);
     
-    // Перевірка ban
+    // Перевірка ban - professional design
     if(d.t==='banned'){
       document.body.innerHTML=`
-        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0e27;color:#fff;font-family:system-ui;text-align:center;padding:20px">
-          <div style="max-width:400px">
-            <div style="font-size:80px;margin-bottom:20px">🚫</div>
-            <h1 style="font-size:28px;margin-bottom:12px">You are blocked</h1>
-            <p style="color:#8fa2be;margin-bottom:32px">Ви заблоковані. Зверніться до служби підтримки.</p>
-            <a href="https://t.me/Pepe_bot_support" style="display:inline-block;background:#4d8fff;color:#fff;padding:16px 32px;border-radius:12px;text-decoration:none;font-weight:600">📞 Support / Підтримка</a>
+        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0a0e27,#1a1f3a);color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;padding:20px">
+          <div style="max-width:420px;background:rgba(26,31,58,0.8);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:48px 32px;backdrop-filter:blur(10px)">
+            <div style="width:80px;height:80px;margin:0 auto 24px;background:rgba(255,77,77,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <h1 style="font-size:24px;font-weight:600;margin:0 0 12px;letter-spacing:-0.5px">Access Restricted</h1>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 32px;font-size:15px;line-height:1.5">Your account has been suspended. Please contact support for assistance.</p>
+            <a href="https://t.me/Pepe_bot_support" style="display:inline-flex;align-items:center;gap:8px;background:#4d8fff;color:#fff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:500;font-size:15px;transition:all 0.2s">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              Contact Support
+            </a>
           </div>
         </div>
       `;
