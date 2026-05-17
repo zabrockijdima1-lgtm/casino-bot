@@ -889,17 +889,6 @@ async def admin_player_detail(uid: int, request: Request):
     player_bets = [l for l in logs["bets"] if l.get("uid") == uid]
     player_cashouts = [l for l in logs["cashouts"] if l.get("uid") == uid]
     player_deposits = [l for l in logs["deposits"] if l.get("uid") == uid]
-
-@app.get("/admin/player")
-async def admin_player_search(request: Request):
-    admin_uid = int(request.query_params.get("uid", 0))
-    search_uid = int(request.query_params.get("search_uid", 0))
-    if admin_uid not in ADMIN_IDS:
-        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
-    if search_uid:
-        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
-    return RedirectResponse(url=f"/admin?uid={admin_uid}")
-
     
     total_bets = sum(b.get("amount", 0) for b in player_bets)
     total_wins = sum(c.get("win", 0) for c in player_cashouts)
@@ -947,6 +936,17 @@ async def admin_player_search(request: Request):
     <table><tr><th>Amount</th><th>Note</th><th>Time</th></tr>{deposits_html}</table>
     
     </body></html>"""
+
+
+@app.get("/admin/player")
+async def admin_player_search(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    search_uid = int(request.query_params.get("search_uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if search_uid:
+        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
+    return RedirectResponse(url=f"/admin?uid={admin_uid}")
 
 
 @app.get("/")
