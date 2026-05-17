@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -4337,6 +4336,33 @@ function handleWin(winner){
 }
 
 function showCaseWin(item){
+  // АВТОЗБЕРЕЖЕННЯ NFT одразу при виграші - ДО показу модалки
+  if(item.isNFT && !caseWinProcessed){
+    caseWinProcessed = true; // Захист від подвійного збереження
+    const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[item.id])||null;
+    const nftEntry={
+      uid:makeNFTUid(item),
+      id:item.id,
+      name:item.name,
+      emoji:item.emoji||'🎁',
+      rarity:item.rarity||'Common',
+      price:item.price,
+      floor:item.price,
+      winTon:item.price,
+      mult:1,
+      color:'#1a1a2e',
+      isNFT:true,
+      photo:photo,
+      ts:Date.now()
+    };
+    myNFTs.push(nftEntry);
+    saveNFTs();
+    refreshInventoryLabel();
+    // Повідомляємо сервер
+    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:item.id,price:item.price,name:item.name}));
+    console.log('✅ NFT auto-saved:', item.name);
+  }
+  
   const emojiEl=document.getElementById('case-win-emoji');
   const keepBtn=document.getElementById('cwb-keep');
   const choiceLabel=document.getElementById('case-win-choice-label');
@@ -4349,10 +4375,10 @@ function showCaseWin(item){
     document.getElementById('case-win-val').textContent='◈ '+item.price+' TON floor';
     document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
-    keepBtn.textContent='🎒 '+t('case_keep_nft');
+    keepBtn.textContent='✅ '+t('case_take'); // Змінюємо текст на "Взяти" бо вже збережено
     document.getElementById('cwb-sell').textContent=t('case_sell_nft')+' '+item.price+' TON';
     keepBtn.style.display='';
-    if(choiceLabel) choiceLabel.style.display='';
+    if(choiceLabel) choiceLabel.style.display='none'; // Ховаємо "Що ви хочете зробити?" бо вже збережено
   } else {
     emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
@@ -4369,32 +4395,7 @@ function showCaseWin(item){
 }
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
 function caseWinKeep(){
-  if(!lastWin||!lastWin.isNFT)return;
-  // SECURITY: захист від подвійного виклику Keep+Sell
-  if(caseWinProcessed){return;}
-  caseWinProcessed=true;
-  // Зберігаємо фото напряму з NFT_PHOTOS щоб в інвентарі показувалось правильне зображення
-  const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[lastWin.id])||null;
-  const nftEntry={
-    uid:makeNFTUid(lastWin),
-    id:lastWin.id,
-    name:lastWin.name,
-    emoji:lastWin.emoji||'🎁',
-    rarity:lastWin.rarity||'Common',
-    price:lastWin.price,
-    floor:lastWin.price,
-    winTon:lastWin.price,
-    mult:1,
-    color:'#1a1a2e',
-    isNFT:true,
-    photo:photo,
-    ts:Date.now()
-  };
-  myNFTs.push(nftEntry);
-  saveNFTs();
-  refreshInventoryLabel();
-  // Повідомляємо сервер але не чекаємо відповіді — вже збережено локально
-  if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
+  // NFT вже збережено автоматично в showCaseWin, просто закриваємо модалку
   showToast(t('nft_added'),'win');
   closeCaseWin();
 }
