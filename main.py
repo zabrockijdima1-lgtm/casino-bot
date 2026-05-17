@@ -821,7 +821,7 @@ async def admin_panel(request: Request):
 <h2>👥 Всі гравці</h2>
 <form action="/admin/player" method="get" style="margin-bottom:12px">
 <input type="hidden" name="uid" value="{admin_uid}">
-<input type="number" name="uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;margin-right:8px">
+<input type="number" name="search_uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;margin-right:8px">
 <button type="submit" style="padding:8px 16px;background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">🔍 Search</button>
 </form>
 <table><tr><th>UID</th><th>Ім'я</th><th>@</th><th>Баланс</th><th>NFT</th><th>IP</th><th>Status</th><th>Дія</th></tr>{players_list_html}</table>
@@ -883,9 +883,23 @@ async def admin_player_detail(uid: int, request: Request):
         return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
     
     player = players.get(uid, {})
+    if not player:
+        return HTMLResponse(f"<h2 style='color:red'>Player {uid} not found</h2><p><a href='/admin?uid={admin_uid}'>Back</a></p>", status_code=404)
+    
     player_bets = [l for l in logs["bets"] if l.get("uid") == uid]
     player_cashouts = [l for l in logs["cashouts"] if l.get("uid") == uid]
     player_deposits = [l for l in logs["deposits"] if l.get("uid") == uid]
+
+@app.get("/admin/player")
+async def admin_player_search(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    search_uid = int(request.query_params.get("search_uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if search_uid:
+        return RedirectResponse(url=f"/admin/player/{search_uid}?uid={admin_uid}")
+    return RedirectResponse(url=f"/admin?uid={admin_uid}")
+
     
     total_bets = sum(b.get("amount", 0) for b in player_bets)
     total_wins = sum(c.get("win", 0) for c in player_cashouts)
