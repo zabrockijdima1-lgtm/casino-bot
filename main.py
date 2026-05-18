@@ -368,6 +368,15 @@ async def tg_webhook(request: Request):
             await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
     return JSONResponse({"ok": True})
 
+@app.get("/test/send_message/{chat_id}")
+async def test_send_message(chat_id: int):
+    """Test endpoint to verify bot can send messages"""
+    try:
+        await send_tg(chat_id, "🧪 <b>Test message from Railway</b>\n\nIf you see this, bot is working! ✅")
+        return {"ok": True, "message": f"Message sent to {chat_id}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 @app.get("/set_webhook")
 async def set_webhook(request: Request):
     webhook_url = request.query_params.get("url")
