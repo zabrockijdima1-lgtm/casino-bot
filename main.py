@@ -273,6 +273,16 @@ def get_nft_for_win(win: float):
     if not NFT_CATALOG: return None
     return random.choice(NFT_CATALOG)  # Random NFT from the whole catalog
 
+def get_nft_for_rocket_win(win: float):
+    if win < 0.1:
+        return None
+    sync_nft_prices()
+    available = [n for n in NFT_CATALOG if float(n.get("price") or n.get("floor") or 0) <= win]
+    if available:
+        return random.choice(available)
+    cheap = sorted(NFT_CATALOG, key=lambda n: float(n.get("price") or n.get("floor") or 999999))
+    return random.choice(cheap[:5]) if cheap else None
+
 sync_nft_prices(force=True)
 
 # НОВА ФУНКЦІЯ: Перевірка підписки на канал
@@ -308,8 +318,10 @@ PLAYERS_FILE = "players_data.json"
 
 def save_players():
     try:
-        with open(PLAYERS_FILE, "w") as f:
+        tmp_file = PLAYERS_FILE + ".tmp"
+        with open(tmp_file, "w") as f:
             json.dump(players, f)
+        os.replace(tmp_file, PLAYERS_FILE)
         print(f"💾 Players data saved ({len(players)} players)")
     except Exception as e:
         print(f"❌ Error saving players: {e}")
@@ -319,7 +331,20 @@ def load_players():
     try:
         if os.path.exists(PLAYERS_FILE):
             with open(PLAYERS_FILE, "r") as f:
-                players = json.load(f)
+                raw_players = json.load(f)
+            players = {}
+            for raw_uid, data in raw_players.items():
+                try:
+                    fixed_uid = int(raw_uid)
+                except Exception:
+                    fixed_uid = raw_uid
+                if isinstance(data, dict):
+                    data.setdefault("balance", 0)
+                    data.setdefault("nfts", [])
+                    data.setdefault("name", "Player")
+                    data.setdefault("nick", "")
+                    data.setdefault("photo", "")
+                    players[fixed_uid] = data
             print(f"📂 Loaded {len(players)} players from file")
         else:
             print("📂 No saved players file, starting fresh")
@@ -741,6 +766,9 @@ async def test_send_message(chat_id: int):
 
 @app.get("/set_webhook")
 async def set_webhook(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0) or 0)
+    if admin_uid not in ADMIN_IDS:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
     webhook_url = request.query_params.get("url")
     if not webhook_url:
         return JSONResponse({"error": "передай ?url=https://твій-сервер.com"})
@@ -753,7 +781,10 @@ async def set_webhook(request: Request):
         return JSONResponse({"error": str(e)})
 
 @app.get("/delete_webhook")
-async def delete_webhook():
+async def delete_webhook(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0) or 0)
+    if admin_uid not in ADMIN_IDS:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
@@ -817,11 +848,13 @@ async def do_cashout(uid, mult):
         win_value = round(nft_price * mult, 4)
         bet["win"] = win_value
 
-        win_nft = get_nft_for_win(win_value) if mult >= 1.1 else None
+        win_nft = get_nft_for_rocket_win(win_value) if mult >= 1.1 else None
         bet["nft"] = win_nft
 
         if win_nft:
-            p.setdefault("nfts", []).append({**win_nft, "won_at": mult, "win_ton": win_value, "ts": time.time()})
+            nft_entry = {**win_nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win_value, "ts": time.time()}
+            p.setdefault("nfts", []).append(nft_entry)
+            win_nft = nft_entry
             add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
         else:
             # mult < 1.1 або немає дорожчого NFT — повертаємо оригінальний NFT
@@ -839,15 +872,18 @@ async def do_cashout(uid, mult):
                     "bal": p.get("balance", 0), "nft": win_nft
                 }))
             except: pass
+        save_players()
 
     else:
         # Звичайна TON ставка
         win = round(bet["amount"] * mult, 4)
         bet["win"] = win
-        nft = get_nft_for_win(win) if mult >= 1.1 else None
+        nft = get_nft_for_rocket_win(win) if mult >= 1.1 else None
         bet["nft"] = nft
         if nft:
-            p.setdefault("nfts", []).append({**nft, "won_at": mult, "win_ton": win, "ts": time.time()})
+            nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
+            p.setdefault("nfts", []).append(nft_entry)
+            nft = nft_entry
             add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": nft.get("name"), "nft_floor": nft.get("floor")})
         else:
             p["balance"] = round(p.get("balance", 0) + win, 4)
@@ -857,6 +893,7 @@ async def do_cashout(uid, mult):
             try:
                 await clients[uid].send_text(json.dumps({"t": "your_co", "win": win, "mx": mult, "bal": p.get("balance", 0), "nft": nft}))
             except: pass
+        save_players()
 
 async def game_loop():
     while True:
@@ -902,6 +939,7 @@ async def game_loop():
                                 "nft": bet["nft_data"]
                             }))
                         except: pass
+        save_players()
         await broadcast({"t": "cr", "ca": g.crash_at, "rid": g.round_id, "h": g.history, "pl": players_list(), "now": time.time()})
         await asyncio.sleep(3)
 
@@ -948,7 +986,8 @@ async def ws_ep(ws: WebSocket, uid: int):
     await ws.send_text(json.dumps({
         "t": "init", "phase": g.phase, "mult": g.mult, "ts": g.start_ts,
         "ca": g.crash_at, "rid": g.round_id, "h": g.history,
-        "pl": players_list(), "bal": players.get(uid, {}).get("balance", 1.0), "now": time.time()
+        "pl": players_list(), "bal": players.get(uid, {}).get("balance", 1.0),
+        "nfts": players.get(uid, {}).get("nfts", []), "now": time.time()
     }))
     try:
         while True:
@@ -967,6 +1006,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["name"] = d.get("name", players[uid]["name"])
                     players[uid]["nick"] = d.get("nick", players[uid]["nick"])
                     players[uid]["photo"] = d.get("photo", players[uid]["photo"])
+                save_players()
 
             elif a == "bet":
                 if g.phase != "waiting": continue
@@ -997,6 +1037,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                         "is_nft": True, "nft_data": nft_data
                     }
                     add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": nft_price, "round_id": g.round_id, "nft": nft_bet.get("nft_name")})
+                    save_players()
                     await ws.send_text(json.dumps({"t": "bet_ok", "amt": nft_price, "bal": players[uid].get("balance", 0)}))
                     await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
 
@@ -1008,6 +1049,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["balance"] = round(bal - amt, 4)
                     bets[uid] = {"amount": amt, "auto_cashout": d.get("ac"), "cashed": False, "lost": False, "is_nft": False}
                     add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt, "round_id": g.round_id})
+                    save_players()
                     await ws.send_text(json.dumps({"t": "bet_ok", "amt": amt, "bal": players[uid]["balance"]}))
                     await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
 
@@ -1017,7 +1059,7 @@ async def ws_ep(ws: WebSocket, uid: int):
 
             # НОВА ОБРОБКА: Перевірка підписки на канал
             elif a == "check_subscription":
-                channel = d.get("channel", "@pepe_GiftsNFT")
+                channel = "@pepe_GiftsNFT"
                 user_id = int(d.get("user_id", uid))
                 
                 # РЕАЛЬНА перевірка підписки
@@ -1052,6 +1094,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 delta = float(d.get("delta", 0))
                 if target in players:
                     players[target]["balance"] = round(max(0, players[target].get("balance", 0) + delta), 4)
+                    save_players()
                     if target in clients:
                         try:
                             await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": delta, "bal": players[target]["balance"]}))
@@ -1064,6 +1107,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 if target not in players:
                     players[target] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
                 players[target]["balance"] = round(max(0, new_bal), 4)
+                save_players()
                 if target in clients:
                     try:
                         await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": 0, "bal": players[target]["balance"]}))
@@ -1075,6 +1119,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 ban = bool(d.get("ban", True))
                 if target in players:
                     players[target]["banned"] = ban
+                    save_players()
                     if ban and target in clients:
                         try:
                             await clients[target].send_text(json.dumps({"t": "banned"}))
@@ -1085,10 +1130,15 @@ async def ws_ep(ws: WebSocket, uid: int):
                 target = int(d.get("uid", 0))
                 if target in players:
                     players[target]["nfts"] = []
+                    save_players()
 
-            elif a == "withdraw_nft":
+            elif a in ("withdraw_nft", "nft_sell_local"):
                 nft_id = d.get("nft_id")
-                sell_price = float(d.get("price", 0))
+                try:
+                    sell_price = float(d.get("price", 0) or 0)
+                except Exception:
+                    sell_price = 0
+                nft_uid = d.get("nft_uid")
                 action_type = d.get("type", "sell")
                 print(f"💎 withdraw_nft request: nft_id={nft_id}, price={sell_price}, type={action_type}, uid={uid}")
                 if uid in players and nft_id:
@@ -1096,7 +1146,9 @@ async def ws_ep(ws: WebSocket, uid: int):
                     print(f"🔍 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
                     found_nft = None; new_nfts = []; removed = False
                     for n in nfts:
-                        if n.get("id") == nft_id and not removed:
+                        same_id = n.get("id") == nft_id
+                        same_uid = not nft_uid or n.get("uid") == nft_uid
+                        if same_id and same_uid and not removed:
                             found_nft = n; removed = True
                             print(f"✅ Found NFT: {n.get('name')} (id: {n.get('id')})")
                         else:
@@ -1159,6 +1211,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                         players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
                     
                     nft_entry = {
+                        "uid": f"case_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}",
                         "id": nft_id,
                         "name": nft_name,
                         "emoji": "🎁",
@@ -1170,8 +1223,15 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["nfts"].append(nft_entry)
                     save_players()
                     print(f"🎁 NFT added from case: {nft_name} for {name} (uid:{uid})")
+                    await ws.send_text(json.dumps({"t": "case_win_ok", "nft": nft_entry, "bal": players[uid].get("balance", 0)}))
                 
                 # Логуємо
+                elif not is_nft and price > 0:
+                    if uid not in players:
+                        players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
+                    players[uid]["balance"] = round(players[uid].get("balance", 0) + price, 4)
+                    save_players()
+                    await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": price}))
                 add_log("cases", {
                     "uid": uid,
                     "name": name,
@@ -1181,6 +1241,37 @@ async def ws_ep(ws: WebSocket, uid: int):
                     "value": price,
                     "ts": time.time()
                 })
+
+            elif a == "case_win_sell_client":
+                try:
+                    price = float(d.get("price", 0) or 0)
+                except Exception:
+                    price = 0
+                nft_name = d.get("name", "Unknown")
+                if price <= 0:
+                    await ws.send_text(json.dumps({"t": "err", "msg": "Невірна ціна NFT"}))
+                    continue
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+                players[uid]["balance"] = round(players[uid].get("balance", 0) + price, 4)
+                save_players()
+                add_log("cases", {"uid": uid, "name": players[uid].get("name", "?"), "case_name": d.get("case_name", "Unknown"), "won_item": nft_name, "is_nft": True, "value": price, "sold": True, "ts": time.time()})
+                await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": price, "sold": True}))
+
+            elif a == "case_ton_win":
+                try:
+                    amount = float(d.get("amount", 0) or 0)
+                except Exception:
+                    amount = 0
+                if amount <= 0:
+                    await ws.send_text(json.dumps({"t": "err", "msg": "Невірна сума виграшу"}))
+                    continue
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+                players[uid]["balance"] = round(players[uid].get("balance", 0) + amount, 4)
+                save_players()
+                add_log("cases", {"uid": uid, "name": players[uid].get("name", "?"), "case_name": d.get("case_name", "Unknown"), "won_item": f"{amount} TON", "is_nft": False, "value": amount, "ts": time.time()})
+                await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": amount}))
 
 
     except WebSocketDisconnect:
@@ -1603,7 +1694,7 @@ async def admin_player_detail(uid: int, request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    for filename in ("index (6).html", "index.html"):
+    for filename in ("index (8).html", "index (7).html", "index.html"):
         try:
             with open(filename, "r", encoding="utf-8") as f:
                 return HTMLResponse(content=f.read())
@@ -1613,7 +1704,7 @@ async def root():
 
 @app.get("/api/status")
 async def api_status():
-    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v2_with_logging", "nft_withdraw_fee": NFT_WITHDRAW_STARS}
+    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v3_fix_cashout_nft_admin", "nft_withdraw_fee": NFT_WITHDRAW_TON_FEE}
 
 @app.get("/api/nft_catalog")
 async def api_nft_catalog():
