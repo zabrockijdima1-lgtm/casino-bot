@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -1250,7 +1251,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
         <svg width="24" height="24" viewBox="0 0 56 56" fill="none" style="margin:0 auto"><circle cx="28" cy="28" r="28" fill="#fff"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#6c4fff"/></svg>
       </div>
       <div id="tab-stars-btn" onclick="switchDepTab('stars')" style="background:var(--bg3);border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;border:1.5px solid transparent;position:relative">
-        <div style="font-size:18px"></div><div style="font-family:'Fredoka One',cursive;font-size:10px;margin-top:4px;color:#aaa">Stars</div>
+        <div style="font-size:18px">⭐</div><div style="font-family:'Fredoka One',cursive;font-size:10px;margin-top:4px;color:#aaa">Stars</div>
         <div style="position:absolute;top:-6px;right:-4px;background:#f5a623;color:#000;font-size:8px;font-weight:700;padding:1px 5px;border-radius:6px">NEW</div>
       </div>
     </div>
@@ -1302,7 +1303,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 <div id="nft-confirm-bg" style="display:none;position:fixed;inset:0;background:#000000cc;z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div id="nft-confirm-box" style="background:linear-gradient(135deg,#111827,#0d1428);border:1px solid #6c4fff55;border-radius:20px;padding:24px 20px;text-align:center;min-width:270px;max-width:320px;margin:16px;box-shadow:0 0 40px #6c4fff22;position:relative">
     <button onclick="closeNFTConfirm()" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#445;font-size:20px;cursor:pointer">×</button>
-    <div style="font-size:40px;margin-bottom:10px" id="nft-confirm-icon"></div>
+    <div style="font-size:40px;margin-bottom:10px" id="nft-confirm-icon">🎁</div>
     <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:700;margin-bottom:6px" id="nft-confirm-title">Confirm</div>
     <div style="font-size:12px;color:#778;margin-bottom:16px;line-height:1.5" id="nft-confirm-desc"></div>
     <button id="nft-confirm-okbtn" onclick="nftConfirmOk()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:13px;cursor:pointer;margin-bottom:8px" id="nft-confirm-action-btn"></button>
@@ -1369,7 +1370,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 <!-- WIN POPUP -->
 <div id="case-win-popup">
   <div id="case-win-box">
-    <div id="case-win-emoji"></div>
+    <div id="case-win-emoji">🎁</div>
     <div id="case-win-name"></div>
     <div id="case-win-val"></div>
     <div id="case-win-sub"></div>
@@ -1486,7 +1487,7 @@ body.dark-on-plinko #plinko-screen{background:linear-gradient(180deg,#0d1020 0%,
     <button class="plk-emoji-btn" onclick="plinkoSendReaction('💩')">💩</button>
     <button class="plk-emoji-btn" onclick="plinkoSendReaction('🤡')">🤡</button>
     <button class="plk-emoji-btn" onclick="plinkoSendReaction('😂')">😂</button>
-    <button class="plk-emoji-btn" onclick="plinkoSendReaction('🔥')"></button>
+    <button class="plk-emoji-btn" onclick="plinkoSendReaction('🔥')">🔥</button>
     <button class="plk-emoji-btn" onclick="plinkoSendReaction('🎉')">🎉</button>
     <button id="plinko-bet-btn" onclick="openPlinkoPicker()">
       Add gifts
@@ -2121,7 +2122,7 @@ function renderPlayers(list){
     let right='';
     if(p.cashed&&p.nft){
       const np=getPhotoById(p.nft);
-      const ni=np?`<img class="pr-nft" src="${np}">`:'<span style="font-size:22px"></span>';
+      const ni=np?`<img class="pr-nft" src="${np}">`:'<span style="font-size:22px">🎁</span>';
       right=`<span class="pr-win">${TSVG} ${(+p.win).toFixed(2)}</span> ${ni}`;
     } else if(p.cashed&&p.win){
       right=`<span class="pr-win">${TSVG} ${(+p.win).toFixed(2)}</span>`;
@@ -2134,7 +2135,7 @@ function renderPlayers(list){
       const potWinStr = `<span class="pr-win" style="background:#0d1828;color:#f5c500">${TSVG} ${potentialWin.toFixed(2)}</span>`;
       if(potNFT){
         const np=getPhotoById(potNFT);
-        const ni=np?`<img class="pr-nft" src="${np}" style="opacity:0.85">`:'<span style="font-size:22px;opacity:0.8"></span>';
+        const ni=np?`<img class="pr-nft" src="${np}" style="opacity:0.85">`:'<span style="font-size:22px;opacity:0.8">🎁</span>';
         right=potWinStr+' '+ni;
       } else {
         right=potWinStr;
@@ -2158,7 +2159,7 @@ function showWinPopup(mx,win,nft){
     document.getElementById('wp-ton-section').style.display='none';
     const lc=document.getElementById('wp-lottie');
     const ph=getPhotoById(nft);
-    lc.innerHTML=ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px"></div>';
+    lc.innerHTML=ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px">🎁</div>';
     document.getElementById('wp-nft-name').textContent=nft.name;
     document.getElementById('wp-nft-rarity').textContent=nft.rarity;
     document.getElementById('wp-nft-rarity').className=`rare-${nft.rarity}`;
@@ -2377,6 +2378,81 @@ function sellNFT(id,name,price){
     }
   });
 }
+
+// ── TON FEE WITHDRAWAL ────────────────────────────────────────────────────
+const NFT_WITHDRAW_FEE = 0.2; // TON
+async function doWithdrawWithStarsPatched(id,name,floor){
+  const nft=findNFTByKey(id)||{id,name,floor,price:floor};
+  const realId=nft.id||id;
+  
+  // Перевірка балансу - показуємо professional screen з перекладами
+  if(balance < NFT_WITHDRAW_FEE){
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="insufficient-balance-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,14,39,0.95);display:flex;align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(10px)">
+        <div style="max-width:420px;background:linear-gradient(135deg,#1a1f3a,#0f1428);border:1px solid rgba(77,143,255,0.3);border-radius:20px;padding:48px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+          <div style="width:80px;height:80px;margin:0 auto 24px;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(255,107,107,0.3)">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <h1 style="font-size:24px;font-weight:600;margin:0 0 12px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${t('insufficient_balance')}</h1>
+          <p style="color:rgba(255,255,255,0.7);margin:0 0 8px;font-size:15px;line-height:1.5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${t('need_ton_to_withdraw')} <b style="color:#4d8fff">${NFT_WITHDRAW_FEE} TON</b> ${t('to_withdraw_nft')}</p>
+          <p style="color:rgba(255,255,255,0.5);margin:0 0 32px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${t('current_balance')}: <b>${balance.toFixed(4)} TON</b></p>
+          <div style="display:flex;gap:12px;justify-content:center">
+            <button onclick="document.getElementById('insufficient-balance-screen').remove()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:14px 24px;border-radius:12px;font-size:15px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500">${t('cancel')}</button>
+            <button onclick="document.getElementById('insufficient-balance-screen').remove();openTopup()" style="background:linear-gradient(135deg,#4d8fff,#2563eb);color:#fff;border:none;padding:14px 24px;border-radius:12px;font-size:15px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500;box-shadow:0 4px 12px rgba(77,143,255,0.4)">${t('deposit_btn')} ${NFT_WITHDRAW_FEE} TON</button>
+          </div>
+        </div>
+      </div>
+    `);
+    return;
+  }
+  
+  // Підтвердження
+  if(!confirm(`Withdraw ${name}?\n\nFee: ${NFT_WITHDRAW_FEE} TON\nYou must send "HI" to @Pepe_sender after confirming.`)){
+    return;
+  }
+  
+  // Відправляємо на сервер (НЕ видаляємо локально - сервер це зробить)
+  if(wsReady){
+    ws.send(JSON.stringify({
+      a:'withdraw_nft',
+      nft_id:realId,
+      nft_uid:id,
+      price:NFT_WITHDRAW_FEE,
+      type:'withdraw_ton_fee'
+    }));
+  }
+  
+  // Відкриваємо @Pepe_sender з повідомленням HI
+  const senderUrl='https://t.me/Pepe_sender?text=HI';
+  showToast('Withdrawal request sent. Send "HI" to @Pepe_sender!','info');
+  
+  if(tg?.openTelegramLink){
+    tg.openTelegramLink(senderUrl);
+  }else{
+    window.open(senderUrl,'_blank');
+  }
+  
+  try{
+    // Показуємо нагадування
+    setTimeout(()=>{
+      showNFTConfirm({
+        icon:'📨',
+        title:'Verification Required',
+        desc:`Please send <b>"HI"</b> to <a href="https://t.me/Pepe_sender" target="_blank" style="color:#4d8fff">@Pepe_sender</a> to complete NFT withdrawal verification.<br><br>NFT: <b>${name}</b><br>Fee: <b>${NFT_WITHDRAW_FEE} TON</b>`,
+        btnLabel:'I sent "HI"',
+        btnColor:'linear-gradient(135deg,#1a4fd6,#2563eb)',
+        onOk:()=>{
+          showToast('Waiting for admin verification','info');
+        }
+      });
+    },1000);
+  }catch(e){}
+}
+doWithdrawWithStars=doWithdrawWithStarsPatched;
 
 function sellNFTPatched(id,name,price){
   const nft=findNFTByKey(id)||{id,name,price,floor:price};
@@ -3313,7 +3389,7 @@ function openAdminPanel(){
               background:linear-gradient(135deg,#3a1a4a,#5a1a6a);border:1px solid #ff66cc44;border-radius:10px;
               color:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
               text-align:left;display:flex;align-items:center;gap:10px;
-            "><span style="font-size:18px"></span> Add Random NFT to Inventory</button>
+            "><span style="font-size:18px">🎁</span> Add Random NFT to Inventory</button>
             <button onclick="adminClearNFTs()" style="
               background:#ffffff08;border:1px solid #ffffff15;border-radius:10px;
               color:#aaa;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;padding:11px;cursor:pointer;
@@ -4250,7 +4326,7 @@ function showSubscriptionModal(channel){
   const txt = texts[currentLang] || texts.ru;
   
   content.innerHTML = `
-    <div style="margin-bottom:16px"><img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:80px\\'></div>'"></div>
+    <div style="margin-bottom:16px"><img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-flower.png" style="width:120px;height:120px;border-radius:16px;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:80px\\'>🎁</div>'"></div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:12px">${txt.title}</div>
     <div style="font-size:14px;color:#8fa2be;margin-bottom:24px">${txt.desc}</div>
     <button id="sub-go-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,#4d8fff,#3a6fe8);border:none;border-radius:16px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px">${txt.btn1}</button>
@@ -4479,7 +4555,7 @@ function showCaseWin(item){
     keepBtn.style.display='';
     if(choiceLabel) choiceLabel.style.display='none'; // Ховаємо "Що ви хочете зробити?" бо вже збережено
   } else {
-    emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'></div>'">`;
+    emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
     document.getElementById('case-win-val').textContent=t('case_credited');
     document.getElementById('case-win-sub').textContent=item.rarity;
