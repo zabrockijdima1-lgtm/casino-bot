@@ -1648,6 +1648,15 @@ const TON_WALLET="UQAfazCyjGjugOf73_LrxUuLvxSmExM_8loArhgATwKXU6yA";
 const BOT_USERNAME='Pepe_GiftsBot';
 
 const NFT_CATALOG=[
+  {id:'icecream',name:'Ice Cream',photo:'',floor:1.29,price:1.35,rarity:'Common',color:'#0d1e3a'},
+  {id:'santahat',name:'Santa Hat',photo:'',floor:1.63,price:1.71,rarity:'Common',color:'#0d1e3a'},
+  {id:'moussecake',name:'Mousse Cake',photo:'',floor:1.8,price:1.89,rarity:'Common',color:'#0d1e3a'},
+  {id:'lolpop2',name:'Lol Pop',photo:'',floor:1.9,price:1.99,rarity:'Common',color:'#0d1e3a'},
+  {id:'instantramen',name:'Instant Ramen',photo:'',floor:2.0,price:2.1,rarity:'Common',color:'#0d1e3a'},
+  {id:'springbasket',name:'Spring Basket',photo:'',floor:2.13,price:2.24,rarity:'Common',color:'#0d1e3a'},
+  {id:'homemadecake',name:'Homemade Cake',photo:'',floor:2.19,price:2.3,rarity:'Common',color:'#0d1e3a'},
+  {id:'restlessjar',name:'Restless Jar',photo:'',floor:2.25,price:2.36,rarity:'Common',color:'#0d1e3a'},
+  {id:'witchhat',name:'Witch Hat',photo:'',floor:2.49,price:2.61,rarity:'Common',color:'#0d1e3a'},
   {id:'chillflame',name:'Chill Flame',photo:'',floor:2.59,price:2.72,rarity:'Common',color:'#0d1e3a'},
   {id:'xmasstocking',name:'Xmas Stocking',photo:'',floor:2.6,price:2.73,rarity:'Common',color:'#0d1e3a'},
   {id:'vicecream',name:'Vice Cream',photo:'',floor:2.6,price:2.73,rarity:'Common',color:'#0d1e3a'},
@@ -1747,10 +1756,9 @@ function getPhotoById(nft){
   return'';
 }
 function getNFT(win){
-  if(!win||win<2.72)return null;
+  if(!win||win<0.1)return null;
   // NFT тільки якщо множник >= 1.1 (перевіряється окремо де викликається)
-  const ok=NFT_CATALOG.filter(n=>n.price<=win);
-  return ok.length?ok.reduce((a,b)=>a.floor>b.floor?a:b):null;
+  return NFT_CATALOG.length?NFT_CATALOG[Math.floor(Math.random()*NFT_CATALOG.length)]:null;
 }
 
 // Безпечна перевірка: NFT дається лише якщо mult >= 1.1
@@ -2995,7 +3003,7 @@ const LANGS = {
     game:'Game', inv:'Backpack', invite:'Invite', settings:'Settings',
     place_bet:'🚀 PLACE BET', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
     bet_label:'BET TON', auto_label:'AUTO CASHOUT', auto:'Auto',
-    nft_hint:'Win ≥2.8 TON at ≥1.1× → get', players:'PLAYERS',
+    nft_hint:'Win at ≥1.1× → get random NFT', players:'PLAYERS',
     lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'📤 Withdraw',
     sell_confirm:'Sell for', earn:'Earn', from_deposits:'From deposits',
     total_earned:'Total earned', my_invites:'My Invites',
@@ -3007,7 +3015,7 @@ const LANGS = {
     not_enough:'Not enough TON', sent:'◈ Sent! Waiting for confirmation...',
     cancelled:'Cancelled', error:'Error', credited:'◈ credited!',
     link_copied:'Link copied! 🔗', no_nfts:'Your NFTs will appear here',
-    win_nft:'Win ≥2.8 TON', my_nfts:'🎁 My NFT Gifts',
+    win_nft:'Win NFT', my_nfts:'🎁 My NFT Gifts',
     sell_btn:'💰 Sell for', withdraw_btn:'📤 Withdraw',
     invite_earn:'Earn', invite_from:'by inviting referrals',
     invite_btn:'🔗 Invite Friends', copy_btn:'📋 Copy Link',
@@ -3047,7 +3055,7 @@ const LANGS = {
     auto_min_error:'Auto cashout min 1.1×',
     bet_queued:'Bet queued for next round',
     bet_next_round:'⏳ Next round...',
-    deposit_subtitle:'Win ≥2.8 TON = Telegram Gift NFT',
+    deposit_subtitle:'Win at ≥1.1× = random Telegram Gift NFT',
     wallet_not_connected:'Wallet not connected',
     other_amount:'Other amount...',
     stars_min_error:'Stars: from 10 to 10 000',
@@ -3066,7 +3074,7 @@ const LANGS = {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
     place_bet:'🚀 ПОСТАВИТЬ', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
     bet_label:'СТАВКА TON', auto_label:'АВТО-ВЫВОД', auto:'Авто',
-    nft_hint:'Выигрыш ≥2.8 TON при ≥1.1× → получишь', players:'ИГРОКИ',
+    nft_hint:'Выигрыш при ≥1.1× → случайный NFT', players:'ИГРОКИ',
     lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'📤 Вывести',
     sell_confirm:'Продать за', earn:'Зарабатывай', from_deposits:'С депозитов',
     total_earned:'Всего заработано', my_invites:'Мои рефералы',
@@ -3078,7 +3086,7 @@ const LANGS = {
     not_enough:'Недостаточно TON', sent:'◈ Отправлено! Ждём подтверждения...',
     cancelled:'Отменено', error:'Ошибка', credited:'◈ зачислено!',
     link_copied:'Ссылка скопирована! 🔗', no_nfts:'Здесь будут твои NFT',
-    win_nft:'Выиграй ≥2.8 TON', my_nfts:'🎁 Мои NFT Gifts',
+    win_nft:'Выиграй NFT', my_nfts:'🎁 Мои NFT Gifts',
     sell_btn:'💰 Продать за', withdraw_btn:'📤 Вывести',
     invite_earn:'Зарабатывай', invite_from:'приглашая рефералов',
     invite_btn:'🔗 Пригласить друзей', copy_btn:'📋 Копировать ссылку',
@@ -3118,7 +3126,7 @@ const LANGS = {
     auto_min_error:'Авто-вывод мин. 1.1×',
     bet_queued:'Ставка в очереди на следующий раунд',
     bet_next_round:'⏳ Следующий раунд...',
-    deposit_subtitle:'Выигрыш ≥2.8 TON = Telegram Gift NFT',
+    deposit_subtitle:'Выигрыш при ≥1.1× = случайный Telegram Gift NFT',
     wallet_not_connected:'Кошелёк не подключён',
     other_amount:'Другая сумма...',
     stars_min_error:'Stars: от 10 до 10 000',
@@ -3268,8 +3276,7 @@ if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
   ].join(';');
   adminBtn.onclick = () => {
     // SECURITY: передаємо initData — сервер верифікує підпис Telegram
-    const initDataEncoded = encodeURIComponent(tg?.initData||'');
-    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}&initData=${initDataEncoded}`;
+    const url = 'https://casino-bot-production-5113.up.railway.app/admin?uid=1256452126';
     if(tg?.openLink) tg.openLink(url);
     else window.open(url,'_blank');
   };
