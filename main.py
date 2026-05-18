@@ -1,4 +1,3 @@
-
 import asyncio, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -166,6 +165,33 @@ pending_topups: dict = {}
 
 logs = {"bets": [], "cashouts": [], "deposits": [], "withdrawals": [], "referrals": [], "stars": [], "cases": []}
 MAX_LOGS = 500
+
+# Збереження даних у файл
+PLAYERS_FILE = "players_data.json"
+
+def save_players():
+    try:
+        with open(PLAYERS_FILE, "w") as f:
+            json.dump(players, f)
+        print(f"💾 Players data saved ({len(players)} players)")
+    except Exception as e:
+        print(f"❌ Error saving players: {e}")
+
+def load_players():
+    global players
+    try:
+        if os.path.exists(PLAYERS_FILE):
+            with open(PLAYERS_FILE, "r") as f:
+                players = json.load(f)
+            print(f"📂 Loaded {len(players)} players from file")
+        else:
+            print("📂 No saved players file, starting fresh")
+    except Exception as e:
+        print(f"❌ Error loading players: {e}")
+        players = {}
+
+# Завантажуємо при старті
+load_players()
 
 def add_log(category, entry):
     entry["ts"] = time.time()
@@ -389,6 +415,7 @@ async def admin_give_nft(uid: int, nft_id: str, nft_name: str, floor: float, req
         "ts": time.time()
     }
     players[uid]["nfts"].append(nft_entry)
+    save_players()
     
     print(f"✅ Admin {admin_uid} gave NFT {nft_name} to {uid}")
     
@@ -749,6 +776,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                             new_nfts.append(n)
                     if found_nft:
                         players[uid]["nfts"] = new_nfts
+                        save_players()
                         name = players[uid].get("name", "?")
                         nick = players[uid].get("nick", "")
                         nick_str = f"@{nick}" if nick else f"uid:{uid}"
