@@ -2389,25 +2389,24 @@ async function doWithdrawWithStarsPatched(id,name,floor){
     return;
   }
   try{
-    showToast('Stars invoice...','info');
+    showToast('Creating invoice...','info');
     const resp=await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(realId)}/${encodeURIComponent(name)}`);
     const data=await resp.json();
     if(!data.ok||!data.invoice_link){showToast(data.error||t('error'));return;}
     tg.openInvoice(data.invoice_link,status=>{
       if(status==='paid'){
-        const text=`NFT withdraw request. User: ${userId}. NFT: ${name}. ID: ${realId}. Fee: ${NFT_WITHDRAW_STARS} Stars paid.`;
-        localStorage.setItem('rkt_pending_withdraw_'+userId,JSON.stringify({uid:id,nft_id:realId,name,fee:NFT_WITHDRAW_STARS,ts:Date.now()}));
-        const url='https://t.me/Pepe_bot_support?text='+encodeURIComponent(text);
-        if(tg?.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank');
-        showNFTConfirm({
-          icon:'⭐',
-          title:'Stars paid',
-          desc:'Send the prepared message to <b>@Pepe_bot_support</b>. Then press confirm here. Admin notification is sent only after this step and must be verified by backend.',
-          btnLabel:'I messaged support',
-          btnColor:'linear-gradient(135deg,#1a4fd6,#2563eb)',
-          onOk:()=>{
-            if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft_support_confirmed',nft_id:realId,nft_uid:id,price:0,type:'withdraw',support:'@Pepe_bot_support'}));
-            showToast('Withdraw request sent for verification','info');
+        showToast('✅ Payment successful! NFT withdrawn.','win');
+        // Видаляємо NFT локально
+        myNFTs=myNFTs.filter(n=>n.uid!==id && n.id!==realId);
+        saveNFTs();
+        refreshInventoryLabel();
+        // Backend автоматично обробить successful_payment webhook
+      }else if(status==='cancelled'){
+        showToast(t('cancelled'));
+      }else if(status==='failed'){
+        showToast(t('error'));
+      }
+    });
           }
         });
       }else if(status==='cancelled')showToast(t('cancelled'));
