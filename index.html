@@ -1799,7 +1799,10 @@ function getPhotoById(nft){
 function getNFT(win){
   if(!win||win<0.1)return null;
   // NFT тільки якщо множник >= 1.1 (перевіряється окремо де викликається)
-  return NFT_CATALOG.length?NFT_CATALOG[Math.floor(Math.random()*NFT_CATALOG.length)]:null;
+  const available=NFT_CATALOG.filter(n=>(+(n.price||n.floor||0))<=win);
+  if(available.length)return available[Math.floor(Math.random()*available.length)];
+  const cheap=NFT_CATALOG.slice().sort((a,b)=>(+(a.price||a.floor||999999))-(+(b.price||b.floor||999999))).slice(0,5);
+  return cheap.length?cheap[Math.floor(Math.random()*cheap.length)]:null;
 }
 
 // Безпечна перевірка: NFT дається лише якщо mult >= 1.1
@@ -1822,7 +1825,7 @@ const startParam=tg?.initDataUnsafe?.start_param||'';
 const refBy=startParam.startsWith('ref_')?startParam.slice(4):null;
 
 // SECURITY: баланс = 0 до отримання з сервера. localStorage — тільки UI-кеш
-let balance=IS_TELEGRAM ? 0 : parseFloat(localStorage.getItem('rkt_bal_0')||'1.0');
+let balance=IS_TELEGRAM ? 0 : parseFloat(localStorage.getItem('rkt_bal_'+userId)||'1.0');
 let serverBalanceSynced=!IS_TELEGRAM; // в dev mode вважаємо синхронізованим одразу
 let myNFTs=[];
 try{const s=localStorage.getItem('rkt_nfts_'+userId);if(s)myNFTs=JSON.parse(s);}catch(e){}
@@ -2230,7 +2233,7 @@ function showWinPopup(mx,win,nft){
 function addNFTToInventory(nft,winTon,mx){
   const photo=getPhotoById(nft);
   const entry={
-    uid:makeNFTUid(nft),
+    uid:nft.uid||makeNFTUid(nft),
     id:nft.id,
     name:nft.name,
     emoji:nft.emoji||'🎁',
@@ -2513,15 +2516,11 @@ function sellNFTPatched(id,name,price){
     btnLabel:`${t('confirm_btn_sell')} ${sellPrice.toFixed(2)} TON`,
     btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
     onOk:()=>{
-      const removedNFT=removeNFTByKey(id);
-      if(!removedNFT){showToast(t('error'));return;}
-      saveNFTs();
-      refreshInventoryLabel();
-      creditLocalBalance(sellPrice,'nft_sell');
-      showToast(`${t('nft_sold')} ${sellPrice.toFixed(2)} TON!`,'win');
-      spawnGems(3,'рџ’°');
-      closeModal();
-      if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removedNFT.id,nft_uid:removedNFT.uid,name:removedNFT.name,price:sellPrice,type:'sell'}));
+      if(!wsReady){showToast('Server connection required');return;}
+      const targetNFT=findNFTByKey(id);
+      if(!targetNFT){showToast(t('error'));return;}
+      ws.send(JSON.stringify({a:'withdraw_nft',nft_id:targetNFT.id,nft_uid:targetNFT.uid,name:targetNFT.name,price:sellPrice,type:'sell'}));
+      showToast('Selling NFT...','info');
     }
   });
 }
@@ -2653,6 +2652,11 @@ function connect(){
       // SECURITY: баланс тільки від сервера, встановлюємо прапор синхронізації
       serverBalanceSynced=true;
       balance=d.bal||0;updBal();saveBal();
+      if(Array.isArray(d.nfts)){
+        myNFTs=d.nfts;
+        saveNFTs();
+        refreshInventoryLabel();
+      }
       if(d.h)d.h.slice().reverse().forEach(v=>addH(v));
       renderPlayers(d.pl);
       if(d.phase==='flying'){phase='flying';startTs=d.ts;ME().className='';ME().textContent=(d.mult||1).toFixed(2)+'×';startClientAnim();}
@@ -2732,8 +2736,13 @@ function connect(){
     }
     else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
     else if(d.t==='nft_sold'){
-      // NFT вже видалено локально в sellNFT(), просто синхронізуємо баланс із сервером
-      if(d.bal){balance=d.bal;updBal();saveBal();}
+      let removed=false;
+      myNFTs=myNFTs.filter(n=>{if(!removed&&n.id===d.nft_id){removed=true;return false;}return true;});
+      saveNFTs();
+      refreshInventoryLabel();
+      if(d.bal!==undefined){balance=d.bal;updBal();saveBal();}
+      showToast(d.msg||`${t('nft_sold')} ${(+d.amount||0).toFixed(2)} TON!`,'win');
+      closeModal();
     }
     else if(d.t==='nft_withdrawn'){
       // Оновлюємо баланс
@@ -2747,13 +2756,25 @@ function connect(){
       showToast(d.msg||`✅ NFT ${t('withdraw_btn')}`,'win');
       closeModal();
     }
-    else if(d.t==='ref_bonus'){balance=d.bal;updBal();saveBal();showToast(`👥 +${d.bonus} TON bonus!`,'win');}
+    else if(d.t==='nft_returned'){
+      if(d.nft){
+        myNFTs.push(d.nft);
+        saveNFTs();
+        refreshInventoryLabel();
+        showToast('NFT returned','info');
+      }
+    }    else if(d.t==='ref_bonus'){balance=d.bal;updBal();saveBal();showToast(`👥 +${d.bonus} TON bonus!`,'win');}
     // SECURITY: баланс від сервера після підтверджених операцій
     else if(d.t==='withdraw_ok'){
-      if(d.bal){balance=d.bal;updBal();saveBal();}
+      if(d.bal!==undefined){balance=d.bal;updBal();saveBal();}
     }
     else if(d.t==='case_win_ok'){
-      if(d.bal){balance=d.bal;updBal();saveBal();}
+      if(d.bal!==undefined){balance=d.bal;updBal();saveBal();}
+      if(d.nft){
+        myNFTs.push(d.nft);
+        saveNFTs();
+        refreshInventoryLabel();
+      }
     }
     else if(d.t==='err'){showToast(d.msg);}
   };
@@ -2792,10 +2813,6 @@ function handleBet(){
 
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
-    if(window._activeNFTBet&&typeof cashoutActiveNFTBetLocal==='function'){
-      cashoutActiveNFTBetLocal();
-      return;
-    }
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
     return;
   }
@@ -4557,39 +4574,6 @@ function handleWin(winner){
 }
 
 function showCaseWin(item){
-  // АВТОЗБЕРЕЖЕННЯ NFT одразу при виграші - ДО показу модалки
-  if(item.isNFT && !caseWinProcessed){
-    caseWinProcessed = true; // Захист від подвійного збереження
-    const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[item.id])||null;
-    const nftEntry={
-      uid:makeNFTUid(item),
-      id:item.id,
-      name:item.name,
-      emoji:item.emoji||'🎁',
-      rarity:item.rarity||'Common',
-      price:item.price,
-      floor:item.price,
-      winTon:item.price,
-      mult:1,
-      color:'#1a1a2e',
-      isNFT:true,
-      photo:photo,
-      ts:Date.now()
-    };
-    myNFTs.push(nftEntry);
-    saveNFTs();
-    refreshInventoryLabel();
-    // Повідомляємо сервер з назвою кейсу
-    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',nft_id:item.id,price:item.price,name:item.name,is_nft:true}));
-    console.log('✅ NFT auto-saved:', item.name);
-  }
-  
-  // Логування TON виграшу з кейсу
-  if(!item.isNFT && !caseWinProcessed && wsReady){
-    caseWinProcessed = true;
-    ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',price:item.ton,name:item.ton+' TON',is_nft:false}));
-  }
-  
   const emojiEl=document.getElementById('case-win-emoji');
   const keepBtn=document.getElementById('cwb-keep');
   const choiceLabel=document.getElementById('case-win-choice-label');
@@ -4622,8 +4606,13 @@ function showCaseWin(item){
 }
 function closeCaseWin(){document.getElementById('case-win-popup').classList.remove('show');document.getElementById('spin-btn').disabled=false;}
 function caseWinKeep(){
-  // NFT вже збережено автоматично в showCaseWin, просто закриваємо модалку
-  showToast(t('nft_added'),'win');
+  if(!lastWin)return;
+  if(caseWinProcessed){return;}
+  caseWinProcessed=true;
+  if(lastWin.isNFT){
+    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name,is_nft:true}));
+    showToast(t('nft_added'),'win');
+  }
   closeCaseWin();
 }
 function caseWinSell(){
@@ -4632,14 +4621,11 @@ function caseWinSell(){
   if(caseWinProcessed){return;}
   caseWinProcessed=true;
   if(lastWin.isNFT){
-    // SECURITY: ціну визначає сервер, баланс оновиться через WS відповідь
-    creditLocalBalance(lastWin.price,'case_nft_sell');
     if(wsReady)ws.send(JSON.stringify({a:'case_win_sell_client',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
-    showToast(t('nft_sold')+' '+lastWin.price+' TON!','win');
+    showToast('Selling NFT...','info');
   } else {
-    creditLocalBalance(lastWin.ton,'case_ton_win');
     if(wsReady)ws.send(JSON.stringify({a:'case_ton_win',amount:lastWin.ton}));
-    showToast('+'+lastWin.ton+' TON '+t('case_ton_win'),'win');
+    showToast('Saving win...','info');
   }
   // Баланс оновиться через WS case_win_ok від сервера
   spawnGems(3,'💰');closeCaseWin();
@@ -5800,24 +5786,7 @@ function selectNFTBet(idx){
   btn.disabled=false;btn.textContent='Bet '+nft.name+' ('+(+(nft.price||nft.floor||0)).toFixed(2)+')';
 }
 function cashoutActiveNFTBetLocal(){
-  var active=window._activeNFTBet;
-  if(!active)return;
-  var cur=typeof mult!=='undefined'?+mult:1;
-  var base=+(active.price||active.floor||betAmt||0);
-  var winValue=+(base*cur).toFixed(2);
-  var winNFT=(typeof getNFTSafe==='function'&&getNFTSafe(winValue,cur))||Object.assign({},active,{price:winValue,floor:winValue});
-  winNFT.price=+(winNFT.price||winNFT.floor||winValue);
-  winNFT.floor=+(winNFT.floor||winNFT.price||winValue);
-  addNFTToInventory(winNFT,winValue,cur);
-  showWinPopup(cur,winValue,winNFT);
-  if(typeof showToast==='function')showToast('NFT cashout '+cur.toFixed(2)+'x','win');
-  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_local',nft_id:active.id,win_nft_id:winNFT.id,win_value:winValue,mult:cur}));
-  window._activeNFTBet=null;
-  window._pendingNFTBet=null;
-  hasBet=false;
-  betAmt=0;
-  var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';
-  var bb=document.getElementById('bb');if(bb){bb.className='bet';bb.innerHTML=(typeof t==='function'?t('bet'):'Bet');bb.disabled=true;}
+  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'cashout'}));
 }
 function confirmNFTBet(){
   if(_nftBetIdx===null)return;
