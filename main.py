@@ -174,13 +174,19 @@ def add_log(category, entry):
 
 async def send_tg(uid: int, text: str):
     try:
+        print(f"📤 Sending message to {uid}: {text[:50]}...")
         async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(
+            r = await client.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
                 json={"chat_id": uid, "text": text, "parse_mode": "HTML"}
             )
+            data = r.json()
+            if data.get("ok"):
+                print(f"✅ Message sent successfully to {uid}")
+            else:
+                print(f"❌ Telegram API error: {data.get('description', 'Unknown error')}")
     except Exception as e:
-        print(f"TG send error: {e}")
+        print(f"❌ TG send error to {uid}: {e}")
 
 async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     if uid not in players:
@@ -288,6 +294,19 @@ async def tg_webhook(request: Request):
         update = await request.json()
     except:
         return JSONResponse({"ok": True})
+    
+    msg = update.get("message", {})
+    
+    # Обробка команд
+    if msg:
+        chat_id = msg.get("chat", {}).get("id")
+        text = msg.get("text", "")
+        
+        if text == "/start":
+            user_name = msg.get("from", {}).get("first_name", "User")
+            await send_tg(chat_id, f"👋 Welcome to Rocket Casino, {user_name}!\n\n🎮 Open the game: https://casino-bot-production-5113.up.railway.app\n\nGood luck! 🚀")
+            return JSONResponse({"ok": True})
+    
     if "pre_checkout_query" in update:
         pcq_id = update["pre_checkout_query"]["id"]
         try:
@@ -296,7 +315,7 @@ async def tg_webhook(request: Request):
         except Exception as e:
             print(f"answerPreCheckoutQuery error: {e}")
         return JSONResponse({"ok": True})
-    msg = update.get("message", {})
+    
     payment = msg.get("successful_payment")
     if payment and payment.get("currency") == "XTR":
         print(f"💳 Stars payment received: {payment}")
