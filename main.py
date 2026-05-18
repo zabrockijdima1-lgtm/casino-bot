@@ -319,7 +319,9 @@ async def create_stars_invoice(uid: int, stars: int):
 async def tg_webhook(request: Request):
     try:
         update = await request.json()
-    except:
+        print(f"📨 Webhook received: {json.dumps(update, ensure_ascii=False)[:500]}")
+    except Exception as e:
+        print(f"❌ Failed to parse webhook: {e}")
         return JSONResponse({"ok": True})
     
     msg = update.get("message", {})
