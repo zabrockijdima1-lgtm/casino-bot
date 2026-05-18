@@ -134,9 +134,9 @@ NFT_CATALOG = [
 ]
 
 def get_nft_for_win(win: float):
-    if win < 0.1: return None  # ЗМІНЕНО: тепер ВСІ NFT падають від 0.1 TON
+    if win < 0.1: return None  # NFT падають при виграші від 0.1 TON
     ok = [n for n in NFT_CATALOG if n["price"] <= win]
-    return max(ok, key=lambda n: n["floor"]) if ok else None
+    return random.choice(ok) if ok else None  # Випадковий вибір з доступних NFT
 
 # НОВА ФУНКЦІЯ: Перевірка підписки на канал
 async def check_subscription(user_id: int, channel: str) -> bool:
