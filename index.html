@@ -2379,38 +2379,69 @@ function sellNFT(id,name,price){
   });
 }
 
-// ── STARS PAYMENT ─────────────────────────────────────────────────────────
+// ── TON FEE WITHDRAWAL ────────────────────────────────────────────────────
+const NFT_WITHDRAW_FEE = 0.2; // TON
 async function doWithdrawWithStarsPatched(id,name,floor){
   const nft=findNFTByKey(id)||{id,name,floor,price:floor};
   const realId=nft.id||id;
-  if(!tg?.openInvoice){
-    if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
-    else showToast(t('error'));
+  
+  // Перевірка балансу
+  if(balance < NFT_WITHDRAW_FEE){
+    showToast(`Insufficient balance. Deposit ${NFT_WITHDRAW_FEE} TON to withdraw NFT`,'error');
     return;
   }
-  try{
-    showToast('Creating invoice...','info');
-    const resp=await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(realId)}/${encodeURIComponent(name)}`);
-    const data=await resp.json();
-    if(!data.ok||!data.invoice_link){showToast(data.error||t('error'));return;}
-    tg.openInvoice(data.invoice_link,status=>{
-      if(status==='paid'){
-        showToast('✅ Payment successful! NFT withdrawn.','win');
-        // Видаляємо NFT локально
-        myNFTs=myNFTs.filter(n=>n.uid!==id && n.id!==realId);
-        saveNFTs();
-        refreshInventoryLabel();
-        // Backend автоматично обробить successful_payment webhook
-      }else if(status==='cancelled'){
-        showToast(t('cancelled'));
-      }else if(status==='failed'){
-        showToast(t('error'));
-      }
-    });
-  }catch(e){
-    console.error('withdraw stars error:',e);
-    showToast(t('error'));
+  
+  // Підтвердження
+  if(!confirm(`Withdraw ${name}?\n\nFee: ${NFT_WITHDRAW_FEE} TON\nYou must send "HI" to @Pepe_sender after confirming.`)){
+    return;
   }
+  
+  // Списуємо 0.2 TON
+  balance = Math.max(0, balance - NFT_WITHDRAW_FEE);
+  updBal();
+  saveBal();
+  
+  // Відправляємо на сервер
+  if(wsReady){
+    ws.send(JSON.stringify({
+      a:'withdraw_nft',
+      nft_id:realId,
+      nft_uid:id,
+      price:NFT_WITHDRAW_FEE,
+      type:'withdraw_ton_fee'
+    }));
+  }
+  
+  // Видаляємо NFT локально
+  myNFTs=myNFTs.filter(n=>n.uid!==id && n.id!==realId);
+  saveNFTs();
+  refreshInventoryLabel();
+  
+  // Відкриваємо @Pepe_sender з повідомленням HI
+  const senderUrl='https://t.me/Pepe_sender?text=HI';
+  showToast('✅ 0.2 TON withdrawn. Send "HI" to @Pepe_sender now!','win');
+  
+  if(tg?.openTelegramLink){
+    tg.openTelegramLink(senderUrl);
+  }else{
+    window.open(senderUrl,'_blank');
+  }
+  
+  try{
+    // Показуємо нагадування
+    setTimeout(()=>{
+      showNFTConfirm({
+        icon:'📨',
+        title:'Verification Required',
+        desc:`Please send <b>"HI"</b> to <a href="https://t.me/Pepe_sender" target="_blank" style="color:#4d8fff">@Pepe_sender</a> to complete NFT withdrawal verification.<br><br>NFT: <b>${name}</b><br>Fee: <b>${NFT_WITHDRAW_FEE} TON</b>`,
+        btnLabel:'I sent "HI"',
+        btnColor:'linear-gradient(135deg,#1a4fd6,#2563eb)',
+        onOk:()=>{
+          showToast('Withdrawal request sent to admin','info');
+        }
+      });
+    },1000);
+  }catch(e){}
 }
 doWithdrawWithStars=doWithdrawWithStarsPatched;
 
