@@ -258,6 +258,22 @@ async def check_ton_tx(uid: int, amount: float, since_ts: float) -> bool:
 
 pending_stars_payments = {}  # {uid: {"stars": 10, "ton": 0.084, "ts": timestamp}}
 
+async def auto_check_topups():
+    while True:
+        await asyncio.sleep(10)
+        for uid, info in list(pending_topups.items()):
+            if info.get("done"):
+                pending_topups.pop(uid, None); continue
+            if time.time() - info["ts"] > 900:
+                pending_topups.pop(uid, None); continue
+            found = await check_ton_tx(uid, info["amount"], info["ts"])
+            if found:
+                info["done"] = True
+                amt = info["amount"]
+                bal = await credit_balance(uid, amt, source="ton")
+                add_log("deposits", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt})
+                await send_tg(ADMIN_ID, f"💰 <b>Депозит TON</b>\nКористувач: {players[uid].get('name','?')} (uid: {uid})\nСума: {amt} TON\nБаланс: {bal} TON")
+
 async def check_stars_payments():
     """Перевіряє pending Stars payments через getUpdates як fallback"""
     while True:
