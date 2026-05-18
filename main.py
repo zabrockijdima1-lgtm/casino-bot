@@ -20,6 +20,7 @@ BOT_TOKEN     = os.getenv("BOT_TOKEN", "8736629642:AAHe9ZvyuHRGJV4C2t-zv6STyYXbe
 ADMIN_IDS     = {1256452126, 6479535975}
 ADMIN_ID      = 1256452126
 STARS_TO_TON  = 0.0084
+NFT_WITHDRAW_TON_FEE = 0.2
 
 NFT_CATALOG = [
     {"id":"icecream","name":"Ice Cream","floor":1.29,"price":1.35,"rarity":"Common","color":"#0d2e1a"},
@@ -135,8 +136,8 @@ NFT_CATALOG = [
 
 def get_nft_for_win(win: float):
     if win < 0.1: return None  # NFT падають при виграші від 0.1 TON
-    ok = [n for n in NFT_CATALOG if n["price"] <= win]
-    return random.choice(ok) if ok else None  # Випадковий вибір з доступних NFT
+    if not NFT_CATALOG: return None
+    return random.choice(NFT_CATALOG)  # Random NFT from the whole catalog
 
 # НОВА ФУНКЦІЯ: Перевірка підписки на канал
 async def check_subscription(user_id: int, channel: str) -> bool:
@@ -214,6 +215,9 @@ async def send_tg(uid: int, text: str):
                 print(f"❌ Telegram API error: {data.get('description', 'Unknown error')}")
     except Exception as e:
         print(f"❌ TG send error to {uid}: {e}")
+
+async def send_admins(text: str):
+    await asyncio.gather(*(send_tg(admin_id, text) for admin_id in ADMIN_IDS), return_exceptions=True)
 
 async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     if uid not in players:
@@ -962,31 +966,42 @@ async def ws_ep(ws: WebSocket, uid: int):
                         else:
                             new_nfts.append(n)
                     if found_nft:
-                        players[uid]["nfts"] = new_nfts
-                        save_players()
                         name = players[uid].get("name", "?")
                         nick = players[uid].get("nick", "")
                         nick_str = f"@{nick}" if nick else f"uid:{uid}"
                         
                         if action_type == "withdraw_ton_fee":
-                            # Вивід NFT за 0.2 TON
+                            fee = NFT_WITHDRAW_TON_FEE
+                            balance = float(players[uid].get("balance", 0) or 0)
+                            if balance < fee:
+                                await ws.send_text(json.dumps({
+                                    "t": "err",
+                                    "msg": f"Недостатньо TON для виводу NFT. Потрібно {fee:.2f} TON, баланс {balance:.4f} TON"
+                                }))
+                                continue
+
                             print(f"🎁 NFT withdrawal: {found_nft.get('name')} by {name} (uid:{uid})")
-                            players[uid]["balance"] = round(players[uid].get("balance", 0) - sell_price, 4)
-                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "withdraw_ton_fee"})
-                            # Оновлюємо баланс на клієнті
-                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
-                            # Повідомлення адміну
-                            print(f"📨 Sending admin notification to {ADMIN_ID}")
-                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {sell_price} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
+                            players[uid]["nfts"] = new_nfts
+                            players[uid]["balance"] = round(balance - fee, 4)
+                            save_players()
+                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": fee, "type": "withdraw_ton_fee"})
+                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {fee:.2f} TON"}))
+                            print(f"📨 Sending admin withdrawal notification to {sorted(ADMIN_IDS)}")
+                            asyncio.create_task(send_admins(f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nUID: <code>{uid}</code>\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {fee:.2f} TON\nBalance after fee: {players[uid]['balance']:.4f} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
                         elif action_type == "sell":
+                            sell_price = float(found_nft.get("price") or found_nft.get("floor") or sell_price or 0)
+                            players[uid]["nfts"] = new_nfts
                             players[uid]["balance"] = round(players[uid].get("balance", 0) + sell_price, 4)
+                            save_players()
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "sell"})
                             await ws.send_text(json.dumps({"t": "nft_sold", "nft_id": nft_id, "amount": sell_price, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
+                            asyncio.create_task(send_admins(f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
                         else:
+                            players[uid]["nfts"] = new_nfts
+                            save_players()
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw"})
                             await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
+                            asyncio.create_task(send_admins(f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
                     else:
                         print(f"❌ NFT {nft_id} not found in player inventory")
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
