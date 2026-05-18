@@ -278,6 +278,10 @@ async def check_stars_payments():
     """Перевіряє pending Stars payments через getUpdates як fallback"""
     while True:
         await asyncio.sleep(5)
+        
+        if pending_stars_payments:
+            print(f"🔍 Checking {len(pending_stars_payments)} pending Stars payment(s)")
+        
         if not pending_stars_payments:
             continue
         
