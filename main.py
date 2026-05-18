@@ -704,6 +704,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 nft_id = d.get("nft_id")
                 sell_price = float(d.get("price", 0))
                 action_type = d.get("type", "sell")
+                print(f"💎 withdraw_nft request: nft_id={nft_id}, price={sell_price}, type={action_type}, uid={uid}")
                 if uid in players and nft_id:
                     nfts = players[uid].get("nfts", [])
                     found_nft = None; new_nfts = []; removed = False
@@ -720,10 +721,12 @@ async def ws_ep(ws: WebSocket, uid: int):
                         
                         if action_type == "withdraw_ton_fee":
                             # Вивід NFT за 0.2 TON
+                            print(f"🎁 NFT withdrawal: {found_nft.get('name')} by {name} (uid:{uid})")
                             players[uid]["balance"] = round(players[uid].get("balance", 0) - sell_price, 4)
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "withdraw_ton_fee"})
                             await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
                             # Повідомлення адміну
+                            print(f"📨 Sending admin notification to {ADMIN_ID}")
                             asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {sell_price} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
                         elif action_type == "sell":
                             players[uid]["balance"] = round(players[uid].get("balance", 0) + sell_price, 4)
