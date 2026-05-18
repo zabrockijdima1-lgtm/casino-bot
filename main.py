@@ -530,6 +530,15 @@ async def set_webhook(request: Request):
     except Exception as e:
         return JSONResponse({"error": str(e)})
 
+@app.get("/delete_webhook")
+async def delete_webhook():
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+        return r.json()
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
 class G:
     phase    = "waiting"
     mult     = 1.0
@@ -676,6 +685,18 @@ async def game_loop():
 
 @app.on_event("startup")
 async def startup():
+    # Видаляємо webhook щоб використовувати polling
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+            result = r.json()
+            if result.get("ok"):
+                print("✅ Webhook deleted, using long polling")
+            else:
+                print(f"⚠️ deleteWebhook response: {result}")
+    except Exception as e:
+        print(f"❌ Failed to delete webhook: {e}")
+    
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
     asyncio.create_task(poll_telegram_updates())
