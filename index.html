@@ -2780,9 +2780,18 @@ function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=a
 let tonUI=null,tonConnected=false;
 function initTon(){
   try{
-    tonUI=new TON_CONNECT_UI.TonConnectUI({manifestUrl: 'https://casino-bot-bn31.vercel.app/tonconnect-manifest.json',buttonRootId:null});
+    // Перевірка чи бібліотека завантажилась
+    if(typeof TonConnectUI === 'undefined' && !window.TON_CONNECT_UI){
+      console.error('TonConnectUI library not loaded');
+      return;
+    }
+    const TonConnect = window.TON_CONNECT_UI?.TonConnectUI || TonConnectUI;
+    tonUI=new TonConnect({manifestUrl: 'https://casino-bot-bn31.vercel.app/tonconnect-manifest.json',buttonRootId:null});
     tonUI.onStatusChange(w=>{tonConnected=!!w;updateWalletUI();if(w)showToast(t('wallet_connected'),'win');});
-  }catch(e){}
+    console.log('TON Connect initialized successfully');
+  }catch(e){
+    console.error('TON Connect init error:', e);
+  }
 }
 function updateWalletUI(){
   const dot=document.getElementById('ws-dot'),txt=document.getElementById('ws-text'),btn=document.getElementById('ws-btn');
@@ -3451,7 +3460,7 @@ window.addEventListener('resize',resize);
 resize();
 applyLang();
 initAudio();
-setTimeout(()=>{try{initTon();}catch(e){}},300);
+setTimeout(()=>{try{initTon();}catch(e){console.error('Failed to init TON:', e);}},1000);
 
 // ── CASES ──────────────────────────────────────────────────────────────────
 // ── Хелпери для побудови кейсів ─────────────────────────────────────────────
