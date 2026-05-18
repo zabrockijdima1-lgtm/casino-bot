@@ -707,10 +707,12 @@ async def ws_ep(ws: WebSocket, uid: int):
                 print(f"💎 withdraw_nft request: nft_id={nft_id}, price={sell_price}, type={action_type}, uid={uid}")
                 if uid in players and nft_id:
                     nfts = players[uid].get("nfts", [])
+                    print(f"🔍 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
                     found_nft = None; new_nfts = []; removed = False
                     for n in nfts:
                         if n.get("id") == nft_id and not removed:
                             found_nft = n; removed = True
+                            print(f"✅ Found NFT: {n.get('name')} (id: {n.get('id')})")
                         else:
                             new_nfts.append(n)
                     if found_nft:
@@ -738,7 +740,10 @@ async def ws_ep(ws: WebSocket, uid: int):
                             await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
                             asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
                     else:
+                        print(f"❌ NFT {nft_id} not found in player inventory")
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
+                else:
+                    print(f"❌ Player {uid} not found or nft_id is None")
 
             elif a == "case_win_keep":
                 # Логування відкриття кейсу та виграшу
