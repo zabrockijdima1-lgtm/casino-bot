@@ -2661,8 +2661,12 @@ function connect(){
       if(points.length>1)drawGraph(true);
       addH(d.ca);
       if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;playCrashSound();vibrateOnCrash();}
-      pendingBet = false;
-      BB().disabled=true;BB().className='';BB().innerHTML=t('place_bet');
+      // НЕ скидаємо pendingBet тут - він має зберегтися для наступного раунду
+      if(pendingBet){
+        BB().disabled=true;BB().innerHTML=t('bet_next_round');
+      } else {
+        BB().disabled=true;BB().className='';BB().innerHTML=t('place_bet');
+      }
       renderPlayers(d.pl);
     }
     else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
