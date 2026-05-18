@@ -2396,12 +2396,7 @@ async function doWithdrawWithStarsPatched(id,name,floor){
     return;
   }
   
-  // Списуємо 0.2 TON
-  balance = Math.max(0, balance - NFT_WITHDRAW_FEE);
-  updBal();
-  saveBal();
-  
-  // Відправляємо на сервер
+  // Відправляємо на сервер (НЕ видаляємо локально - сервер це зробить)
   if(wsReady){
     ws.send(JSON.stringify({
       a:'withdraw_nft',
@@ -2412,14 +2407,9 @@ async function doWithdrawWithStarsPatched(id,name,floor){
     }));
   }
   
-  // Видаляємо NFT локально
-  myNFTs=myNFTs.filter(n=>n.uid!==id && n.id!==realId);
-  saveNFTs();
-  refreshInventoryLabel();
-  
   // Відкриваємо @Pepe_sender з повідомленням HI
   const senderUrl='https://t.me/Pepe_sender?text=HI';
-  showToast('✅ 0.2 TON withdrawn. Send "HI" to @Pepe_sender now!','win');
+  showToast('Withdrawal request sent. Send "HI" to @Pepe_sender!','info');
   
   if(tg?.openTelegramLink){
     tg.openTelegramLink(senderUrl);
@@ -2437,7 +2427,7 @@ async function doWithdrawWithStarsPatched(id,name,floor){
         btnLabel:'I sent "HI"',
         btnColor:'linear-gradient(135deg,#1a4fd6,#2563eb)',
         onOk:()=>{
-          showToast('Withdrawal request sent to admin','info');
+          showToast('Waiting for admin verification','info');
         }
       });
     },1000);
@@ -2674,6 +2664,9 @@ function connect(){
       if(d.bal){balance=d.bal;updBal();saveBal();}
     }
     else if(d.t==='nft_withdrawn'){
+      // Оновлюємо баланс
+      if(d.bal !== undefined){balance=d.bal;updBal();saveBal();}
+      // Видаляємо NFT
       let removed=false;
       myNFTs=myNFTs.filter(n=>{if(!removed&&n.id===d.nft_id){removed=true;return false;}return true;});
       saveNFTs();
