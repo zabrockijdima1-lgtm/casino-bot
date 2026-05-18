@@ -21,7 +21,7 @@ BOT_TOKEN     = os.getenv("BOT_TOKEN", "8736629642:AAHe9ZvyuHRGJV4C2t-zv6STyYXbe
 ADMIN_IDS     = {1256452126, 6479535975}
 ADMIN_ID      = 1256452126
 STARS_TO_TON  = 0.0084
-NFT_WITHDRAW_STARS = 1
+NFT_WITHDRAW_STARS = 25
 
 NFT_CATALOG = [
     {"id":"icecream","name":"Ice Cream","floor":1.10,"price":1.16,"rarity":"Common","color":"#0d2e1a"},
