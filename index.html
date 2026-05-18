@@ -2402,7 +2402,7 @@ async function doWithdrawWithStarsPatched(id,name,floor){
           <p style="color:rgba(255,255,255,0.5);margin:0 0 32px;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">${t('current_balance')}: <b>${balance.toFixed(4)} TON</b></p>
           <div style="display:flex;gap:12px;justify-content:center">
             <button onclick="document.getElementById('insufficient-balance-screen').remove()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:14px 24px;border-radius:12px;font-size:15px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500">${t('cancel')}</button>
-            <button onclick="document.getElementById('insufficient-balance-screen').remove();openModal('topup')" style="background:linear-gradient(135deg,#4d8fff,#2563eb);color:#fff;border:none;padding:14px 24px;border-radius:12px;font-size:15px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500;box-shadow:0 4px 12px rgba(77,143,255,0.4)">${t('deposit_btn')} ${NFT_WITHDRAW_FEE} TON</button>
+            <button onclick="document.getElementById('insufficient-balance-screen').remove();openTopup()" style="background:linear-gradient(135deg,#4d8fff,#2563eb);color:#fff;border:none;padding:14px 24px;border-radius:12px;font-size:15px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:500;box-shadow:0 4px 12px rgba(77,143,255,0.4)">${t('deposit_btn')} ${NFT_WITHDRAW_FEE} TON</button>
           </div>
         </div>
       </div>
