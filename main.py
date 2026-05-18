@@ -389,7 +389,6 @@ async def admin_give_nft(uid: int, nft_id: str, nft_name: str, floor: float, req
         "ts": time.time()
     }
     players[uid]["nfts"].append(nft_entry)
-    save_players()
     
     print(f"✅ Admin {admin_uid} gave NFT {nft_name} to {uid}")
     
