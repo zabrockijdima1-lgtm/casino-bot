@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -341,6 +342,22 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #deposit-btn .dep-plus{width:20px;height:20px;background:var(--pepe);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
 #hist{display:flex;gap:5px;padding:5px 10px;overflow-x:auto;background:#0a0f1a;border-bottom:1px solid rgba(77,143,255,0.08);scrollbar-width:none;flex-shrink:0}
 #hist::-webkit-scrollbar{display:none}
+
+/* NFT Live Ticker */
+#nft-ticker-wrap{display:flex;align-items:center;gap:0;background:#070c18;border-bottom:1px solid rgba(77,143,255,0.07);height:36px;overflow:hidden;flex-shrink:0;position:relative}
+#nft-ticker-live{flex-shrink:0;font-size:9px;font-weight:800;color:#4ade80;letter-spacing:1.5px;font-family:'Nunito',sans-serif;padding:0 10px;background:#070c18;z-index:2;position:relative}
+#nft-ticker-live::after{content:'';display:inline-block;width:5px;height:5px;background:#4ade80;border-radius:50%;margin-left:4px;vertical-align:middle;animation:nftBlink 1.2s ease-in-out infinite}
+@keyframes nftBlink{0%,100%{opacity:1}50%{opacity:0.2}}
+#nft-ticker{flex:1;overflow:hidden;position:relative}
+#nft-ticker-inner{display:flex;align-items:center;gap:4px;white-space:nowrap;animation:nftScroll 30s linear infinite;will-change:transform}
+#nft-ticker-inner:empty{animation:none}
+@keyframes nftScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.nft-tick-item{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:3px 9px 3px 4px;flex-shrink:0;cursor:default}
+.nft-tick-item.mine{background:rgba(108,79,255,0.18);border-color:rgba(108,79,255,0.4)}
+.nft-tick-img{width:22px;height:22px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#1a1a3a}
+.nft-tick-img-ph{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#1a1a3a,#2a1a4a);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.nft-tick-name{font-size:11px;color:rgba(255,255,255,0.75);font-family:'Nunito',sans-serif;font-weight:600}
+.nft-tick-you{font-size:9px;font-weight:800;color:#a78bfa;font-family:'Nunito',sans-serif;margin-left:2px;text-transform:uppercase}
 .hc{font-family:'Fredoka One',cursive;font-size:12px;font-weight:400;padding:4px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0}
 .hl{background:#0d1a3a;color:#4ade80;border:1px solid rgba(77,143,255,0.25)}
 .hm{background:#0a1a28;color:#60a5fa;border:1px solid rgba(96,165,250,0.25)}
@@ -464,13 +481,20 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #tab-game .tabn-lbl{margin-top:-2px;color:var(--acc);font-weight:800;letter-spacing:0.5px;font-size:9px}
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;backdrop-filter:blur(6px)}
 #modal-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid rgba(77,143,255,0.15);max-height:85vh;overflow-y:auto;padding:0 0 20px}
-.inv-card{background:var(--bg3);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden}
-.inv-body{padding:8px}
-.inv-name{font-size:11px;font-weight:700;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Nunito',sans-serif}
-.inv-r{font-size:8px;padding:2px 6px;border-radius:5px;display:inline-block;margin-bottom:4px}
-.inv-price{font-size:9px;color:#3a5a8a;margin-bottom:4px;font-family:'Nunito',sans-serif}
-.inv-mult{font-family:'Fredoka One',cursive;font-size:11px;color:var(--acc);margin-bottom:6px}
-.inv-btn{width:100%;background:linear-gradient(135deg,var(--pepe-dark),var(--pepe));border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:11px;font-weight:400;padding:7px;cursor:pointer}
+.inv-card{background:linear-gradient(160deg,#1a1535,#120e2a,#1a1535);border:1px solid rgba(140,100,255,0.18);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.inv-card-img-wrap{position:relative;width:100%;aspect-ratio:1;background:linear-gradient(145deg,#1e1740,#130e2e,#1e1740);overflow:hidden}
+.inv-card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.inv-card-img-wrap .inv-emoji{font-size:56px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.inv-price-badge{position:absolute;top:10px;right:10px;background:rgba(10,8,28,0.82);border-radius:12px;padding:4px 10px;display:flex;align-items:center;gap:4px;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.08)}
+.inv-price-badge span{font-family:'Fredoka One',cursive;font-size:13px;color:#fff;font-weight:400}
+.inv-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.inv-rarity-badge{display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:3px 10px;font-size:10px;color:rgba(255,255,255,0.6);font-family:'Nunito',sans-serif;font-weight:600;width:fit-content}
+.inv-name{font-family:'Fredoka One',cursive;font-size:15px;font-weight:400;color:#fff;letter-spacing:0.2px;margin:0}
+.inv-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.inv-btn{border:none;border-radius:12px;color:#fff;font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;padding:9px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:opacity .15s}
+.inv-btn:active{opacity:0.8}
+.inv-btn-withdraw{background:linear-gradient(135deg,#5b2db5,#7c3aed)}
+.inv-btn-sell{background:linear-gradient(135deg,#1a5c2a,#15803d)}
 .rare-Common{background:#0d1e3a;color:#4ade80}
 .rare-Rare{background:#0d1e3a;color:#60a5fa}
 .rare-Epic{background:#1e0d3a;color:#c084fc}
@@ -1160,6 +1184,14 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 
   <div id="hist"></div>
 
+  <!-- NFT Live Ticker -->
+  <div id="nft-ticker-wrap">
+    <span id="nft-ticker-live">LIVE</span>
+    <div id="nft-ticker">
+      <div id="nft-ticker-inner"></div>
+    </div>
+  </div>
+
   <div id="ctrls">
     <div class="card">
       <div class="cl" id="lbl-bet-card">BET TON</div>
@@ -1798,11 +1830,14 @@ function getPhotoById(nft){
 }
 function getNFT(win){
   if(!win||win<0.1)return null;
-  // NFT тільки якщо множник >= 1.1 (перевіряється окремо де викликається)
-  const available=NFT_CATALOG.filter(n=>(+(n.price||n.floor||0))<=win);
+  // Показуємо найдешевший NFT з каталогу (завжди є що показати)
+  const sorted=NFT_CATALOG.slice().sort((a,b)=>(+(a.price||a.floor||999999))-(+(b.price||b.floor||999999)));
+  if(!sorted.length)return null;
+  // Якщо виграш великий — підбираємо NFT відповідної вартості
+  const available=sorted.filter(n=>(+(n.price||n.floor||0))<=win);
   if(available.length)return available[Math.floor(Math.random()*available.length)];
-  const cheap=NFT_CATALOG.slice().sort((a,b)=>(+(a.price||a.floor||999999))-(+(b.price||b.floor||999999))).slice(0,5);
-  return cheap.length?cheap[Math.floor(Math.random()*cheap.length)]:null;
+  // Якщо виграш малий — повертаємо один з найдешевших
+  return sorted[Math.floor(Math.random()*Math.min(3,sorted.length))];
 }
 
 // Безпечна перевірка: NFT дається лише якщо mult >= 1.1
@@ -1901,7 +1936,7 @@ const ME=()=>document.getElementById('mult');
 const BB=()=>document.getElementById('bb');
 function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
 
-function calcMult(el){return Math.round(Math.pow(Math.E,el*0.07)*100)/100;}
+function calcMult(el){return Math.round(Math.pow(Math.E,el*0.06)*100)/100;}
 
 // ── РАКЕТА + ГРАФІК ─────────────────────────────────────────────────────────
 let rocketAngle = 35;
@@ -2155,6 +2190,45 @@ function addBetIndicator(){
   document.getElementById('hist').prepend(c);
 }
 
+// ── NFT LIVE TICKER ──────────────────────────────────────────────────────
+const _tickerItems=[];
+const MAX_TICKER=40; // максимум унікальних NFT у стрічці
+
+function addNFTToTicker(nft, isMe){
+  if(!nft||!nft.name)return;
+  const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
+  const item={id:nft.id,name:nft.name,photo:ph,emoji:nft.emoji||'🎁',isMe:!!isMe};
+  _tickerItems.unshift(item);
+  if(_tickerItems.length>MAX_TICKER)_tickerItems.length=MAX_TICKER;
+  _renderTicker();
+}
+
+function _renderTicker(){
+  const inner=document.getElementById('nft-ticker-inner');
+  if(!inner)return;
+  // Дублюємо масив для безшовного скролу
+  const all=[..._tickerItems,..._tickerItems];
+  inner.innerHTML=all.map(item=>{
+    const imgHtml=item.photo
+      ?`<img class="nft-tick-img" src="${item.photo}" alt="">`
+      :`<div class="nft-tick-img-ph">${item.emoji}</div>`;
+    const youBadge=item.isMe?`<span class="nft-tick-you">YOU</span>`:'';
+    return `<div class="nft-tick-item${item.isMe?' mine':''}">${imgHtml}<span class="nft-tick-name">${item.name}</span>${youBadge}</div>`;
+  }).join('');
+  // Скидаємо анімацію щоб рестартувала
+  inner.style.animation='none';
+  inner.offsetHeight; // reflow
+  const speed=Math.max(15, _tickerItems.length*1.5);
+  inner.style.animation=`nftScroll ${speed}s linear infinite`;
+}
+
+// Початкове наповнення стрічки з NFT_CATALOG (симуляція live)
+(function initTicker(){
+  const seeds=typeof NFT_CATALOG!=='undefined'?
+    [...NFT_CATALOG].sort(()=>Math.random()-0.5).slice(0,12):[];
+  seeds.forEach(n=>addNFTToTicker(n,false));
+})();
+
 const TSVG='<svg width="13" height="13" viewBox="0 0 56 56" fill="none" style="flex-shrink:0;vertical-align:middle"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>';
 
 function strColor(s){const C=['#ff6d00','#00e676','#ff1744','#40c4ff','#ffd700','var(--pepe-light)'];let h=0;for(let i=0;i<(s||'').length;i++)h=(h*31+s.charCodeAt(i))>>>0;return C[h%C.length];}
@@ -2183,10 +2257,12 @@ function renderPlayers(list){
     } else if(p.bet&&phase==='flying'){
       // Показуємо поточний виграш і NFT яке можна забрати
       const potentialWin = (+p.bet) * mult;
-      const potNFT = getNFTSafe(potentialWin, mult);
       const potWinStr = `<span class="pr-win" style="background:#0d1828;color:#f5c500">${TSVG} ${potentialWin.toFixed(2)}</span>`;
-      if(potNFT){
-        const np=getPhotoById(potNFT);
+      if(mult>=1.1){
+        // Завжди показуємо NFT іконку при >= 1.1x (найдешевший з каталогу)
+        const sorted=typeof NFT_CATALOG!=='undefined'?NFT_CATALOG.slice().sort((a,b)=>(+(a.price||a.floor||999999))-(+(b.price||b.floor||999999))):[];
+        const potNFT=sorted.length?sorted[0]:null;
+        const np=potNFT?getPhotoById(potNFT):null;
         const ni=np?`<img class="pr-nft" src="${np}" style="opacity:0.85">`:'<span style="font-size:22px;opacity:0.8">🎁</span>';
         right=potWinStr+' '+ni;
       } else {
@@ -2263,23 +2339,33 @@ function openModal(type){
     document.getElementById('modal-title').textContent=t('my_nfts');
     normalizeNFTInventory();
     if(!myNFTs.length){body.innerHTML=`<div style="text-align:center;color:#334;padding:40px;font-size:13px">${t('no_nfts')}<br><small style="color:#223">${t('win_nft')}</small></div>`;return;}
-    body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${
+    body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:4px 0">${
       myNFTs.slice().reverse().map((nft,i)=>{
         const nftKey=ensureNFTUid(nft);
         const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
         const imgHtml=ph
-          ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
-          :`<div style="font-size:52px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+          ?`<img src="${ph}" alt="${nft.name}">`
+          :`<div class="inv-emoji">${nft.emoji||'🎁'}</div>`;
+        const floorVal=(+(nft.floor||nft.price||0)).toFixed(2);
+        const sellVal=(+(nft.price||nft.floor||0)).toFixed(2);
+        const rarityLabel=nft.rarity||'Common';
+        const rarityUa=rarityLabel==='Legendary'?'Легендарний':rarityLabel==='Epic'?'Епічний':rarityLabel==='Rare'?'Рідкісний':'Випадковий';
         return `
         <div class="inv-card">
-          <div style="width:100%;aspect-ratio:1;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden">${imgHtml}</div>
+          <div class="inv-card-img-wrap">
+            ${imgHtml}
+            <div class="inv-price-badge">
+              <span>${floorVal}</span>
+              <svg width="13" height="13" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg>
+            </div>
+          </div>
           <div class="inv-body">
+            <div class="inv-rarity-badge">${rarityUa}</div>
             <div class="inv-name">${nft.name}</div>
-            <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
-            <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
-            <div class="inv-mult">+${(+(nft.winTon||nft.price||0)).toFixed(2)} TON</div>
-            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>${t('withdraw_btn')}</button>
-            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
+            <div class="inv-btn-row">
+              <button class="inv-btn inv-btn-withdraw" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>↗ ${t('withdraw_btn')}</button>
+              <button class="inv-btn inv-btn-sell" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>💰 ${sellVal}</button>
+            </div>
           </div>
         </div>`;
       }).join('')
@@ -2722,14 +2808,24 @@ function connect(){
       }
       renderPlayers(d.pl);
     }
-    else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
+    else if(d.t==='newbet'||d.t==='co'){
+      // Якщо інший гравець забрав NFT — показуємо у стрічці
+      if(d.t==='co' && d.pl){
+        d.pl.forEach(p=>{
+          if(p.uid!==userId && p.cashed && p.nft && p.nft.id){
+            addNFTToTicker(p.nft, false);
+          }
+        });
+      }
+      renderPlayers(d.pl);
+    }
     else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();if(window._activeNFTBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 NFT: ${window._activeNFTBet.name}</span>`;}else{BB().disabled=true;BB().innerHTML=t('bet_accepted');}}
     else if(d.t==='your_co'){
       hasBet=false;balance=d.bal;updBal();saveBal();
       stopFlightTicks();
       playCashoutSound();
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
-      if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
+      if(nftAllowed){addNFTToInventory(d.nft,d.win,d.mx);addNFTToTicker(d.nft,true);}
       showWinPopup(d.mx,d.win,nftAllowed?d.nft:null);
       triggerBigWin(+d.mx); // конфеті/зірки залежно від множника
       BB().className='';BB().innerHTML=t('place_bet');
@@ -2774,6 +2870,7 @@ function connect(){
         myNFTs.push(d.nft);
         saveNFTs();
         refreshInventoryLabel();
+        addNFTToTicker(d.nft, true); // показуємо у стрічці як "YOU"
       }
     }
     else if(d.t==='err'){showToast(d.msg);}
@@ -3879,6 +3976,64 @@ const CASES=[
      _nft('heroichelmet',  0.001),
      _nft('astralshards',  0.0005),
      _nft('durovscap',     0.0001),
+   ]},
+
+  // ── 11. NFT ONLY — 4 TON — тільки NFT, золотий кейс ─────────────────────
+  // Шанси: 99.2% — дешеві до 3 TON, 0.8% — до 8 TON, 0.02% — до 15 TON
+  {id:'nft_only', name:'NFT ONLY', emoji:'🏆', price:4, color:'#ffd600',
+   gradient:'linear-gradient(135deg,#2a1f00,#4a3500,#3a2800)',
+   accent:'#ffd600',
+   previewNFTs:['snoopdog','vicecream','eternalrose'],
+   items:[
+     // ── 99.2% — дешеві NFT до 3 TON (завжди падають Vice Cream, Instant Ramen) ──
+     _nft('vicecream',      48),    // ~37.8% — Vice Cream ~2.6 TON ★ головний
+     _nft('instantramen',   40),    // ~31.5% — Instant Ramen ~2.0 TON ★ головний
+     _nft('snakebox',       8),     // ~6.3%
+     _nft('candycane',      7),     // ~5.5%
+     _nft('lunarsnake',     6),     // ~4.7%
+     _nft('holidaydrink',   5),     // ~3.9%
+     _nft('whipcupcake',    4),     // ~3.1%
+     _nft('winterwreath',   4),     // ~3.1%
+     _nft('bigyear',        3),     // ~2.4%
+     _nft('poolfloat',      2),     // ~1.6%
+     _nft('chillflame',     1.5),   // ~1.2%
+     _nft('xmasstocking',   1.2),   // ~0.94% — кінець ~99.2% зони
+     // ── 0.8% — NFT до 8 TON ──────────────────────────────────────────────
+     _nft('snoopdog',       0.5),   // ~0.39% — Snoop Dogg ~4.7 TON ★
+     _nft('faithamulet',    0.2),   // ~0.16% — Faith Amulet ~4.2 TON
+     _nft('inputkey',       0.15),  // ~0.12% — Input Key ~4.75 TON ★
+     _nft('spyagaric',      0.1),   // ~0.079% — Spy Agaric ~4.56 TON
+     _nft('berrybox',       0.08),  // ~0.063% — Berry Box ~6.8 TON
+     _nft('sleighbell',     0.07),  // ~0.055% — Sleigh Bell ~6.7 TON
+     // ── 0.02% — NFT до 15 TON ────────────────────────────────────────────
+     _nft('valentinebox',   0.015), // ~0.012% — Valentine Box ~8.2 TON ★
+     _nft('lovepotion',     0.01),  // ~0.0079% — Love Potion ~11.8 TON ★
+     _nft('eternalrose',    0.007), // ~0.0055% — Eternal Rose ~21 TON ★ (ультра-рідко)
+     _nft('electricskull',  0.005), // ~0.0039% — Electric Skull ~24.6 TON ★
+     _nft('swisswatch',     0.003), // ~0.0024% — Swiss Watch ~43 TON 💎
+   ]},
+
+  // ── 12. STEAMPUNK — 1 TON — стімпанк, мідний кейс ───────────────────────
+  // Шанси: 99.2% — TON (0.3-0.6), 0.08% — NFT не дорожче 3 TON
+  {id:'steampunk', name:'STEAMPUNK', emoji:'⚙️', price:1, color:'#c87941',
+   gradient:'linear-gradient(135deg,#1a0f00,#2e1a00,#3d2200)',
+   accent:'#c87941',
+   previewNFTs:['chillflame','vicecream','hangingstar'],
+   items:[
+     // ── 99.2% — TON виграші ───────────────────────────────────────────────
+     {ton:0.3, weight:3600, isTon:true},   // ~45% — 0.3 TON
+     {ton:0.4, weight:2400, isTon:true},   // ~30% — 0.4 TON
+     {ton:0.5, weight:1280, isTon:true},   // ~16% — 0.5 TON
+     {ton:0.6, weight:640,  isTon:true},   // ~8%  — 0.6 TON
+     // ── 0.08% — NFT до 3 TON (з переліку) ───────────────────────────────
+     _nft('chillflame',   2.2),   // ~0.028% — Chill Flame ~2.59 TON ★
+     _nft('vicecream',    2.0),   // ~0.025% — Vice Cream ~2.6 TON ★
+     _nft('instantramen', 1.2),   // ~0.015% — Instant Ramen ~2.0 TON ★
+     _nft('candycane',    1.0),   // ~0.013% — Candy Cane ~2.65 TON
+     _nft('icecream',     0.8),   // ~0.01%  — Ice Cream ~1.29 TON
+     _nft('petsnake',     0.5),   // ~0.006% — Pet Snake ~3.11 TON
+     _nft('hangingstar',  0.3),   // ~0.004% — Hanging Star ~7.14 TON (рідко)
+     _nft('lovecandle',   0.2),   // ~0.003% — Love Candle ~8.42 TON (супер-рідко)
    ]},
 ];
 let curCase=null,spinAnim=null,lastWin=null;
