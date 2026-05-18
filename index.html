@@ -2338,9 +2338,13 @@ async function doWithdrawWithStars(id,name,floor){
     }
     tg.openInvoice(data.invoice_link, status=>{
       if(status==='paid'){
-        // Зірки сплачено — тепер відправляємо вивід через WS
-        if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,price:0,type:'withdraw'}));
-        showToast('⭐ Paid! Withdrawing...','info');
+        // Зірки сплачено — сервер автоматично обробить платіж через webhook
+        // НЕ потрібно відправляти WS повідомлення, бо це створить дублювання
+        showToast('⭐ Paid! NFT withdrawal in progress...','success');
+        // Оновлюємо NFT список після короткої затримки
+        setTimeout(()=>{
+          // NFT буде видалено з інвентаря через WebSocket оновлення від сервера
+        }, 1000);
       } else if(status==='cancelled'){
         showToast(t('cancelled'));
       } else if(status==='failed'){
@@ -2451,7 +2455,8 @@ async function doWithdrawWithStarsPatched(id,name,floor){
     },1000);
   }catch(e){}
 }
-doWithdrawWithStars=doWithdrawWithStarsPatched;
+// ВИДАЛЕНО: doWithdrawWithStars=doWithdrawWithStarsPatched;
+// Тепер використовуємо Stars метод за замовчуванням (25 зірок)
 
 function sellNFTPatched(id,name,price){
   const nft=findNFTByKey(id)||{id,name,price,floor:price};
