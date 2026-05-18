@@ -2,6 +2,7 @@ import asyncio, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 app.add_middleware(
@@ -19,18 +20,141 @@ BOT_TOKEN     = os.getenv("BOT_TOKEN", "8736629642:AAHe9ZvyuHRGJV4C2t-zv6STyYXbe
 ADMIN_IDS     = {1256452126, 6479535975}
 ADMIN_ID      = 1256452126
 STARS_TO_TON  = 0.0084
-RAILWAY_DOMAIN = "https://casino-bot-production-5113.up.railway.app"
 
 NFT_CATALOG = [
-    {"id":"icecream","name":"Ice Cream","floor":1.29,"price":1.35},
-    {"id":"easteregg","name":"Easter Egg","floor":3.41,"price":3.58},
-    {"id":"faithamulet","name":"Faith Amulet","floor":4.23,"price":4.44},
+    {"id":"icecream","name":"Ice Cream","floor":1.29,"price":1.35,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"santahat","name":"Santa Hat","floor":1.63,"price":1.71,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"moussecake","name":"Mousse Cake","floor":1.80,"price":1.89,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"lolpop2","name":"Lol Pop","floor":1.90,"price":1.99,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"instantramen","name":"Instant Ramen","floor":2.00,"price":2.10,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"springbasket","name":"Spring Basket","floor":2.13,"price":2.24,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"homemadecake","name":"Homemade Cake","floor":2.19,"price":2.30,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"restlessjar","name":"Restless Jar","floor":2.25,"price":2.36,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"witchhat","name":"Witch Hat","floor":2.49,"price":2.61,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"chillflame","name":"Chill Flame","floor":2.59,"price":2.72,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"xmasstocking","name":"Xmas Stocking","floor":2.60,"price":2.73,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"vicecream","name":"Vice Cream","floor":2.60,"price":2.73,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"snakebox","name":"Snake Box","floor":2.64,"price":2.77,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"candycane","name":"Candy Cane","floor":2.65,"price":2.78,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"lunarsnak","name":"Lunar Snake","floor":2.74,"price":2.88,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"holidaydrink","name":"Holiday Drink","floor":2.82,"price":2.96,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"whipcupcake","name":"Whip Cupcake","floor":2.85,"price":2.99,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"winterwreath","name":"Winter Wreath","floor":2.85,"price":2.99,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"bigyear","name":"Big Year","floor":2.87,"price":3.01,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"poolfloat","name":"Pool Float","floor":2.96,"price":3.11,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"joyfulbundle2","name":"Joyful Bundle","floor":3.09,"price":3.24,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"jesterhat","name":"Jester Hat","floor":3.09,"price":3.24,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"petsnake","name":"Pet Snake","floor":3.11,"price":3.27,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"partysparker","name":"Party Sparkler","floor":3.16,"price":3.32,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"hypnolollipop","name":"Hypno Lollipop","floor":3.18,"price":3.34,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"tamagadget","name":"Tama Gadget","floor":3.23,"price":3.39,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"freshsocks","name":"Fresh Socks","floor":3.26,"price":3.42,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"jackinthebox","name":"Jack-in-the-Box","floor":3.36,"price":3.53,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"easteregg","name":"Easter Egg","floor":3.41,"price":3.58,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"spicedwine","name":"Spiced Wine","floor":3.47,"price":3.64,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"happybroom","name":"Happy Brownie","floor":3.49,"price":3.66,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"lolpop","name":"Lol Pop","floor":3.61,"price":3.79,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"stellarrocket","name":"Stellar Rocket","floor":3.63,"price":3.81,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"jellybunny","name":"Jelly Bunny","floor":3.50,"price":3.68,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"moodpack","name":"Mood Pack","floor":3.67,"price":3.85,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"starnotepad","name":"Star Notepad","floor":3.71,"price":3.90,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"gingercookie","name":"Ginger Cookie","floor":3.73,"price":3.92,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"bunnymuffin","name":"Bunny Muffin","floor":3.64,"price":3.82,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"cookieheart","name":"Cookie Heart","floor":3.84,"price":4.03,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"snowglobe","name":"Snow Globe","floor":3.83,"price":4.02,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"hexpot","name":"Hex Pot","floor":3.87,"price":4.06,"rarity":"Common","color":"#0d2e1a"},
+    {"id":"bdaycandle","name":"B-Day Candle","floor":4.08,"price":4.28,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"bowtie","name":"Bow Tie","floor":4.27,"price":4.48,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"cloverpin","name":"Clover Pin","floor":4.07,"price":4.27,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"faithamulet","name":"Faith Amulet","floor":4.23,"price":4.44,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"snowmittens","name":"Snow Mittens","floor":4.29,"price":4.50,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"moonpencil","name":"Moon Pendant","floor":4.36,"price":4.58,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"lushbouquet","name":"Lush Bouquet","floor":4.47,"price":4.69,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"inputkey","name":"Input Key","floor":4.75,"price":4.99,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"timelessbook","name":"Timeless Book","floor":4.03,"price":4.23,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"spyagaric","name":"Spy Agaric","floor":4.56,"price":4.79,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"snoopdog","name":"Snoop Dogg","floor":4.71,"price":4.95,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"joyfullbundle","name":"Joyful Bundle","floor":5.61,"price":5.89,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"lightsword","name":"Light Sword","floor":5.04,"price":5.29,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"eternalcandle","name":"Eternal Candle","floor":5.39,"price":5.66,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"deskcalendar","name":"Desk Calendar","floor":5.48,"price":5.75,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"jollychimp","name":"Jolly Chimp","floor":5.88,"price":6.17,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"swagbag","name":"Swag Bag","floor":5.86,"price":6.15,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"evileye","name":"Evil Eye","floor":5.97,"price":6.27,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"sleighbell","name":"Sleigh Bell","floor":6.70,"price":7.04,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"berrybox","name":"Berry Box","floor":6.80,"price":7.14,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"hangingstar","name":"Hanging Star","floor":7.14,"price":7.50,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"jinglebells","name":"Jingle Bells","floor":7.40,"price":7.77,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"valentinebox","name":"Valentine Box","floor":8.22,"price":8.63,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"lovecandle","name":"Love Candle","floor":8.42,"price":8.84,"rarity":"Rare","color":"#0d1e3a"},
+    {"id":"crystalball","name":"Crystal Ball","floor":9.74,"price":10.23,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"skullflower","name":"Skull Flower","floor":9.75,"price":10.24,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"flyingbroom","name":"Flying Broom","floor":10.16,"price":10.67,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"tophat","name":"Top Hat","floor":10.59,"price":11.12,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"sakuraflower","name":"Sakura Flower","floor":10.81,"price":11.35,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"madpumpkin","name":"Mad Pumpkin","floor":10.89,"price":11.43,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"lovepotion","name":"Love Potion","floor":11.85,"price":12.44,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"snoopcigar","name":"Snoop Cigar","floor":12.08,"price":12.68,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"trappedheart","name":"Trapped Heart","floor":12.91,"price":13.56,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"skystillettos","name":"Sky Stilettos","floor":13.28,"price":13.94,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"ionicdryer","name":"Ionic Dryer","floor":13.53,"price":14.21,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"recordplayer","name":"Record Player","floor":14.24,"price":14.95,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"signetring","name":"Signet Ring","floor":16.50,"price":17.32,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"cupidcharm","name":"Cupid Charm","floor":17.41,"price":18.28,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"vintagecigar","name":"Vintage Cigar","floor":18.20,"price":19.11,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"bondedring","name":"Bonded Ring","floor":21.00,"price":22.05,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"sharptongue","name":"Sharp Tongue","floor":21.69,"price":22.77,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"eternalrose","name":"Eternal Rose","floor":21.86,"price":22.95,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"electricskull","name":"Electric Skull","floor":24.69,"price":25.92,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"diamondring","name":"Diamond Ring","floor":25.28,"price":26.54,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"voodoodoll","name":"Voodoo Doll","floor":29.27,"price":30.73,"rarity":"Epic","color":"#1e0d3a"},
+    {"id":"toybear","name":"Toy Bear","floor":30.10,"price":31.61,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"nekohelmet","name":"Neko Helmet","floor":31.59,"price":33.17,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"lowrider","name":"Low Rider","floor":39.89,"price":41.88,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"genielamp","name":"Genie Lamp","floor":40.70,"price":42.74,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"swisswatch","name":"Swiss Watch","floor":43.13,"price":45.29,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"kissedfrog","name":"Kissed Frog","floor":48.89,"price":51.33,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"nailbracelet","name":"Nail Bracelet","floor":54.70,"price":57.44,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"gemsignet","name":"Gem Signet","floor":55.87,"price":58.66,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"magicpotion","name":"Magic Potion","floor":61.44,"price":64.51,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"artisanbread","name":"Artisan Brick","floor":68.34,"price":71.76,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"iongem","name":"Ion Gem","floor":69.82,"price":73.31,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"perfumebottle","name":"Perfume Bottle","floor":70.86,"price":74.40,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"westsideside","name":"Westside Sign","floor":70.94,"price":74.49,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"minioscal","name":"Mini Oscar","floor":72.22,"price":75.83,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"lootbag","name":"Loot Bag","floor":72.99,"price":76.64,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"mightyarm","name":"Mighty Arm","floor":79.00,"price":82.95,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"scaredcat","name":"Scared Cat","floor":87.99,"price":92.39,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"heroichelmet","name":"Heroic Helmet","floor":200.58,"price":210.61,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"astralshard","name":"Astral Shard","floor":151.69,"price":159.27,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"preciouspeach","name":"Precious Peach","floor":188.80,"price":198.24,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"durovscap","name":"Durov Cap","floor":576.88,"price":605.72,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"heartlocket","name":"Heart Locket","floor":1050.00,"price":1102.50,"rarity":"Legendary","color":"#2e1e00"},
+    {"id":"plushpepe","name":"Plush Pepe","floor":4500.00,"price":4725.00,"rarity":"Legendary","color":"#2e1e00"},
 ]
 
 def get_nft_for_win(win: float):
-    if win < 0.1: return None
+    if win < 0.1: return None  # ЗМІНЕНО: тепер ВСІ NFT падають від 0.1 TON
     ok = [n for n in NFT_CATALOG if n["price"] <= win]
     return max(ok, key=lambda n: n["floor"]) if ok else None
+
+# НОВА ФУНКЦІЯ: Перевірка підписки на канал
+async def check_subscription(user_id: int, channel: str) -> bool:
+    """Перевіряє чи користувач підписаний на канал через Telegram Bot API"""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember"
+            params = {"chat_id": channel, "user_id": user_id}
+            response = await client.get(url, params=params)
+            data = response.json()
+            
+            if data.get("ok"):
+                status = data.get("result", {}).get("status")
+                return status in ["member", "administrator", "creator"]
+            return False
+    except Exception as e:
+        print(f"Error checking subscription: {e}")
+        return False
 
 clients: dict = {}
 players: dict = {}
@@ -38,15 +162,18 @@ bets:    dict = {}
 referrals: dict = {}
 ref_earnings: dict = {}
 pending_topups: dict = {}
+
 logs = {"bets": [], "cashouts": [], "deposits": [], "withdrawals": [], "referrals": [], "stars": [], "cases": []}
 MAX_LOGS = 500
 
+# Збереження даних у файл
 PLAYERS_FILE = "players_data.json"
 
 def save_players():
     try:
         with open(PLAYERS_FILE, "w") as f:
             json.dump(players, f)
+        print(f"💾 Players data saved ({len(players)} players)")
     except Exception as e:
         print(f"❌ Error saving players: {e}")
 
@@ -56,13 +183,14 @@ def load_players():
         if os.path.exists(PLAYERS_FILE):
             with open(PLAYERS_FILE, "r") as f:
                 players = json.load(f)
-            print(f"📂 Loaded {len(players)} players")
+            print(f"📂 Loaded {len(players)} players from file")
         else:
-            print("📂 No saved file, fresh start")
+            print("📂 No saved players file, starting fresh")
     except Exception as e:
-        print(f"❌ Load error: {e}")
+        print(f"❌ Error loading players: {e}")
         players = {}
 
+# Завантажуємо при старті
 load_players()
 
 def add_log(category, entry):
@@ -73,18 +201,37 @@ def add_log(category, entry):
 
 async def send_tg(uid: int, text: str):
     try:
+        print(f"📤 Sending message to {uid}: {text[:50]}...")
         async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(
+            r = await client.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
                 json={"chat_id": uid, "text": text, "parse_mode": "HTML"}
             )
+            data = r.json()
+            if data.get("ok"):
+                print(f"✅ Message sent successfully to {uid}")
+            else:
+                print(f"❌ Telegram API error: {data.get('description', 'Unknown error')}")
     except Exception as e:
-        print(f"❌ TG error: {e}")
+        print(f"❌ TG send error to {uid}: {e}")
 
 async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     if uid not in players:
         players[uid] = {"name": "Player", "nick": "", "photo": "", "balance": 0, "nfts": []}
     players[uid]["balance"] = round(players[uid]["balance"] + amount, 4)
+    if uid in referrals:
+        ref_uid = referrals[uid]
+        bonus = round(amount * 0.10, 4)  # 10% реферальний бонус
+        if ref_uid not in players:
+            players[ref_uid] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
+        players[ref_uid]["balance"] = round(players[ref_uid]["balance"] + bonus, 4)
+        ref_earnings[ref_uid] = round(ref_earnings.get(ref_uid, 0) + bonus, 4)
+        add_log("deposits", {"uid": ref_uid, "name": players[ref_uid].get("name", "?"), "amount": bonus, "note": f"ref bonus від {uid}"})
+        if ref_uid in clients:
+            try:
+                await clients[ref_uid].send_text(json.dumps({"t": "ref_bonus", "bonus": bonus, "bal": players[ref_uid]["balance"]}))
+            except: pass
+        await send_tg(ref_uid, f"👥 <b>Реферальний бонус!</b>\nВаш реферал поповнив баланс на {amount} TON\nВаш бонус: <b>+{bonus} TON</b> (10%)")
     if uid in clients:
         try:
             await clients[uid].send_text(json.dumps({"t": "topup_ok", "credited": amount, "bal": players[uid]["balance"], "source": source}))
@@ -92,201 +239,1131 @@ async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     return players[uid]["balance"]
 
 async def check_ton_tx(uid: int, amount: float, since_ts: float) -> bool:
-    return False  # Simplified
+    if not TON_WALLET: return False
+    try:
+        params = {"address": TON_WALLET, "limit": 20}
+        if TONCENTER_KEY: params["api_key"] = TONCENTER_KEY
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get("https://toncenter.com/api/v2/getTransactions", params=params)
+            data = r.json()
+            if not data.get("ok"): return False
+            nanos = int(amount * 1e9)
+            for tx in data.get("result", []):
+                if tx.get("utime", 0) < since_ts - 180: break
+                val = int(tx.get("in_msg", {}).get("value", 0))
+                if abs(val - nanos) < 50_000_000: return True
+    except Exception as e:
+        print(f"check_ton_tx error: {e}")
+    return False
+
+pending_stars_payments = {}  # {uid: {"stars": 10, "ton": 0.084, "ts": timestamp}}
 
 async def auto_check_topups():
     while True:
         await asyncio.sleep(10)
+        for uid, info in list(pending_topups.items()):
+            if info.get("done"):
+                pending_topups.pop(uid, None); continue
+            if time.time() - info["ts"] > 900:
+                pending_topups.pop(uid, None); continue
+            found = await check_ton_tx(uid, info["amount"], info["ts"])
+            if found:
+                info["done"] = True
+                amt = info["amount"]
+                bal = await credit_balance(uid, amt, source="ton")
+                add_log("deposits", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt})
+                await send_tg(ADMIN_ID, f"💰 <b>Депозит TON</b>\nКористувач: {players[uid].get('name','?')} (uid: {uid})\nСума: {amt} TON\nБаланс: {bal} TON")
 
-@app.get("/stars/invoice/{uid}/{stars}")
-async def create_stars_invoice(uid: int, stars: int):
-    if stars < 1 or stars > 10000:
-        return JSONResponse({"ok": False, "error": "Stars 1-10000"})
-    ton_amount = round(stars * STARS_TO_TON, 4)
-    payload = json.dumps({"uid": uid, "stars": stars, "ton": ton_amount, "type": "balance_topup"})
+async def check_stars_payments():
+    """Перевіряє pending Stars payments через getUpdates як fallback"""
+    while True:
+        await asyncio.sleep(5)
+        
+        if pending_stars_payments:
+            print(f"🔍 Checking {len(pending_stars_payments)} pending Stars payment(s)")
+        
+        if not pending_stars_payments:
+            continue
+        
+        # Видаляємо старі (більше 10 хвилин)
+        for uid in list(pending_stars_payments.keys()):
+            if time.time() - pending_stars_payments[uid]["ts"] > 600:
+                print(f"⏱️ Removing expired Stars payment for {uid}")
+                pending_stars_payments.pop(uid, None)
+        
+        if not pending_stars_payments:
+            continue
+        
+        try:
+            # Робимо один запит getUpdates для перевірки
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                    params={"offset": -1, "limit": 10}  # Тільки останні 10 updates
+                )
+                data = r.json()
+                
+                if not data.get("ok"):
+                    continue
+                
+                for update in data.get("result", []):
+                    msg = update.get("message", {})
+                    payment = msg.get("successful_payment")
+                    
+                    if payment and payment.get("currency") == "XTR":
+                        try:
+                            payload = json.loads(payment["invoice_payload"])
+                            uid = int(payload["uid"])
+                            
+                            if uid in pending_stars_payments:
+                                stars = int(payload["stars"])
+                                ton_amount = float(payload["ton"])
+                                
+                                print(f"✅ Found Stars payment via fallback check: {stars} Stars for {uid}")
+                                
+                                # Зараховуємо
+                                bal = await credit_balance(uid, ton_amount, source="stars")
+                                add_log("stars", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "stars": stars, "ton": ton_amount})
+                                add_log("deposits", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "amount": ton_amount, "note": f"Stars x{stars} (fallback)"})
+                                
+                                await send_tg(uid, f"⭐ <b>Stars зараховано!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nБаланс: {bal} TON")
+                                await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит (fallback)</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
+                                
+                                # Оновлюємо баланс через WebSocket
+                                if uid in clients:
+                                    try:
+                                        await clients[uid].send_text(json.dumps({"t": "bal", "bal": bal}))
+                                    except:
+                                        pass
+                                
+                                # Видаляємо з pending
+                                pending_stars_payments.pop(uid, None)
+                                print(f"✅ Stars credited via fallback: {stars} → {ton_amount} TON, balance: {bal}")
+                        except Exception as e:
+                            print(f"❌ Error processing fallback payment: {e}")
+        except Exception as e:
+            print(f"❌ check_stars_payments error: {e}")
+
+# Long polling для отримання Stars payments
+last_update_id = 0
+async def poll_telegram_updates():
+    global last_update_id
+    print("🔄 Starting Telegram polling for Stars payments...")
+    while True:
+        try:
+            await asyncio.sleep(2)
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                    params={"offset": last_update_id + 1, "timeout": 5, "allowed_updates": ["message", "pre_checkout_query"]}
+                )
+                data = r.json()
+                
+                if not data.get("ok"):
+                    print(f"❌ getUpdates error: {data}")
+                    await asyncio.sleep(5)
+                    continue
+                
+                updates = data.get("result", [])
+                if updates:
+                    print(f"📨 Received {len(updates)} update(s)")
+                
+                for update in updates:
+                    last_update_id = max(last_update_id, update.get("update_id", 0))
+                    
+                    # Pre-checkout query
+                    if "pre_checkout_query" in update:
+                        pcq_id = update["pre_checkout_query"]["id"]
+                        print(f"✅ Pre-checkout query: {pcq_id}")
+                        try:
+                            async with httpx.AsyncClient(timeout=10) as client2:
+                                await client2.post(
+                                    f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery",
+                                    json={"pre_checkout_query_id": pcq_id, "ok": True}
+                                )
+                                print(f"✅ Answered pre-checkout query")
+                        except Exception as e:
+                            print(f"❌ answerPreCheckoutQuery error: {e}")
+                    
+                    # Successful payment
+                    msg = update.get("message", {})
+                    payment = msg.get("successful_payment")
+                    if payment and payment.get("currency") == "XTR":
+                        print(f"💳 Stars payment received via polling: {payment}")
+                        try:
+                            payload = json.loads(payment["invoice_payload"])
+                            uid = int(payload["uid"])
+                            stars = int(payload["stars"])
+                            ton_amount = float(payload["ton"])
+                            
+                            print(f"💰 Processing: {stars} Stars → {ton_amount} TON for user {uid}")
+                            
+                            bal = await credit_balance(uid, ton_amount, source="stars")
+                            add_log("stars", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "stars": stars, "ton": ton_amount})
+                            add_log("deposits", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "amount": ton_amount, "note": f"Stars x{stars}"})
+                            
+                            await send_tg(uid, f"⭐ <b>Stars зараховано!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nБаланс: {bal} TON")
+                            await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
+                            print(f"✅ Stars credited: {stars} → {ton_amount} TON for user {uid}, new balance: {bal}")
+                            
+                            # Оновлюємо баланс через WebSocket
+                            if uid in clients:
+                                try:
+                                    await clients[uid].send_text(json.dumps({"t": "bal", "bal": bal}))
+                                    print(f"✅ Balance updated via WebSocket")
+                                except Exception as e:
+                                    print(f"❌ WebSocket update error: {e}")
+                        except Exception as e:
+                            print(f"❌ Stars payment processing error: {e}")
+                            import traceback
+                            traceback.print_exc()
+        except Exception as e:
+            print(f"❌ Polling error: {e}")
+            import traceback
+            traceback.print_exc()
+            await asyncio.sleep(5)
+
+NFT_WITHDRAW_STARS = 1
+
+@app.get("/stars/withdraw-invoice/{uid}/{nft_id}/{nft_name}")
+async def create_withdraw_invoice(uid: int, nft_id: str, nft_name: str):
+    payload = json.dumps({"uid": uid, "nft_id": nft_id, "type": "nft_withdraw"})
+    print(f"🎫 Creating withdraw invoice for UID:{uid}, NFT:{nft_name}, Fee:{NFT_WITHDRAW_STARS}⭐")
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
-                json={"title": "Top Up ⭐", "description": f"{stars} Stars → {ton_amount} TON", "payload": payload, "currency": "XTR", "prices": [{"label": f"{stars} Stars", "amount": stars}]}
+                json={"title": f"NFT Withdrawal: {nft_name}", "description": f"Fee for withdrawing NFT «{nft_name}» to your Telegram wallet", "payload": payload, "currency": "XTR", "prices": [{"label": "Withdrawal fee", "amount": NFT_WITHDRAW_STARS}]}
+            )
+            data = r.json()
+            print(f"📋 Telegram API response: {data}")
+        if not data.get("ok"):
+            error_msg = data.get("description", "Telegram error")
+            print(f"❌ Invoice creation failed: {error_msg}")
+            return JSONResponse({"ok": False, "error": error_msg})
+        print(f"✅ Invoice created successfully")
+        return JSONResponse({"ok": True, "invoice_link": data["result"]})
+    except Exception as e:
+        print(f"❌ Server error creating invoice: {str(e)}")
+        return JSONResponse({"ok": False, "error": f"Server error: {str(e)}"})
+
+@app.get("/stars/invoice/{uid}/{stars}")
+async def create_stars_invoice(uid: int, stars: int):
+    if stars < 10 or stars > 10000:
+        return JSONResponse({"ok": False, "error": "Stars від 10 до 10 000"})
+    ton_amount = round(stars * STARS_TO_TON, 4)
+    payload = json.dumps({"uid": uid, "stars": stars, "ton": ton_amount})
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/createInvoiceLink",
+                json={"title": "Поповнення балансу ⭐", "description": f"{stars} Telegram Stars → {ton_amount} TON на ігровий баланс", "payload": payload, "currency": "XTR", "prices": [{"label": f"{stars} Stars", "amount": stars}]}
             )
             data = r.json()
         if not data.get("ok"):
-            return JSONResponse({"ok": False, "error": data.get("description", "Error")})
+            return JSONResponse({"ok": False, "error": data.get("description", "Помилка Telegram")})
+        
+        # Додаємо в pending для fallback перевірки
+        pending_stars_payments[uid] = {"stars": stars, "ton": ton_amount, "ts": time.time()}
+        print(f"📝 Added pending Stars payment: {uid} → {stars} Stars")
+        
         return JSONResponse({"ok": True, "invoice_link": data["result"], "ton": ton_amount})
     except Exception as e:
-        return JSONResponse({"ok": False, "error": "Server error"})
+        return JSONResponse({"ok": False, "error": "Помилка сервера"})
 
 @app.post("/tg/webhook")
 async def tg_webhook(request: Request):
     try:
         update = await request.json()
-    except:
+        print(f"📨 Webhook received: {json.dumps(update, ensure_ascii=False)[:500]}")
+    except Exception as e:
+        print(f"❌ Failed to parse webhook: {e}")
         return JSONResponse({"ok": True})
-    
-    # PRE-CHECKOUT
+
+    # 1. PRE-CHECKOUT QUERY — КРИТИЧНО ПЕРШИМ! Telegram вимагає відповіді протягом 10 сек
     if "pre_checkout_query" in update:
         pcq_id = update["pre_checkout_query"]["id"]
-        print(f"✅ Pre-checkout: {pcq_id}")
+        print(f"✅ Pre-checkout query received via webhook: {pcq_id}")
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                await client.post(
-                    f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery",
-                    json={"pre_checkout_query_id": pcq_id, "ok": True}
-                )
-                print(f"✅ Approved!")
+                r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery", json={"pre_checkout_query_id": pcq_id, "ok": True})
+                result = r.json()
+                print(f"✅ Pre-checkout answered: {result}")
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"❌ answerPreCheckoutQuery error: {e}")
         return JSONResponse({"ok": True})
-    
+
     msg = update.get("message", {})
-    
-    # PAYMENT
+
+    # 2. SUCCESSFUL PAYMENT — Stars оплата
     payment = msg.get("successful_payment")
     if payment and payment.get("currency") == "XTR":
-        print(f"💳 Payment: {payment}")
+        print(f"💳 Stars payment received: {payment}")
         try:
             payload = json.loads(payment["invoice_payload"])
-            uid = int(payload["uid"])
-            stars = int(payload["stars"])
-            ton_amount = float(payload["ton"])
-            
-            bal = await credit_balance(uid, ton_amount, source="stars")
-            save_players()
-            
-            await send_tg(uid, f"⭐ <b>Credited!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nBalance: {bal} TON")
-            await send_tg(ADMIN_ID, f"⭐ Deposit: {stars} Stars from UID {uid}")
-            
-            if uid in clients:
-                try:
-                    await clients[uid].send_text(json.dumps({"t": "bal", "bal": bal}))
-                except: pass
+            print(f"📦 Payload: {payload}")
         except Exception as e:
-            print(f"❌ Payment error: {e}")
+            print(f"❌ Payload parse error: {e}")
+            return JSONResponse({"ok": True})
+        pay_type = payload.get("type", "deposit")
+        print(f"🔍 Payment type: {pay_type}")
+        if pay_type == "nft_withdraw":
+            uid = int(payload["uid"])
+            nft_id = payload["nft_id"]
+            print(f"👤 UID: {uid}, NFT ID: {nft_id}")
+            p = players.get(uid)
+            if p:
+                nfts = p.get("nfts", [])
+                print(f"🎁 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
+                found_nft = None; new_nfts = []; removed = False
+                for n in nfts:
+                    if n.get("id") == nft_id and not removed:
+                        found_nft = n; removed = True
+                        print(f"✅ Found NFT: {n.get('name')}")
+                    else:
+                        new_nfts.append(n)
+                if found_nft:
+                    p["nfts"] = new_nfts
+                    add_log("withdrawals", {"uid": uid, "name": p.get("name","?"), "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw_stars"})
+                    if uid in clients:
+                        try:
+                            await clients[uid].send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
+                        except: pass
+                    await send_tg(uid, f"✅ <b>NFT виведено!</b>\n{found_nft.get('name')} відправлено у ваш гаманець\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
+                    await send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT (Stars)</b>\nКористувач: {p.get('name','?')}\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
+                    print(f"✅ NFT withdrawal completed for {uid}")
+                else:
+                    print(f"❌ NFT {nft_id} not found in player inventory")
+            else:
+                print(f"❌ Player {uid} not found")
+        else:
+            try:
+                uid = int(payload["uid"]); stars = int(payload["stars"]); ton_amount = float(payload["ton"])
+            except:
+                return JSONResponse({"ok": True})
+            bal = await credit_balance(uid, ton_amount, source="stars")
+            add_log("stars", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "stars": stars, "ton": ton_amount})
+            add_log("deposits", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "amount": ton_amount, "note": f"Stars x{stars}"})
+            await send_tg(uid, f"⭐ <b>Stars зараховано!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nБаланс: {bal} TON")
+            await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
         return JSONResponse({"ok": True})
-    
-    # COMMANDS
+
+    # 3. КОМАНДИ
     if msg:
         chat_id = msg.get("chat", {}).get("id")
         text = msg.get("text", "")
         if text == "/start":
-            await send_tg(chat_id, f"👋 Welcome!\n\n🎮 {RAILWAY_DOMAIN}\n\nGood luck!")
-            
+            user_name = msg.get("from", {}).get("first_name", "User")
+            await send_tg(chat_id, f"👋 Welcome to Rocket Casino, {user_name}!\n\n🎮 Open the game: https://casino-bot-production-5113.up.railway.app\n\nGood luck! 🚀")
+
     return JSONResponse({"ok": True})
 
+@app.get("/admin/give_nft/{uid}/{nft_id}/{nft_name}/{floor}")
+async def admin_give_nft(uid: int, nft_id: str, nft_name: str, floor: float, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}", "nick": ""}
+    
+    # Додаємо NFT
+    nft_entry = {
+        "id": nft_id,
+        "name": nft_name,
+        "emoji": "🎁",
+        "rarity": "Common",
+        "price": floor,
+        "floor": floor,
+        "ts": time.time()
+    }
+    players[uid]["nfts"].append(nft_entry)
+    save_players()
+    
+    print(f"✅ Admin {admin_uid} gave NFT {nft_name} to {uid}")
+    
+    # Якщо гравець онлайн - повідомляємо
+    if uid in clients:
+        try:
+            await clients[uid].send_text(json.dumps({"t": "admin_nft_added", "nft": nft_entry}))
+        except: pass
+    
+    return HTMLResponse(f'<script>alert("NFT {nft_name} added to player {uid}"); window.location="/admin/player/{uid}?uid={admin_uid}"</script>')
+
+@app.get("/test/send_message/{chat_id}")
+async def test_send_message(chat_id: int):
+    """Test endpoint to verify bot can send messages"""
+    try:
+        await send_tg(chat_id, "🧪 <b>Test message from Railway</b>\n\nIf you see this, bot is working! ✅")
+        return {"ok": True, "message": f"Message sent to {chat_id}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.get("/set_webhook")
+async def set_webhook(request: Request):
+    webhook_url = request.query_params.get("url")
+    if not webhook_url:
+        return JSONResponse({"error": "передай ?url=https://твій-сервер.com"})
+    full_url = webhook_url.rstrip("/") + "/tg/webhook"
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook", json={"url": full_url})
+        return r.json()
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
+@app.get("/delete_webhook")
+async def delete_webhook():
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+        return r.json()
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
 class G:
-    phase = "waiting"
-    mult = 1.0
+    phase    = "waiting"
+    mult     = 1.0
     crash_at = 1.0
     start_ts = 0.0
     round_id = 0
+    next_hook = random.randint(8, 25)
+    history: list = []
+    def calc_mult(self, t): return round(math.exp(t * 0.06), 2)  # Трохи повільніше для реалізму
+
+g = G()
+
+def gen_crash():
+    r = random.random()
+    # Новий розподіл - низький RTP (~85%), казино заробляє
+    if r < 0.15: return 1.00  # 15% - instant crash
+    if r < 0.50: return round(random.uniform(1.01, 1.5), 2)  # 35% - малий виграш
+    if r < 0.75: return round(random.uniform(1.5,  2.5), 2)  # 25% - середній
+    if r < 0.90: return round(random.uniform(2.5,  5.0), 2)  # 15% - добрий
+    if r < 0.97: return round(random.uniform(5.0,  20.0), 2) # 7% - великий
+    if r < 0.99: return round(random.uniform(20.0, 50.0), 2) # 2% - дуже великий
+    return round(random.uniform(50.0, 100.0), 2)  # 1% - джекпот
+
+def gen_crash_no_bets():
+    return round(random.uniform(30.0, 100.0), 2)
+
+async def broadcast(msg):
+    data = json.dumps(msg)
+    dead = []
+    for uid, ws in list(clients.items()):
+        try: await ws.send_text(data)
+        except: dead.append(uid)
+    for uid in dead: clients.pop(uid, None)
+
+def players_list():
+    return [
+        {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "nick": players.get(uid, {}).get("nick", ""),
+         "photo": players.get(uid, {}).get("photo", ""), "bet": b["amount"],
+         "cashed": b.get("cashed", False), "win": b.get("win"), "mult": b.get("mult"),
+         "lost": b.get("lost", False), "nft": b.get("nft"), "is_nft": b.get("is_nft", False)}
+        for uid, b in bets.items()
+    ]
+
+async def do_cashout(uid, mult):
+    bet = bets.get(uid)
+    if not bet or bet.get("cashed"): return
+    bet["cashed"] = True
+    bet["mult"] = mult
+    p = players.get(uid, {})
+
+    if bet.get("is_nft"):
+        # NFT ставка: виграш = nft_price * mult -> даємо NFT з каталогу відповідної вартості
+        nft_price = bet["amount"]
+        win_value = round(nft_price * mult, 4)
+        bet["win"] = win_value
+
+        win_nft = get_nft_for_win(win_value) if mult >= 1.1 else None
+        bet["nft"] = win_nft
+
+        if win_nft:
+            p.setdefault("nfts", []).append({**win_nft, "won_at": mult, "win_ton": win_value, "ts": time.time()})
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
+        else:
+            # mult < 1.1 або немає дорожчого NFT — повертаємо оригінальний NFT
+            orig = bet.get("nft_data")
+            if orig:
+                p.setdefault("nfts", []).append(orig)
+                win_nft = orig
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_low"})
+
+        await broadcast({"t": "co", "uid": uid, "win": win_value, "mx": mult, "pl": players_list(), "now": time.time()})
+        if uid in clients:
+            try:
+                await clients[uid].send_text(json.dumps({
+                    "t": "your_co", "win": win_value, "mx": mult,
+                    "bal": p.get("balance", 0), "nft": win_nft
+                }))
+            except: pass
+
+    else:
+        # Звичайна TON ставка
+        win = round(bet["amount"] * mult, 4)
+        bet["win"] = win
+        nft = get_nft_for_win(win) if mult >= 1.1 else None
+        bet["nft"] = nft
+        if nft:
+            p.setdefault("nfts", []).append({**nft, "won_at": mult, "win_ton": win, "ts": time.time()})
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": nft.get("name"), "nft_floor": nft.get("floor")})
+        else:
+            p["balance"] = round(p.get("balance", 0) + win, 4)
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": None})
+        await broadcast({"t": "co", "uid": uid, "win": win, "mx": mult, "pl": players_list(), "now": time.time()})
+        if uid in clients:
+            try:
+                await clients[uid].send_text(json.dumps({"t": "your_co", "win": win, "mx": mult, "bal": p.get("balance", 0), "nft": nft}))
+            except: pass
 
 async def game_loop():
     while True:
-        G.round_id += 1
-        G.crash_at = round(max(1.01, random.betavariate(2, 5) * 20), 2)
-        
-        G.phase = "waiting"
-        G.mult = 1.0
+        g.phase = "waiting"; g.mult = 1.0; g.round_id += 1
         bets.clear()
-        await broadcast({"t": "waiting", "id": G.round_id})
-        await asyncio.sleep(5)
-        
-        G.phase = "flying"
-        G.start_ts = time.time()
-        await broadcast({"t": "flying", "id": G.round_id})
-        
-        while G.mult < G.crash_at:
-            elapsed = time.time() - G.start_ts
-            G.mult = round(1 + elapsed * 0.1, 2)
-            await broadcast({"t": "tick", "mult": G.mult})
-            await asyncio.sleep(0.1)
-        
-        G.phase = "crashed"
-        G.mult = G.crash_at
-        await broadcast({"t": "crash", "mult": G.crash_at})
+        if g.round_id % g.next_hook == 0 and len(bets) == 0:
+            g.crash_at = gen_crash_no_bets()
+            g.next_hook = random.randint(8, 25)
+        else:
+            g.crash_at = gen_crash()
+            if g.round_id % g.next_hook == 0:
+                g.next_hook = random.randint(8, 25)
+        for cd in range(5, 0, -1):
+            await broadcast({"t": "cd", "sec": cd, "rid": g.round_id, "ca": g.crash_at, "now": time.time()})
+            await asyncio.sleep(1)
+        g.phase = "flying"; g.start_ts = time.time()
+        await broadcast({"t": "st", "ts": g.start_ts, "ca": g.crash_at, "rid": g.round_id, "now": time.time()})
+        max_fly_time = 120  # Максимум 120 секунд (достатньо для 100x)
+        while True:
+            el = time.time() - g.start_ts
+            if el > max_fly_time: break  # Захист від нескінченного польоту
+            g.mult = g.calc_mult(el)
+            if g.mult >= g.crash_at: g.mult = g.crash_at; break
+            for uid, bet in list(bets.items()):
+                if bet.get("cashed") or bet.get("lost"): continue
+                ac = bet.get("auto_cashout")
+                if ac and g.mult >= ac: await do_cashout(uid, g.mult)
+            await broadcast({"t": "tick", "m": g.mult, "pl": players_list(), "now": time.time()})
+            await asyncio.sleep(0.15)
+        g.phase = "crashed"; g.history.insert(0, g.crash_at); g.history = g.history[:20]
+        for uid, bet in bets.items():
+            if not bet.get("cashed"):
+                bet["lost"] = True
+                # NFT ставка програла — повертаємо NFT гравцю
+                if bet.get("is_nft") and bet.get("nft_data"):
+                    p = players.get(uid)
+                    if p:
+                        p.setdefault("nfts", []).append(bet["nft_data"])
+                    if uid in clients:
+                        try:
+                            await clients[uid].send_text(json.dumps({
+                                "t": "nft_returned",
+                                "nft": bet["nft_data"]
+                            }))
+                        except: pass
+        await broadcast({"t": "cr", "ca": g.crash_at, "rid": g.round_id, "h": g.history, "pl": players_list(), "now": time.time()})
         await asyncio.sleep(3)
-
-async def broadcast(msg):
-    dead = []
-    for uid, ws in clients.items():
-        try:
-            await ws.send_text(json.dumps(msg))
-        except:
-            dead.append(uid)
-    for uid in dead:
-        clients.pop(uid, None)
-
-@app.websocket("/ws/{uid}")
-async def websocket_endpoint(ws: WebSocket, uid: int):
-    await ws.accept()
-    clients[uid] = ws
-    
-    if uid not in players:
-        players[uid] = {"name": "Player", "balance": 0, "nfts": []}
-    
-    try:
-        await ws.send_text(json.dumps({
-            "t": "init",
-            "bal": players[uid]["balance"],
-            "phase": G.phase,
-            "mult": G.mult,
-            "id": G.round_id
-        }))
-        
-        async for message in ws.iter_text():
-            d = json.loads(message)
-            a = d.get("a")
-            
-            if a == "bet":
-                if G.phase != "waiting":
-                    continue
-                amount = float(d.get("amount", 0))
-                if amount < 0.01 or amount > players[uid]["balance"]:
-                    continue
-                players[uid]["balance"] = round(players[uid]["balance"] - amount, 4)
-                bets[uid] = {"amount": amount, "cashed_out": False}
-                await ws.send_text(json.dumps({"t": "bet_ok", "bal": players[uid]["balance"]}))
-                
-            elif a == "cashout":
-                if G.phase != "flying" or uid not in bets or bets[uid].get("cashed_out"):
-                    continue
-                bets[uid]["cashed_out"] = True
-                win = round(bets[uid]["amount"] * G.mult, 4)
-                players[uid]["balance"] = round(players[uid]["balance"] + win, 4)
-                
-                nft = get_nft_for_win(win)
-                if nft and win >= 2.8:
-                    nft_entry = {"id": nft["id"], "name": nft["name"], "price": nft["price"], "floor": nft["floor"], "ts": time.time()}
-                    players[uid]["nfts"].append(nft_entry)
-                    save_players()
-                    await ws.send_text(json.dumps({"t": "nft_won", "nft": nft_entry}))
-                
-                await ws.send_text(json.dumps({"t": "cashout_ok", "win": win, "bal": players[uid]["balance"], "mult": G.mult}))
-                
-    except WebSocketDisconnect:
-        pass
-    finally:
-        clients.pop(uid, None)
-
-@app.get("/")
-async def root():
-    return FileResponse("index.html")
 
 @app.on_event("startup")
 async def startup():
-    FULL_WEBHOOK_URL = f"{RAILWAY_DOMAIN}/tg/webhook"
-    print(f"🌐 Webhook: {FULL_WEBHOOK_URL}")
+    # Встановлюємо webhook назад (він надійніший для production)
     try:
+        webhook_url = "https://casino-bot-production-5113.up.railway.app/tg/webhook"
         async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(
-                f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook",
-                json={"url": FULL_WEBHOOK_URL, "allowed_updates": ["message", "pre_checkout_query"]}
-            )
-            print(f"✅ {r.json()}")
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook", json={"url": webhook_url})
+            result = r.json()
+            if result.get("ok"):
+                print(f"✅ Webhook set to {webhook_url}")
+            else:
+                print(f"⚠️ setWebhook response: {result}")
     except Exception as e:
-        print(f"❌ {e}")
+        print(f"❌ Failed to set webhook: {e}")
     
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
-    print("🎮 Game started!")
+    asyncio.create_task(check_stars_payments())
+    print("🔄 Started Stars payment fallback checker")
+
+player_ips: dict = {}
+
+@app.websocket("/ws/{uid}")
+async def ws_ep(ws: WebSocket, uid: int):
+    await ws.accept()
+    
+    # Перевірка ban
+    if players.get(uid, {}).get("banned"):
+        await ws.send_text(json.dumps({"t": "banned"}))
+        await ws.close()
+        return
+    
+    clients[uid] = ws
+    ip = ws.headers.get("x-forwarded-for", ws.client.host if ws.client else "unknown")
+    ip = ip.split(",")[0].strip()
+    if uid not in player_ips:
+        player_ips[uid] = []
+    if ip not in player_ips[uid]:
+        player_ips[uid].insert(0, ip)
+        player_ips[uid] = player_ips[uid][:5]
+    await ws.send_text(json.dumps({
+        "t": "init", "phase": g.phase, "mult": g.mult, "ts": g.start_ts,
+        "ca": g.crash_at, "rid": g.round_id, "h": g.history,
+        "pl": players_list(), "bal": players.get(uid, {}).get("balance", 1.0), "now": time.time()
+    }))
+    try:
+        while True:
+            d = json.loads(await ws.receive_text())
+            a = d.get("a")
+
+            if a == "auth":
+                ref_by = d.get("ref_by")
+                if uid not in players:
+                    players[uid] = {"name": d.get("name", "Player"), "nick": d.get("nick", ""), "photo": d.get("photo", ""), "balance": 1.0, "nfts": []}
+                    if ref_by and int(ref_by) != uid:
+                        referrals[uid] = int(ref_by)
+                        ref_name = players.get(int(ref_by), {}).get("name", "?")
+                        add_log("referrals", {"uid": uid, "name": d.get("name", "Player"), "invited_by": int(ref_by), "invited_name": ref_name})
+                else:
+                    players[uid]["name"] = d.get("name", players[uid]["name"])
+                    players[uid]["nick"] = d.get("nick", players[uid]["nick"])
+                    players[uid]["photo"] = d.get("photo", players[uid]["photo"])
+
+            elif a == "bet":
+                if g.phase != "waiting": continue
+                amt = float(d.get("amt", 0))
+                nft_bet = d.get("nft_bet")  # {'nft_id':..., 'nft_price':..., 'nft_name':...}
+                bal = players.get(uid, {}).get("balance", 0)
+
+                if nft_bet:
+                    # NFT ставка — не знімаємо TON
+                    nft_price = float(nft_bet.get("nft_price", 0))
+                    if nft_price <= 0:
+                        await ws.send_text(json.dumps({"t": "err", "msg": "Невірна ціна NFT"}))
+                        continue
+                    p = players.get(uid, {})
+                    nft_id = nft_bet.get("nft_id")
+                    found = None; new_nfts = []; removed = False
+                    for n in p.get("nfts", []):
+                        if n.get("id") == nft_id and not removed:
+                            found = n; removed = True
+                        else:
+                            new_nfts.append(n)
+                    if found:
+                        p["nfts"] = new_nfts
+                    nft_data = found or {"id": nft_id, "name": nft_bet.get("nft_name", "NFT"), "price": nft_price, "floor": nft_price}
+                    bets[uid] = {
+                        "amount": nft_price, "auto_cashout": d.get("ac"),
+                        "cashed": False, "lost": False,
+                        "is_nft": True, "nft_data": nft_data
+                    }
+                    add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": nft_price, "round_id": g.round_id, "nft": nft_bet.get("nft_name")})
+                    await ws.send_text(json.dumps({"t": "bet_ok", "amt": nft_price, "bal": players[uid].get("balance", 0)}))
+                    await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
+
+                else:
+                    # Звичайна TON ставка
+                    if amt < 0.1 or amt > bal:
+                        await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо TON"}))
+                        continue
+                    players[uid]["balance"] = round(bal - amt, 4)
+                    bets[uid] = {"amount": amt, "auto_cashout": d.get("ac"), "cashed": False, "lost": False, "is_nft": False}
+                    add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt, "round_id": g.round_id})
+                    await ws.send_text(json.dumps({"t": "bet_ok", "amt": amt, "bal": players[uid]["balance"]}))
+                    await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
+
+            elif a == "cashout":
+                if g.phase == "flying" and uid in bets:
+                    await do_cashout(uid, g.mult)
+
+            # НОВА ОБРОБКА: Перевірка підписки на канал
+            elif a == "check_subscription":
+                channel = d.get("channel", "@pepe_GiftsNFT")
+                user_id = int(d.get("user_id", uid))
+                
+                # РЕАЛЬНА перевірка підписки
+                is_subscribed = await check_subscription(user_id, channel)
+                
+                await ws.send_text(json.dumps({
+                    "t": "subscription_checked",
+                    "subscribed": is_subscribed
+                }))
+            elif a == "topup_start":
+                amt = float(d.get("amount", 0))
+                if amt >= 0.1:
+                    pending_topups[uid] = {"amount": amt, "ts": time.time(), "done": False}
+                    await ws.send_text(json.dumps({"t": "topup_pending", "amount": amt}))
+
+            elif a == "admin_find_user":
+                if uid not in ADMIN_IDS: continue
+                query = str(d.get("query", "")).strip().lstrip("@")
+                found_user = None
+                for pid, p in players.items():
+                    if str(pid) == query or p.get("nick", "").lstrip("@") == query or p.get("name", "") == query:
+                        found_user = {**p, "id": pid, "balance": p.get("balance", 0), "banned": p.get("banned", False)}
+                        break
+                if found_user:
+                    await ws.send_text(json.dumps({"t": "admin_user_found", "user": found_user}))
+                else:
+                    await ws.send_text(json.dumps({"t": "admin_user_not_found"}))
+
+            elif a == "admin_balance":
+                if uid not in ADMIN_IDS: continue
+                target = int(d.get("uid", 0))
+                delta = float(d.get("delta", 0))
+                if target in players:
+                    players[target]["balance"] = round(max(0, players[target].get("balance", 0) + delta), 4)
+                    if target in clients:
+                        try:
+                            await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": delta, "bal": players[target]["balance"]}))
+                        except: pass
+
+            elif a == "admin_set_balance":
+                if uid not in ADMIN_IDS: continue
+                target = int(d.get("uid", 0))
+                new_bal = float(d.get("balance", 0))
+                if target not in players:
+                    players[target] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
+                players[target]["balance"] = round(max(0, new_bal), 4)
+                if target in clients:
+                    try:
+                        await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": 0, "bal": players[target]["balance"]}))
+                    except: pass
+
+            elif a == "admin_ban":
+                if uid not in ADMIN_IDS: continue
+                target = int(d.get("uid", 0))
+                ban = bool(d.get("ban", True))
+                if target in players:
+                    players[target]["banned"] = ban
+                    if ban and target in clients:
+                        try:
+                            await clients[target].send_text(json.dumps({"t": "banned"}))
+                        except: pass
+
+            elif a == "admin_clear_nfts":
+                if uid not in ADMIN_IDS: continue
+                target = int(d.get("uid", 0))
+                if target in players:
+                    players[target]["nfts"] = []
+
+            elif a == "withdraw_nft":
+                nft_id = d.get("nft_id")
+                sell_price = float(d.get("price", 0))
+                action_type = d.get("type", "sell")
+                print(f"💎 withdraw_nft request: nft_id={nft_id}, price={sell_price}, type={action_type}, uid={uid}")
+                if uid in players and nft_id:
+                    nfts = players[uid].get("nfts", [])
+                    print(f"🔍 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
+                    found_nft = None; new_nfts = []; removed = False
+                    for n in nfts:
+                        if n.get("id") == nft_id and not removed:
+                            found_nft = n; removed = True
+                            print(f"✅ Found NFT: {n.get('name')} (id: {n.get('id')})")
+                        else:
+                            new_nfts.append(n)
+                    if found_nft:
+                        players[uid]["nfts"] = new_nfts
+                        save_players()
+                        name = players[uid].get("name", "?")
+                        nick = players[uid].get("nick", "")
+                        nick_str = f"@{nick}" if nick else f"uid:{uid}"
+                        
+                        if action_type == "withdraw_ton_fee":
+                            # Вивід NFT за 0.2 TON
+                            print(f"🎁 NFT withdrawal: {found_nft.get('name')} by {name} (uid:{uid})")
+                            players[uid]["balance"] = round(players[uid].get("balance", 0) - sell_price, 4)
+                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "withdraw_ton_fee"})
+                            # Оновлюємо баланс на клієнті
+                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
+                            # Повідомлення адміну
+                            print(f"📨 Sending admin notification to {ADMIN_ID}")
+                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {sell_price} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
+                        elif action_type == "sell":
+                            players[uid]["balance"] = round(players[uid].get("balance", 0) + sell_price, 4)
+                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "sell"})
+                            await ws.send_text(json.dumps({"t": "nft_sold", "nft_id": nft_id, "amount": sell_price, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"}))
+                            asyncio.create_task(send_tg(ADMIN_ID, f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
+                        else:
+                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw"})
+                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
+                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
+                    else:
+                        print(f"❌ NFT {nft_id} not found in player inventory")
+                        await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
+                else:
+                    print(f"❌ Player {uid} not found or nft_id is None")
+
+            elif a == "case_win_keep":
+                # Логування відкриття кейсу та виграшу
+                case_name = d.get("case_name", "Unknown")
+                nft_id = d.get("nft_id")
+                nft_name = d.get("name", "Unknown")
+                price = float(d.get("price", 0))
+                is_nft = d.get("is_nft", True)
+                name = players.get(uid, {}).get("name", "?")
+                
+                # Додаємо NFT в інвентар якщо це NFT
+                if is_nft and nft_id:
+                    if uid not in players:
+                        players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
+                    
+                    nft_entry = {
+                        "id": nft_id,
+                        "name": nft_name,
+                        "emoji": "🎁",
+                        "rarity": "Common",
+                        "price": price,
+                        "floor": price,
+                        "ts": time.time()
+                    }
+                    players[uid]["nfts"].append(nft_entry)
+                    save_players()
+                    print(f"🎁 NFT added from case: {nft_name} for {name} (uid:{uid})")
+                
+                # Логуємо
+                add_log("cases", {
+                    "uid": uid,
+                    "name": name,
+                    "case_name": case_name,
+                    "won_item": nft_name if is_nft else f"{price} TON",
+                    "is_nft": is_nft,
+                    "value": price,
+                    "ts": time.time()
+                })
+
+
+    except WebSocketDisconnect:
+        clients.pop(uid, None)
+    except Exception as e:
+        print(f"WS Error for {uid}: {e}")
+        clients.pop(uid, None)
+
+@app.get("/topup/{uid}/{amount}")
+async def get_topup(uid: int, amount: float):
+    if uid not in players:
+        players[uid] = {"name": "Player", "nick": "", "photo": "", "balance": 0, "nfts": []}
+    players[uid]["balance"] = round(players[uid]["balance"] + amount, 4)
+    add_log("deposits", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amount})
+    if uid in referrals:
+        ref_uid = referrals[uid]
+        bonus = round(amount * 0.05, 4)
+        if ref_uid not in players:
+            players[ref_uid] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
+        players[ref_uid]["balance"] = round(players[ref_uid]["balance"] + bonus, 4)
+        ref_earnings[ref_uid] = round(ref_earnings.get(ref_uid, 0) + bonus, 4)
+        if ref_uid in clients:
+            try: await clients[ref_uid].send_text(json.dumps({"t": "ref_bonus", "bonus": bonus, "bal": players[ref_uid]["balance"]}))
+            except: pass
+        await send_tg(ref_uid, f"👥 <b>Реферальний бонус!</b>\nВаш реферал поповнив на {amount} TON\nВаш бонус: <b>+{bonus} TON</b>")
+    if uid in clients:
+        try: await clients[uid].send_text(json.dumps({"t": "topup", "credited": amount, "bal": players[uid]["balance"]}))
+        except: pass
+    await send_tg(ADMIN_ID, f"💰 <b>Ручний депозит</b>\nКористувач: {players[uid].get('name','?')} (uid: {uid})\nСума: {amount} TON")
+    return {"ok": True, "balance": players[uid]["balance"]}
+
+@app.post("/topup/{uid}/{amount}")
+async def post_topup(uid: int, amount: float):
+    return await get_topup(uid, amount)
+
+@app.get("/ref/{uid}")
+async def get_ref(uid: int):
+    my_refs = [r for r, by in referrals.items() if by == uid]
+    return {"link": f"https://t.me/Pepe_GiftsBot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0), "referrals": [{"uid": r, "name": players.get(r, {}).get("name", "?")} for r in my_refs]}
+
+@app.get("/referrals")
+async def get_referrals(uid: int):
+    """Endpoint для bot.py - отримати інфо про рефералів"""
+    my_refs = [r for r, by in referrals.items() if by == uid]
+    return {"link": f"https://t.me/Pepe_GiftsBot?start=ref_{uid}", "count": len(my_refs), "earned": ref_earnings.get(uid, 0)}
+
+@app.get("/get_balance")
+async def get_balance_endpoint(uid: int):
+    """Endpoint для bot.py - отримати баланс"""
+    if uid not in players:
+        return {"balance": 0}
+    return {"balance": players[uid].get("balance", 0)}
+
+@app.post("/set_referral")
+async def set_referral_endpoint(request: Request):
+    """Endpoint для bot.py - зберегти реферала"""
+    try:
+        data = await request.json()
+        user_id = int(data.get("user_id"))
+        referrer_id = int(data.get("referrer_id"))
+        username = data.get("username", "")
+        first_name = data.get("first_name", "User")
+        
+        # Перевірка: не можна бути рефералом самого себе
+        if user_id == referrer_id:
+            return {"success": False, "error": "Cannot refer yourself"}
+        
+        # Перевірка: чи вже є реферер
+        if user_id in referrals:
+            return {"success": False, "error": "Referrer already set"}
+        
+        # Зберігаємо реферала
+        referrals[user_id] = referrer_id
+        
+        # Створюємо гравця якщо не існує
+        if user_id not in players:
+            players[user_id] = {
+                "name": first_name,
+                "nick": username,
+                "balance": 0,
+                "nfts": []
+            }
+        
+        add_log("referrals", {
+            "user": user_id,
+            "name": first_name,
+            "referred_by": referrer_id,
+            "referrer_name": players.get(referrer_id, {}).get("name", "?")
+        })
+        
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+# DEBUG endpoint - додати реферала вручну
+@app.get("/debug_add_ref")
+async def debug_add_referral(user_id: int, referrer_id: int, admin_uid: int = 0):
+    """Тестовий endpoint - додати реферала вручну"""
+    if admin_uid not in ADMIN_IDS:
+        return {"error": "Access denied"}
+    
+    if user_id in referrals:
+        return {"error": f"User {user_id} вже має реферера: {referrals[user_id]}"}
+    
+    referrals[user_id] = referrer_id
+    return {"success": True, "user_id": user_id, "referrer_id": referrer_id, "referrals": dict(referrals)}
+
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_panel(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red;font-family:monospace;padding:40px'>⛔ Access Denied</h2>", status_code=403)
+    total_bets = sum(l.get("amount", 0) for l in logs["bets"])
+    total_wins = sum(l.get("win", 0) for l in logs["cashouts"])
+    total_deps = sum(l.get("amount", 0) for l in logs["deposits"])
+    total_stars_ton = sum(l.get("ton", 0) for l in logs["stars"])
+    pnl = total_bets - total_wins
+    players_list_html = "".join([
+        f'<tr><td><a href="/admin/player/{uid}?uid={admin_uid}" style="color:#4d8fff">{uid}</a></td><td>{p.get("name","?")}</td><td>{"@"+p.get("nick") if p.get("nick") else "-"}</td>'
+        f'<td>{p.get("balance",0):.2f}</td><td>{len(p.get("nfts",[]))}</td>'
+        f'<td style="font-size:10px;color:#888">{", ".join(player_ips.get(uid,[])[:2]) or "-"}</td>'
+        f'<td>{"🚫" if p.get("banned") else "✅"}</td>'
+        f'<td><a href="/admin/topup/{uid}/1?uid={admin_uid}" style="background:#0098ea;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px;margin-right:2px">+1</a>'
+        f'<a href="/admin/topup/{uid}/5?uid={admin_uid}" style="background:#6c4fff;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px;margin-right:2px">+5</a>'
+        f'<a href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}" style="background:#ff4d4d;color:#fff;padding:2px 8px;border-radius:4px;text-decoration:none;font-size:11px">-ALL</a></td></tr>'
+        for uid, p in list(players.items())[:100]
+    ])
+    bets_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("amount",0):.2f}</td><td>{l.get("nft","")}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["bets"][:20]])
+    cashouts_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("bet",0):.2f}</td><td>{l.get("win",0):.2f}</td><td>{l.get("mult",0):.2f}x</td><td>{"🎁 "+str(l["nft"]) if l.get("nft") else "TON"}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["cashouts"][:20]])
+    deps_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("uid","")}</td><td>{l.get("amount",0):.2f}</td><td>{l.get("note","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["deposits"][:20]])
+    stars_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("uid","")}</td><td>{l.get("stars",0)} ⭐</td><td>{l.get("ton",0):.4f} TON</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["stars"][:20]])
+    refs_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("invited_name","?")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["referrals"][:20]])
+    withdrawals_html = "".join([f'<tr><td>{l.get("name","?")}</td><td>{l.get("nft_name","?")}</td><td>{l.get("nft_floor",0)}</td><td>{l.get("sell_price",0)}</td><td>{l.get("type","")}</td><td>{time.strftime("%H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in logs["withdrawals"][:20]])
+    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Admin</title>
+<style>body{{font-family:monospace;background:#0a0e1a;color:#ccc;padding:20px}}h1{{color:#f5c500;margin-bottom:20px}}h2{{color:#aa77ff;margin:20px 0 10px}}.stats{{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}}.stat{{background:#111827;border-radius:12px;padding:16px;text-align:center}}.stat .v{{font-size:22px;font-weight:700;color:#f5c500}}.stat .l{{font-size:11px;color:#556;margin-top:4px}}table{{width:100%;border-collapse:collapse;background:#111827;border-radius:8px;overflow:hidden;margin-bottom:20px}}th{{background:#1a2236;padding:8px 12px;text-align:left;font-size:11px;color:#556;text-transform:uppercase}}td{{padding:7px 12px;border-bottom:1px solid #1a2236;font-size:12px}}</style></head><body>
+<h1>🎰 Casino Admin <span style="color:#0098ea;font-size:14px">uid:{admin_uid}</span></h1>
+<div class="stats">
+  <div class="stat"><div class="v">{len(players)}</div><div class="l">Гравців / онлайн: {len(clients)}</div></div>
+  <div class="stat"><div class="v">{total_deps:.1f}</div><div class="l">TON депозитів</div></div>
+  <div class="stat"><div class="v" style="color:#aa77ff">{total_stars_ton:.2f}</div><div class="l">TON через Stars ⭐</div></div>
+  <div class="stat"><div class="v">{total_wins:.1f}</div><div class="l">TON виплат</div></div>
+  <div class="stat"><div class="v" style="color:{"#00e676" if pnl>=0 else "#ff1744"}">{pnl:+.1f}</div><div class="l">TON прибуток</div></div>
+</div>
+<h2>👥 Всі гравці</h2>
+<form action="/admin/player" method="get" style="margin-bottom:12px;display:flex;gap:8px">
+<input type="hidden" name="uid" value="{admin_uid}">
+<input type="number" name="search_uid" placeholder="Search by UID" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;flex:1">
+<input type="text" name="search_username" placeholder="Search by @username" style="padding:8px;background:#111827;border:1px solid #333;color:#fff;border-radius:4px;flex:1">
+<button type="submit" style="padding:8px 16px;background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">🔍 Search</button>
+</form>
+<table><tr><th>UID</th><th>Ім'я</th><th>@</th><th>Баланс</th><th>NFT</th><th>IP</th><th>Status</th><th>Дія</th></tr>{players_list_html}</table>
+<h2>⭐ Stars депозити</h2><table><tr><th>Гравець</th><th>UID</th><th>Stars</th><th>TON</th><th>Час</th></tr>{stars_html}</table>
+<h2>💰 Ставки</h2><table><tr><th>Гравець</th><th>Ставка</th><th>NFT</th><th>Раунд</th><th>Час</th></tr>{bets_html}</table>
+<h2>🚀 Кешаути</h2><table><tr><th>Гравець</th><th>Ставка</th><th>Виграш</th><th>Множник</th><th>NFT</th><th>Час</th></tr>{cashouts_html}</table>
+<h2>💎 Депозити</h2><table><tr><th>Гравець</th><th>UID</th><th>Сума</th><th>Примітка</th><th>Час</th></tr>{deps_html}</table>
+<h2>🎁 Виводи NFT</h2><table><tr><th>Гравець</th><th>NFT</th><th>Floor</th><th>Продано за</th><th>Тип</th><th>Час</th></tr>{withdrawals_html}</table>
+<h2>👥 Реферали</h2><table><tr><th>Новий гравець</th><th>Запросив</th><th>Час</th></tr>{refs_html}</table>
+</body></html>"""
+
+@app.get("/admin/topup/{uid}/{amount}")
+async def admin_topup_get(uid: int, amount: float, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    await get_topup(uid, amount)
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/set_balance/{uid}")
+async def admin_set_balance(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    amount = float(request.query_params.get("amount", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}"}
+    old_balance = players[uid].get("balance", 0)
+    players[uid]["balance"] = round(amount, 4)
+    save_players()
+    logs["deposits"].append({"uid": uid, "name": players[uid].get("name", "?"), "amount": amount - old_balance, "note": f"Admin set to {amount}", "ts": time.time()})
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/ban/{uid}")
+async def admin_ban(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}"}
+    players[uid]["banned"] = True
+    save_players()
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/unban/{uid}")
+async def admin_unban(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    if uid in players:
+        players[uid]["banned"] = False
+        save_players()
+    return HTMLResponse(f'<script>window.location="/admin?uid={admin_uid}"</script>')
+
+@app.get("/admin/player")
+async def admin_player_search(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    search_uid = request.query_params.get("search_uid", "")
+    search_username = request.query_params.get("search_username", "")
+    
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    # Пошук по UID
+    if search_uid:
+        try:
+            uid_to_find = int(search_uid)
+            return RedirectResponse(url=f"/admin/player/{uid_to_find}?uid={admin_uid}")
+        except:
+            pass
+    
+    # Пошук по username
+    if search_username:
+        search_username = search_username.strip().lower().replace("@", "")
+        for uid, p in players.items():
+            nick = p.get("nick", "").lower()
+            if nick == search_username:
+                return RedirectResponse(url=f"/admin/player/{uid}?uid={admin_uid}")
+        return HTMLResponse(f"<h2>User @{search_username} not found</h2><p><a href='/admin?uid={admin_uid}'>Back</a></p>", status_code=404)
+    
+    return RedirectResponse(url=f"/admin?uid={admin_uid}")
+
+@app.get("/admin/player/{uid}", response_class=HTMLResponse)
+async def admin_player_detail(uid: int, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    player = players.get(uid, {})
+    if not player:
+        return HTMLResponse(f"<h2 style='color:red'>Player {uid} not found</h2><p><a href='/admin?uid={admin_uid}'>Back</a></p>", status_code=404)
+    
+    player_bets = [l for l in logs["bets"] if l.get("uid") == uid]
+    player_cashouts = [l for l in logs["cashouts"] if l.get("uid") == uid]
+    player_deposits = [l for l in logs["deposits"] if l.get("uid") == uid]
+    player_cases = [l for l in logs["cases"] if l.get("uid") == uid]
+    player_nft_actions = [l for l in logs["withdrawals"] if l.get("uid") == uid]
+    
+    total_bets = sum(b.get("amount", 0) for b in player_bets)
+    total_wins = sum(c.get("win", 0) for c in player_cashouts)
+    total_deposits = sum(d.get("amount", 0) for d in player_deposits)
+    
+    bets_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("round_id","")}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_bets[-100:]])
+    cashouts_html = "".join([f'<tr><td>{l.get("bet",0):.2f}</td><td>{l.get("win",0):.2f}</td><td>{l.get("mult",0):.2f}x</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cashouts[-100:]])
+    deposits_html = "".join([f'<tr><td>{l.get("amount",0):.2f}</td><td>{l.get("note","")}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_deposits[-100:]])
+    cases_html = "".join([f'<tr><td>{l.get("case_name","?")}</td><td>{"🎁 " + l.get("won_item","?") if l.get("is_nft") else "💰 " + l.get("won_item","?")}</td><td>{l.get("value",0):.2f} TON</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_cases[-100:]])
+    nft_actions_html = "".join([f'<tr><td>{l.get("nft_name","?")}</td><td>{l.get("nft_floor",0):.2f}</td><td>{"💰 Sold" if l.get("type")=="sell" else "📤 Withdrawn"}</td><td>{l.get("sell_price",0):.2f if l.get("type")=="sell" else "-"}</td><td>{time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(l.get("ts",0)))}</td></tr>' for l in player_nft_actions[-100:]])
+    
+    current_nfts_html = "".join([f'<tr><td>{n.get("name","?")}</td><td>{n.get("rarity","?")}</td><td>{n.get("price",0):.2f}</td></tr>' for n in player.get("nfts", [])])
+    
+    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Player {uid}</title>
+    <style>body{{font-family:monospace;background:#0a0e27;color:#fff;padding:20px;font-size:13px}}h1{{font-size:24px}}h2{{font-size:18px;margin-top:30px}}h3{{font-size:16px}}table{{border-collapse:collapse;width:100%;margin:20px 0;font-size:12px}}td,th{{border:1px solid #333;padding:6px;text-align:left}}th{{background:#1a1a2e;font-weight:600}}a{{color:#4d8fff;text-decoration:none}}.btn{{background:#4d8fff;color:#fff;padding:8px 16px;border-radius:8px;display:inline-block;margin:4px;text-decoration:none;font-size:13px}}.danger{{background:#ff4d4d}}input,button{{padding:8px;margin:4px}}</style>
+    </head><body>
+    <h1>👤 Player: {uid}</h1>
+    <p><a href="/admin?uid={admin_uid}">← Back to Admin</a></p>
+    
+    <h2>📊 Stats</h2>
+    <p>Name: <b>{player.get("name", "Unknown")}</b></p>
+    <p>Username: <b>@{player.get("nick", "none")}</b></p>
+    <p>Balance: <b>{player.get("balance", 0):.4f} TON</b></p>
+    <p>Current NFTs: <b>{len(player.get("nfts", []))}</b></p>
+    <p>Banned: <b>{"❌ Yes" if player.get("banned") else "✅ No"}</b></p>
+    <p>Total Bets: <b>{total_bets:.2f} TON</b> ({len(player_bets)} bets)</p>
+    <p>Total Wins: <b>{total_wins:.2f} TON</b> ({len(player_cashouts)} cashouts)</p>
+    <p>Total Deposits: <b>{total_deposits:.2f} TON</b></p>
+    <p>Cases Opened: <b>{len(player_cases)}</b></p>
+    <p>NFT Actions: <b>{len(player_nft_actions)}</b> (sold/withdrawn)</p>
+    <p>P/L: <b style="color:{'#0f0' if (total_wins - total_bets) > 0 else '#f00'}">{(total_wins - total_bets):.2f} TON</b></p>
+    
+    <h3>⚙️ Actions</h3>
+    <a class="btn danger" href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}">Set Balance to 0</a>
+    <a class="btn danger" href="/admin/ban/{uid}?uid={admin_uid}">🚫 Ban</a>
+    <a class="btn" href="/admin/unban/{uid}?uid={admin_uid}">✅ Unban</a>
+    
+    <h4>💰 Set Custom Balance</h4>
+    <form action="/admin/set_balance/{uid}" method="get">
+    <input type="hidden" name="uid" value="{admin_uid}">
+    <input type="number" name="amount" step="0.01" placeholder="Amount TON" style="background:#1a1a2e;border:1px solid #333;color:#fff;border-radius:4px">
+    <button type="submit" style="background:#4d8fff;color:#fff;border:none;border-radius:4px;cursor:pointer">Set</button>
+    </form>
+    
+    <h2>🎁 Current NFTs ({len(player.get("nfts", []))})</h2>
+    <table><tr><th>Name</th><th>Rarity</th><th>Value</th></tr>{current_nfts_html or '<tr><td colspan="3">No NFTs</td></tr>'}</table>
+    
+    <h2>🎰 Cases Opened ({len(player_cases)})</h2>
+    <table><tr><th>Case</th><th>Won</th><th>Value</th><th>Time</th></tr>{cases_html or '<tr><td colspan="4">No cases opened</td></tr>'}</table>
+    
+    <h2>💎 NFT Actions ({len(player_nft_actions)})</h2>
+    <table><tr><th>NFT</th><th>Floor</th><th>Action</th><th>Amount</th><th>Time</th></tr>{nft_actions_html or '<tr><td colspan="5">No NFT actions</td></tr>'}</table>
+    
+    <h2>🎲 Bets ({len(player_bets)})</h2>
+    <table><tr><th>Amount</th><th>Round</th><th>Time</th></tr>{bets_html or '<tr><td colspan="3">No bets</td></tr>'}</table>
+    
+    <h2>💰 Cashouts ({len(player_cashouts)})</h2>
+    <table><tr><th>Bet</th><th>Win</th><th>Mult</th><th>Time</th></tr>{cashouts_html or '<tr><td colspan="4">No cashouts</td></tr>'}</table>
+    
+    <h2>💳 Deposits ({len(player_deposits)})</h2>
+    <table><tr><th>Amount</th><th>Note</th><th>Time</th></tr>{deposits_html or '<tr><td colspan="3">No deposits</td></tr>'}</table>
+    
+    </body></html>"""
+
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    try:
+        with open("index.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse("<h1>Game loading...</h1><p>index.html not found. Please check deployment.</p>", status_code=500)
+
+@app.get("/api/status")
+async def api_status():
+    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v2_with_logging", "nft_withdraw_fee": NFT_WITHDRAW_STARS}
+
+@app.get("/debug/check_payment_handler")
+async def debug_payment_handler():
+    """Check if new payment handler code is deployed"""
+    import inspect
+    source = inspect.getsource(tg_webhook)
+    has_logging = "💳 Stars payment received" in source
+    return {
+        "payment_handler_updated": has_logging,
+        "nft_withdraw_stars": NFT_WITHDRAW_STARS,
+        "first_100_chars": source[:100]
+    }
+
