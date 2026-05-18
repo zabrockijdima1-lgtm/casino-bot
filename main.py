@@ -1,3 +1,4 @@
+
 import asyncio, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -726,7 +727,8 @@ async def ws_ep(ws: WebSocket, uid: int):
                             print(f"🎁 NFT withdrawal: {found_nft.get('name')} by {name} (uid:{uid})")
                             players[uid]["balance"] = round(players[uid].get("balance", 0) - sell_price, 4)
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "withdraw_ton_fee"})
-                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
+                            # Оновлюємо баланс на клієнті
+                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
                             # Повідомлення адміну
                             print(f"📨 Sending admin notification to {ADMIN_ID}")
                             asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {sell_price} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
