@@ -134,10 +134,146 @@ NFT_CATALOG = [
     {"id":"plushpepe","name":"Plush Pepe","floor":4500.00,"price":4725.00,"rarity":"Legendary","color":"#2e1e00"},
 ]
 
+NFT_PRICE_ALIASES = {
+    "lunarsnak": "lunarsnake",
+    "partysparker": "partysparkler",
+    "happybroom": "happybrownie",
+    "hexpot": "hexhot",
+    "moonpencil": "moonpendant",
+    "minioscal": "minioscars",
+    "artisanbread": "artisanbrick",
+    "skystillettos": "skystiletto",
+}
+
+# Fallback from the latest tgmrkt update log. prices.json overrides these when present.
+NFT_PRICE_OVERRIDES = {
+    "snakebox": 1.81, "candycane": 1.81, "jesterhat": 1.94, "lolpop": 2.50,
+    "spicedwine": 2.18, "bunnymuffin": 4.27, "berrybox": 5.24,
+    "valentinebox": 5.63, "lovecandle": 5.74, "sakuraflower": 6.24,
+    "lovepotion": 8.59, "toybear": 22.48, "sharptongue": 28.25,
+    "nekohelmet": 24.95, "nailbracelet": 81.98, "astralshard": 102.50,
+    "artisanbrick": 50.55, "astralshards": 102.50, "bowtie": 2.60,
+    "chillflame": 1.81, "clovelpin": 2.60, "cloverpin": 2.60,
+    "crystalball": 6.76, "cupidcharm": 12.62, "diamondring": 17.47,
+    "eternalcandle": 3.31, "evileye": 4.12, "flyingbroom": 6.75,
+    "gemsignet": 45.50, "genielamp": 29.79, "gingercookie": 2.25,
+    "heartlocket": 1346.98, "heroichelmet": 144.89, "hexhot": 2.23,
+    "holidaydrink": 1.88, "homemadecake": 2.74, "hypnolollipop": 2.12,
+    "instantramen": 1.82, "ionicdrier": 8.74, "iongem": 55.28,
+    "jackinthebox": 2.11, "jellybunny": 4.18, "jinglebells": 5.73,
+    "lightsword": 3.21, "lolpop2": 2.50, "lootbag": 83.75,
+    "lowrider": 32.33, "lunarsnake": 1.80, "lunarsnak": 1.80,
+    "lushbouquet": 2.74, "madpumpkin": 6.99, "minioscars": 53.94,
+    "minioscal": 53.94, "moodpack": 2.55, "moonpendant": 3.11,
+    "moonpencil": 3.11, "moussecake": 2.63, "partysparkler": 2.01,
+    "partysparker": 2.01, "perfumebottle": 57.86, "poolfloat": 2.07,
+    "preciouspeach": 246.70, "recordplayer": 6.99, "restlessjar": 2.93,
+    "santahat": 2.22, "scaredcat": 117.64, "skystiletto": 9.70,
+    "skystillettos": 9.70, "sleighbell": 5.06, "snoopcigar": 7.44,
+    "snoopdog": 3.08, "snowglobe": 2.70, "snowmittens": 2.82,
+    "stellarrocket": 2.05, "swagbag": 3.13, "swisswatch": 33.59,
+    "tamagadget": 2.24, "timelessbook": 2.69, "tophat": 6.13,
+    "vintagecigar": 22.80, "voodoodoll": 19.59, "westsideside": 48.07,
+    "whipcupcake": 1.83, "winterwreath": 1.83, "witchhat": 3.17,
+    "freshsocks": 2.13, "faithamulet": 3.05,
+}
+
+_PRICE_FILE_MTIME = None
+_PRICE_FILE_PATH = None
+
+def _nft_key(value):
+    return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
+
+def _price_file_candidates():
+    here = os.path.dirname(os.path.abspath(__file__))
+    return [
+        os.path.join(here, "prices.json"),
+        os.path.join(os.getcwd(), "prices.json"),
+        os.path.join(os.path.expanduser("~"), "Downloads", "prices.json"),
+    ]
+
+def _read_prices_json():
+    global _PRICE_FILE_MTIME, _PRICE_FILE_PATH
+    for path in _price_file_candidates():
+        if not os.path.exists(path):
+            continue
+        mtime = os.path.getmtime(path)
+        if _PRICE_FILE_PATH == path and _PRICE_FILE_MTIME == mtime:
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            _PRICE_FILE_PATH = path
+            _PRICE_FILE_MTIME = mtime
+            return data
+        except Exception as e:
+            print(f"prices.json read error: {e}")
+    return None
+
+def _flatten_price_data(data):
+    out = {}
+    if isinstance(data, dict):
+        for container in ("prices", "items", "nfts", "data"):
+            if isinstance(data.get(container), (dict, list)):
+                out.update(_flatten_price_data(data[container]))
+    if isinstance(data, dict):
+        items = data.items()
+    elif isinstance(data, list):
+        items = [(None, item) for item in data]
+    else:
+        return out
+    for key, value in items:
+        nft_id = key
+        price = None
+        if isinstance(value, (int, float)):
+            price = float(value)
+        elif isinstance(value, dict):
+            nft_id = value.get("id") or value.get("slug") or value.get("name") or key
+            for field in ("price", "floor", "floor_price", "ton", "value"):
+                if value.get(field) is not None:
+                    try:
+                        price = float(value[field])
+                        break
+                    except (TypeError, ValueError):
+                        pass
+        if nft_id and price and price > 0:
+            out[_nft_key(nft_id)] = round(price, 4)
+    return out
+
+def sync_nft_prices(force=False):
+    prices = dict(NFT_PRICE_OVERRIDES)
+    data = _read_prices_json()
+    if data is not None:
+        prices.update(_flatten_price_data(data))
+    elif not force and _PRICE_FILE_MTIME is not None:
+        return
+
+    normalized = {_nft_key(k): v for k, v in prices.items()}
+    for alias, canonical in NFT_PRICE_ALIASES.items():
+        alias_key = _nft_key(alias)
+        canonical_key = _nft_key(canonical)
+        if canonical_key in normalized:
+            normalized[alias_key] = normalized[canonical_key]
+        elif alias_key in normalized:
+            normalized[canonical_key] = normalized[alias_key]
+
+    for nft in NFT_CATALOG:
+        keys = {_nft_key(nft.get("id")), _nft_key(nft.get("name"))}
+        keys.update(_nft_key(NFT_PRICE_ALIASES.get(k, "")) for k in list(keys))
+        for key in keys:
+            if key in normalized:
+                nft["floor"] = normalized[key]
+                nft["price"] = normalized[key]
+                nft["price_source"] = "prices"
+                break
+
 def get_nft_for_win(win: float):
     if win < 0.1: return None  # NFT падають при виграші від 0.1 TON
+    sync_nft_prices()
     if not NFT_CATALOG: return None
     return random.choice(NFT_CATALOG)  # Random NFT from the whole catalog
+
+sync_nft_prices(force=True)
 
 # НОВА ФУНКЦІЯ: Перевірка підписки на канал
 async def check_subscription(user_id: int, channel: str) -> bool:
@@ -1467,7 +1603,7 @@ async def admin_player_detail(uid: int, request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    for filename in ("index (5).html", "index.html"):
+    for filename in ("index (6).html", "index.html"):
         try:
             with open(filename, "r", encoding="utf-8") as f:
                 return HTMLResponse(content=f.read())
@@ -1478,6 +1614,16 @@ async def root():
 @app.get("/api/status")
 async def api_status():
     return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v2_with_logging", "nft_withdraw_fee": NFT_WITHDRAW_STARS}
+
+@app.get("/api/nft_catalog")
+async def api_nft_catalog():
+    sync_nft_prices()
+    return {
+        "ok": True,
+        "price_file": _PRICE_FILE_PATH,
+        "count": len(NFT_CATALOG),
+        "items": NFT_CATALOG,
+    }
 
 @app.get("/debug/check_payment_handler")
 async def debug_payment_handler():
