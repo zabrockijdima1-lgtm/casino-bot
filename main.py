@@ -244,6 +244,7 @@ NFT_WITHDRAW_STARS = 1
 @app.get("/stars/withdraw-invoice/{uid}/{nft_id}/{nft_name}")
 async def create_withdraw_invoice(uid: int, nft_id: str, nft_name: str):
     payload = json.dumps({"uid": uid, "nft_id": nft_id, "type": "nft_withdraw"})
+    print(f"🎫 Creating withdraw invoice for UID:{uid}, NFT:{nft_name}, Fee:{NFT_WITHDRAW_STARS}⭐")
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             r = await client.post(
@@ -251,11 +252,16 @@ async def create_withdraw_invoice(uid: int, nft_id: str, nft_name: str):
                 json={"title": f"NFT Withdrawal: {nft_name}", "description": f"Fee for withdrawing NFT «{nft_name}» to your Telegram wallet", "payload": payload, "currency": "XTR", "prices": [{"label": "Withdrawal fee", "amount": NFT_WITHDRAW_STARS}]}
             )
             data = r.json()
+            print(f"📋 Telegram API response: {data}")
         if not data.get("ok"):
-            return JSONResponse({"ok": False, "error": data.get("description", "Telegram error")})
+            error_msg = data.get("description", "Telegram error")
+            print(f"❌ Invoice creation failed: {error_msg}")
+            return JSONResponse({"ok": False, "error": error_msg})
+        print(f"✅ Invoice created successfully")
         return JSONResponse({"ok": True, "invoice_link": data["result"]})
     except Exception as e:
-        return JSONResponse({"ok": False, "error": "Server error"})
+        print(f"❌ Server error creating invoice: {str(e)}")
+        return JSONResponse({"ok": False, "error": f"Server error: {str(e)}"})
 
 @app.get("/stars/invoice/{uid}/{stars}")
 async def create_stars_invoice(uid: int, stars: int):
