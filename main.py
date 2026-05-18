@@ -369,6 +369,38 @@ async def tg_webhook(request: Request):
             await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
     return JSONResponse({"ok": True})
 
+@app.get("/admin/give_nft/{uid}/{nft_id}/{nft_name}/{floor}")
+async def admin_give_nft(uid: int, nft_id: str, nft_name: str, floor: float, request: Request):
+    admin_uid = int(request.query_params.get("uid", 0))
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red'>⛔ Access Denied</h2>", status_code=403)
+    
+    if uid not in players:
+        players[uid] = {"balance": 0, "nfts": [], "name": f"User{uid}", "nick": ""}
+    
+    # Додаємо NFT
+    nft_entry = {
+        "id": nft_id,
+        "name": nft_name,
+        "emoji": "🎁",
+        "rarity": "Common",
+        "price": floor,
+        "floor": floor,
+        "ts": time.time()
+    }
+    players[uid]["nfts"].append(nft_entry)
+    save_players()
+    
+    print(f"✅ Admin {admin_uid} gave NFT {nft_name} to {uid}")
+    
+    # Якщо гравець онлайн - повідомляємо
+    if uid in clients:
+        try:
+            await clients[uid].send_text(json.dumps({"t": "admin_nft_added", "nft": nft_entry}))
+        except: pass
+    
+    return HTMLResponse(f'<script>alert("NFT {nft_name} added to player {uid}"); window.location="/admin/player/{uid}?uid={admin_uid}"</script>')
+
 @app.get("/test/send_message/{chat_id}")
 async def test_send_message(chat_id: int):
     """Test endpoint to verify bot can send messages"""
