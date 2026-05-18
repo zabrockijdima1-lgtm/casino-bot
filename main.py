@@ -685,21 +685,21 @@ async def game_loop():
 
 @app.on_event("startup")
 async def startup():
-    # Видаляємо webhook щоб використовувати polling
+    # Встановлюємо webhook назад (він надійніший для production)
     try:
+        webhook_url = "https://casino-bot-production-5113.up.railway.app/tg/webhook"
         async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+            r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook", json={"url": webhook_url})
             result = r.json()
             if result.get("ok"):
-                print("✅ Webhook deleted, using long polling")
+                print(f"✅ Webhook set to {webhook_url}")
             else:
-                print(f"⚠️ deleteWebhook response: {result}")
+                print(f"⚠️ setWebhook response: {result}")
     except Exception as e:
-        print(f"❌ Failed to delete webhook: {e}")
+        print(f"❌ Failed to set webhook: {e}")
     
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
-    asyncio.create_task(poll_telegram_updates())
 
 player_ips: dict = {}
 
