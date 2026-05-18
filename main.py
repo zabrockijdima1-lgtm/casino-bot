@@ -272,6 +272,67 @@ async def auto_check_topups():
                 add_log("deposits", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt})
                 await send_tg(ADMIN_ID, f"💰 <b>Депозит TON</b>\nКористувач: {players[uid].get('name','?')} (uid: {uid})\nСума: {amt} TON\nБаланс: {bal} TON")
 
+# Long polling для отримання Stars payments
+last_update_id = 0
+async def poll_telegram_updates():
+    global last_update_id
+    while True:
+        try:
+            await asyncio.sleep(2)
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                    params={"offset": last_update_id + 1, "timeout": 5, "allowed_updates": ["message", "pre_checkout_query"]}
+                )
+                data = r.json()
+                if data.get("ok") and data.get("result"):
+                    for update in data["result"]:
+                        last_update_id = max(last_update_id, update.get("update_id", 0))
+                        
+                        # Pre-checkout query
+                        if "pre_checkout_query" in update:
+                            pcq_id = update["pre_checkout_query"]["id"]
+                            print(f"✅ Pre-checkout query: {pcq_id}")
+                            try:
+                                async with httpx.AsyncClient(timeout=10) as client2:
+                                    await client2.post(
+                                        f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery",
+                                        json={"pre_checkout_query_id": pcq_id, "ok": True}
+                                    )
+                            except Exception as e:
+                                print(f"❌ answerPreCheckoutQuery error: {e}")
+                        
+                        # Successful payment
+                        msg = update.get("message", {})
+                        payment = msg.get("successful_payment")
+                        if payment and payment.get("currency") == "XTR":
+                            print(f"💳 Stars payment received via polling: {payment}")
+                            try:
+                                payload = json.loads(payment["invoice_payload"])
+                                uid = int(payload["uid"])
+                                stars = int(payload["stars"])
+                                ton_amount = float(payload["ton"])
+                                
+                                bal = await credit_balance(uid, ton_amount, source="stars")
+                                add_log("stars", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "stars": stars, "ton": ton_amount})
+                                add_log("deposits", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "amount": ton_amount, "note": f"Stars x{stars}"})
+                                
+                                await send_tg(uid, f"⭐ <b>Stars зараховано!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nБаланс: {bal} TON")
+                                await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
+                                print(f"✅ Stars credited: {stars} → {ton_amount} TON for user {uid}")
+                                
+                                # Оновлюємо баланс через WebSocket
+                                if uid in clients:
+                                    try:
+                                        await clients[uid].send_text(json.dumps({"t": "bal", "bal": bal}))
+                                    except:
+                                        pass
+                            except Exception as e:
+                                print(f"❌ Stars payment processing error: {e}")
+        except Exception as e:
+            print(f"❌ Polling error: {e}")
+            await asyncio.sleep(5)
+
 NFT_WITHDRAW_STARS = 1
 
 @app.get("/stars/withdraw-invoice/{uid}/{nft_id}/{nft_name}")
@@ -599,6 +660,7 @@ async def game_loop():
 async def startup():
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
+    asyncio.create_task(poll_telegram_updates())
 
 player_ips: dict = {}
 
