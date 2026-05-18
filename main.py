@@ -463,8 +463,8 @@ async def create_withdraw_invoice(uid: int, nft_id: str, nft_name: str):
 
 @app.get("/stars/invoice/{uid}/{stars}")
 async def create_stars_invoice(uid: int, stars: int):
-    if stars < 10 or stars > 10000:
-        return JSONResponse({"ok": False, "error": "Stars від 10 до 10 000"})
+    if stars < 1 or stars > 10000:
+        return JSONResponse({"ok": False, "error": "Stars від 1 до 10 000"})
     ton_amount = round(stars * STARS_TO_TON, 4)
     payload = json.dumps({"uid": uid, "stars": stars, "ton": ton_amount})
     try:
@@ -489,9 +489,27 @@ async def create_stars_invoice(uid: int, stars: int):
 async def tg_webhook(request: Request):
     try:
         update = await request.json()
-        print(f"📨 Webhook received: {json.dumps(update, ensure_ascii=False)[:500]}")
+        print(f"📨 Webhook received: {json.dumps(update, ensure_ascii=False)[:300]}...")
     except Exception as e:
         print(f"❌ Failed to parse webhook: {e}")
+        return JSONResponse({"ok": True})
+    
+    # КРИТИЧНО: Pre-checkout query ПЕРШИМ - Telegram чекає відповідь!
+    if "pre_checkout_query" in update:
+        pcq_id = update["pre_checkout_query"]["id"]
+        print(f"✅ Pre-checkout query received via webhook: {pcq_id}")
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.post(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery",
+                    json={"pre_checkout_query_id": pcq_id, "ok": True}
+                )
+                result = r.json()
+                print(f"✅ Pre-checkout answered: {result}")
+        except Exception as e:
+            print(f"❌ answerPreCheckoutQuery error: {e}")
+            import traceback
+            traceback.print_exc()
         return JSONResponse({"ok": True})
     
     msg = update.get("message", {})
@@ -505,15 +523,6 @@ async def tg_webhook(request: Request):
             user_name = msg.get("from", {}).get("first_name", "User")
             await send_tg(chat_id, f"👋 Welcome to Rocket Casino, {user_name}!\n\n🎮 Open the game: https://casino-bot-production-5113.up.railway.app\n\nGood luck! 🚀")
             return JSONResponse({"ok": True})
-    
-    if "pre_checkout_query" in update:
-        pcq_id = update["pre_checkout_query"]["id"]
-        try:
-            async with httpx.AsyncClient(timeout=10) as client:
-                await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/answerPreCheckoutQuery", json={"pre_checkout_query_id": pcq_id, "ok": True})
-        except Exception as e:
-            print(f"answerPreCheckoutQuery error: {e}")
-        return JSONResponse({"ok": True})
     
     payment = msg.get("successful_payment")
     if payment and payment.get("currency") == "XTR":
@@ -776,7 +785,7 @@ async def game_loop():
 
 @app.on_event("startup")
 async def startup():
-    # Встановлюємо webhook назад (він надійніший для production)
+    # Встановлюємо webhook (ТІЛЬКИ webhook, без polling!)
     try:
         webhook_url = "https://casino-bot-production-5113.up.railway.app/tg/webhook"
         async with httpx.AsyncClient(timeout=10) as client:
@@ -791,8 +800,8 @@ async def startup():
     
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
-    asyncio.create_task(check_stars_payments())
-    print("🔄 Started Stars payment fallback checker")
+    # НЕ запускаємо check_stars_payments() - він конфліктує з webhook!
+    print("✅ Using webhook for Telegram updates (polling disabled)")
 
 player_ips: dict = {}
 
