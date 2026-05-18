@@ -814,6 +814,26 @@ async def ws_ep(ws: WebSocket, uid: int):
                 price = float(d.get("price", 0))
                 is_nft = d.get("is_nft", True)
                 name = players.get(uid, {}).get("name", "?")
+                
+                # Додаємо NFT в інвентар якщо це NFT
+                if is_nft and nft_id:
+                    if uid not in players:
+                        players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
+                    
+                    nft_entry = {
+                        "id": nft_id,
+                        "name": nft_name,
+                        "emoji": "🎁",
+                        "rarity": "Common",
+                        "price": price,
+                        "floor": price,
+                        "ts": time.time()
+                    }
+                    players[uid]["nfts"].append(nft_entry)
+                    save_players()
+                    print(f"🎁 NFT added from case: {nft_name} for {name} (uid:{uid})")
+                
+                # Логуємо
                 add_log("cases", {
                     "uid": uid,
                     "name": name,
