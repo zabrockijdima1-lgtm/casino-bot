@@ -2407,11 +2407,6 @@ async function doWithdrawWithStarsPatched(id,name,floor){
         showToast(t('error'));
       }
     });
-          }
-        });
-      }else if(status==='cancelled')showToast(t('cancelled'));
-      else if(status==='failed')showToast(t('error'));
-    });
   }catch(e){
     console.error('withdraw stars error:',e);
     showToast(t('error'));
@@ -2667,7 +2662,24 @@ function connect(){
     else if(d.t==='err'){showToast(d.msg);}
   };
   ws.onclose=()=>{wsReady=false;document.getElementById('conn').textContent='🔴';setTimeout(connect,2000);};
-  ws.onerror=()=>ws.close();
+  ws.onerror=(err)=>{console.error('WebSocket error:',err);ws.close();};
+  
+  // Timeout fallback - якщо не підключилося за 10 секунд
+  setTimeout(()=>{
+    if(!wsReady){
+      const loader=document.getElementById('app-loader');
+      if(loader){
+        loader.innerHTML=`
+          <div style="text-align:center">
+            <div style="color:#ff4d4d;font-size:48px;margin-bottom:16px">⚠️</div>
+            <div style="color:#fff;font-size:16px;font-weight:500;margin-bottom:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Connection Failed</div>
+            <div style="color:rgba(255,255,255,0.4);font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:20px">Cannot connect to game server</div>
+            <button onclick="location.reload()" style="background:#4d8fff;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Retry</button>
+          </div>
+        `;
+      }
+    }
+  },10000);
 }
 
 let pendingBet = false; // ставка в чергу на наступний раунд
@@ -5531,7 +5543,13 @@ document.addEventListener('visibilitychange', () => {
 
 // Старт: кеш → API → планувальник
 _applyCachedPrices();
-loadNFTPrices().then(() => { _schedulePriceRefresh(); connect(); });
+loadNFTPrices()
+  .then(() => { _schedulePriceRefresh(); connect(); })
+  .catch(err => { 
+    console.error('Failed to load NFT prices:', err); 
+    // Connect anyway даже якщо ціни не завантажилися
+    connect(); 
+  });
 </script>
 
 <!-- NFT BET PICKER -->
