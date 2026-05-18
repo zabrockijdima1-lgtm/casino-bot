@@ -256,7 +256,73 @@ async def check_ton_tx(uid: int, amount: float, since_ts: float) -> bool:
         print(f"check_ton_tx error: {e}")
     return False
 
-async def auto_check_topups():
+pending_stars_payments = {}  # {uid: {"stars": 10, "ton": 0.084, "ts": timestamp}}
+
+async def check_stars_payments():
+    """Перевіряє pending Stars payments через getUpdates як fallback"""
+    while True:
+        await asyncio.sleep(5)
+        if not pending_stars_payments:
+            continue
+        
+        # Видаляємо старі (більше 10 хвилин)
+        for uid in list(pending_stars_payments.keys()):
+            if time.time() - pending_stars_payments[uid]["ts"] > 600:
+                print(f"⏱️ Removing expired Stars payment for {uid}")
+                pending_stars_payments.pop(uid, None)
+        
+        if not pending_stars_payments:
+            continue
+        
+        try:
+            # Робимо один запит getUpdates для перевірки
+            async with httpx.AsyncClient(timeout=10) as client:
+                r = await client.get(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                    params={"offset": -1, "limit": 10}  # Тільки останні 10 updates
+                )
+                data = r.json()
+                
+                if not data.get("ok"):
+                    continue
+                
+                for update in data.get("result", []):
+                    msg = update.get("message", {})
+                    payment = msg.get("successful_payment")
+                    
+                    if payment and payment.get("currency") == "XTR":
+                        try:
+                            payload = json.loads(payment["invoice_payload"])
+                            uid = int(payload["uid"])
+                            
+                            if uid in pending_stars_payments:
+                                stars = int(payload["stars"])
+                                ton_amount = float(payload["ton"])
+                                
+                                print(f"✅ Found Stars payment via fallback check: {stars} Stars for {uid}")
+                                
+                                # Зараховуємо
+                                bal = await credit_balance(uid, ton_amount, source="stars")
+                                add_log("stars", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "stars": stars, "ton": ton_amount})
+                                add_log("deposits", {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "amount": ton_amount, "note": f"Stars x{stars} (fallback)"})
+                                
+                                await send_tg(uid, f"⭐ <b>Stars зараховано!</b>\n{stars} Stars → <b>{ton_amount} TON</b>\nБаланс: {bal} TON")
+                                await send_tg(ADMIN_ID, f"⭐ <b>Stars депозит (fallback)</b>\nКористувач: {players.get(uid,{}).get('name','?')} (uid: {uid})\nStars: {stars} → {ton_amount} TON")
+                                
+                                # Оновлюємо баланс через WebSocket
+                                if uid in clients:
+                                    try:
+                                        await clients[uid].send_text(json.dumps({"t": "bal", "bal": bal}))
+                                    except:
+                                        pass
+                                
+                                # Видаляємо з pending
+                                pending_stars_payments.pop(uid, None)
+                                print(f"✅ Stars credited via fallback: {stars} → {ton_amount} TON, balance: {bal}")
+                        except Exception as e:
+                            print(f"❌ Error processing fallback payment: {e}")
+        except Exception as e:
+            print(f"❌ check_stars_payments error: {e}")
     while True:
         await asyncio.sleep(10)
         for uid, info in list(pending_topups.items()):
@@ -390,6 +456,11 @@ async def create_stars_invoice(uid: int, stars: int):
             data = r.json()
         if not data.get("ok"):
             return JSONResponse({"ok": False, "error": data.get("description", "Помилка Telegram")})
+        
+        # Додаємо в pending для fallback перевірки
+        pending_stars_payments[uid] = {"stars": stars, "ton": ton_amount, "ts": time.time()}
+        print(f"📝 Added pending Stars payment: {uid} → {stars} Stars")
+        
         return JSONResponse({"ok": True, "invoice_link": data["result"], "ton": ton_amount})
     except Exception as e:
         return JSONResponse({"ok": False, "error": "Помилка сервера"})
@@ -700,6 +771,8 @@ async def startup():
     
     asyncio.create_task(game_loop())
     asyncio.create_task(auto_check_topups())
+    asyncio.create_task(check_stars_payments())
+    print("🔄 Started Stars payment fallback checker")
 
 player_ips: dict = {}
 
