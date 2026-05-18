@@ -6,7 +6,7 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -2780,17 +2780,28 @@ function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=a
 let tonUI=null,tonConnected=false;
 function initTon(){
   try{
-    // Перевірка чи бібліотека завантажилась
-    if(typeof TonConnectUI === 'undefined' && !window.TON_CONNECT_UI){
-      console.error('TonConnectUI library not loaded');
+    // Чекаємо поки бібліотека завантажиться
+    if(!window.TonConnectUI){
+      console.log('TonConnectUI not ready yet, retrying...');
+      setTimeout(initTon, 500);
       return;
     }
-    const TonConnect = window.TON_CONNECT_UI?.TonConnectUI || TonConnectUI;
-    tonUI=new TonConnect({manifestUrl: 'https://casino-bot-bn31.vercel.app/tonconnect-manifest.json',buttonRootId:null});
-    tonUI.onStatusChange(w=>{tonConnected=!!w;updateWalletUI();if(w)showToast(t('wallet_connected'),'win');});
-    console.log('TON Connect initialized successfully');
+    
+    tonUI = new window.TonConnectUI({
+      manifestUrl: 'https://casino-bot-bn31.vercel.app/tonconnect-manifest.json'
+    });
+    
+    tonUI.onStatusChange(w => {
+      tonConnected = !!w;
+      updateWalletUI();
+      if(w) showToast(t('wallet_connected'),'win');
+    });
+    
+    console.log('✅ TON Connect initialized successfully');
   }catch(e){
-    console.error('TON Connect init error:', e);
+    console.error('❌ TON Connect init error:', e);
+    // Retry after 1 second
+    setTimeout(initTon, 1000);
   }
 }
 function updateWalletUI(){
@@ -2810,13 +2821,20 @@ async function doTonPayment(){
   
   // Перевірка чи TON Connect готовий
   if(!tonUI){
-    showToast('TON Connect not ready. Please refresh the page.','error');
+    showToast('⚠️ TON Connect is loading... Please wait or refresh the page.','error');
     console.error('TON Connect UI not initialized');
+    // Спробуємо ініціалізувати знову
+    initTon();
     return;
   }
   
   if(!tonConnected){
-    tonUI.openModal();
+    try{
+      await tonUI.openModal();
+    }catch(e){
+      console.error('Failed to open TON Connect modal:', e);
+      showToast('Failed to open wallet. Please refresh the page.','error');
+    }
     return;
   }
   
