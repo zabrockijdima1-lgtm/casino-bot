@@ -1,4 +1,4 @@
-import asyncio, json, math, os, random, time, httpx
+import asyncio, html, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
@@ -1154,7 +1154,7 @@ async def debug_add_referral(user_id: int, referrer_id: int, admin_uid: int = 0)
 
 
 
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin_old", response_class=HTMLResponse)
 async def admin_panel(request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
     if admin_uid not in ADMIN_IDS:
@@ -1205,6 +1205,113 @@ async def admin_panel(request: Request):
 <h2>🎁 Виводи NFT</h2><table><tr><th>Гравець</th><th>NFT</th><th>Floor</th><th>Продано за</th><th>Тип</th><th>Час</th></tr>{withdrawals_html}</table>
 <h2>👥 Реферали</h2><table><tr><th>Новий гравець</th><th>Запросив</th><th>Час</th></tr>{refs_html}</table>
 </body></html>"""
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_panel_v2(request: Request):
+    try:
+        admin_uid = int(request.query_params.get("uid", 0))
+    except ValueError:
+        admin_uid = 0
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red;font-family:monospace;padding:40px'>Access Denied</h2>", status_code=403)
+
+    def esc(value):
+        return html.escape(str(value if value is not None else ""))
+
+    def dt(ts):
+        return time.strftime("%d.%m %H:%M:%S", time.localtime(float(ts or 0)))
+
+    def ton(value, digits=2):
+        try:
+            return f"{float(value or 0):.{digits}f}"
+        except (TypeError, ValueError):
+            return f"{0:.{digits}f}"
+
+    def empty_row(cols, text="No data"):
+        return f'<tr><td colspan="{cols}" class="empty">{esc(text)}</td></tr>'
+
+    total_bets = sum(float(l.get("amount", 0) or 0) for l in logs["bets"])
+    total_wins = sum(float(l.get("win", 0) or 0) for l in logs["cashouts"])
+    total_deps = sum(float(l.get("amount", 0) or 0) for l in logs["deposits"])
+    total_stars_ton = sum(float(l.get("ton", 0) or 0) for l in logs["stars"])
+    total_balances = sum(float(p.get("balance", 0) or 0) for p in players.values())
+    total_nfts = sum(len(p.get("nfts", [])) for p in players.values())
+    banned_count = sum(1 for p in players.values() if p.get("banned"))
+    pnl = total_bets - total_wins
+
+    ordered_players = sorted(players.items(), key=lambda item: float(item[1].get("balance", 0) or 0), reverse=True)
+    player_rows = []
+    for uid, p in ordered_players[:150]:
+        status = '<span class="badge bad">Banned</span>' if p.get("banned") else '<span class="badge good">Active</span>'
+        player_rows.append(
+            f'<tr><td><a class="link" href="/admin/player/{uid}?uid={admin_uid}">{uid}</a></td>'
+            f'<td><strong>{esc(p.get("name","?"))}</strong><span class="muted block">{esc("@"+p.get("nick") if p.get("nick") else "no username")}</span></td>'
+            f'<td class="num">{ton(p.get("balance",0), 4)}</td>'
+            f'<td class="num">{len(p.get("nfts", []))}</td>'
+            f'<td>{esc(", ".join(player_ips.get(uid, [])[:2]) or "-")}</td>'
+            f'<td>{status}</td>'
+            f'<td class="actions"><a class="btn mini green" href="/admin/topup/{uid}/1?uid={admin_uid}">+1</a>'
+            f'<a class="btn mini green" href="/admin/topup/{uid}/5?uid={admin_uid}">+5</a>'
+            f'<a class="btn mini blue" href="/admin/player/{uid}?uid={admin_uid}">Open</a>'
+            f'<a class="btn mini red" href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}">Zero</a></td></tr>'
+        )
+    players_list_html = "".join(player_rows) or empty_row(7, "No players yet")
+
+    bets_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td class="num">{ton(l.get("amount"), 4)}</td><td>{esc(l.get("nft") or "TON")}</td><td>{esc(l.get("round_id",""))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["bets"][:80]
+    ]) or empty_row(5)
+    cashouts_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td class="num">{ton(l.get("bet"), 4)}</td><td class="num">{ton(l.get("win"), 4)}</td><td>{ton(l.get("mult"), 2)}x</td><td>{esc(l.get("nft") or "TON")}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["cashouts"][:80]
+    ]) or empty_row(6)
+    deps_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("uid",""))}</td><td class="num">{ton(l.get("amount"), 4)}</td><td>{esc(l.get("note",""))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["deposits"][:80]
+    ]) or empty_row(5)
+    stars_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("uid",""))}</td><td class="num">{esc(l.get("stars",0))}</td><td class="num">{ton(l.get("ton"), 4)}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["stars"][:80]
+    ]) or empty_row(5)
+    refs_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("invited_name","?"))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["referrals"][:80]
+    ]) or empty_row(3)
+    withdrawals_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td>{esc(l.get("nft_name","?"))}</td><td class="num">{ton(l.get("nft_floor"), 2)}</td><td class="num">{ton(l.get("sell_price"), 2)}</td><td><span class="badge">{esc(l.get("type",""))}</span></td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["withdrawals"][:80]
+    ]) or empty_row(6)
+    cases_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td>{esc(l.get("case_name","?"))}</td><td>{esc(l.get("won_item","?"))}</td><td class="num">{ton(l.get("value"), 2)}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["cases"][:80]
+    ]) or empty_row(5)
+
+    pnl_color = "#22c55e" if pnl >= 0 else "#ef4444"
+    now = time.strftime("%d.%m %H:%M:%S")
+    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Casino Admin</title>
+<style>
+:root{{--bg:#070b16;--panel:#101827;--panel2:#0c1220;--line:#22304a;--text:#eef4ff;--muted:#8290aa;--blue:#38bdf8;--green:#22c55e;--red:#ef4444}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px}}a{{color:inherit}}.wrap{{max-width:1480px;margin:0 auto;padding:22px}}
+.top{{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}}h1{{font-size:24px;margin:0}}.sub{{color:var(--muted);font-size:12px;margin-top:5px}}.pill{{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel2);padding:8px 11px;border-radius:999px;color:#cbd5e1;text-decoration:none;font-weight:700;font-size:12px}}
+.stats{{display:grid;grid-template-columns:repeat(8,minmax(130px,1fr));gap:10px;margin-bottom:16px}}.stat{{background:linear-gradient(180deg,#121c2e,#0d1424);border:1px solid var(--line);border-radius:12px;padding:14px}}.stat .v{{font-size:22px;font-weight:800;letter-spacing:.2px}}.stat .l{{color:var(--muted);font-size:11px;margin-top:5px;text-transform:uppercase;letter-spacing:.06em}}
+.tabs{{display:flex;gap:8px;overflow:auto;padding:6px 0 14px;position:sticky;top:0;background:linear-gradient(var(--bg),rgba(7,11,22,.92));z-index:5}}.tab{{border:1px solid var(--line);background:#0d1424;color:#cbd5e1;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;white-space:nowrap}}.tab.active{{background:#1e3a5f;border-color:#38bdf866;color:white}}
+.panel{{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:18px;box-shadow:0 12px 36px rgba(0,0,0,.22)}}.panel.active{{display:block}}.panel-head{{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}}h2{{font-size:17px;margin:0}}.muted{{color:var(--muted);font-size:12px}}.block{{display:block;margin-top:3px}}
+.search{{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px}}input{{width:100%;background:#090f1d;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;outline:none}}button,.btn{{border:0;border-radius:10px;background:#1d4ed8;color:white;padding:10px 13px;text-decoration:none;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}}.btn.mini{{padding:6px 8px;font-size:12px;border-radius:8px}}.green{{background:#15803d}}.red{{background:#b91c1c}}.blue{{background:#2563eb}}
+.table-wrap{{overflow:auto;border:1px solid var(--line);border-radius:12px}}table{{width:100%;border-collapse:collapse;min-width:760px}}th{{background:#0b1323;color:#93a4c3;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;position:sticky;top:0}}td{{padding:10px 12px;border-top:1px solid #1b2740;vertical-align:middle}}tr:hover td{{background:#111c30}}.num{{font-variant-numeric:tabular-nums;text-align:right}}.actions{{display:flex;gap:6px;flex-wrap:wrap}}.link{{color:#7dd3fc;font-weight:800;text-decoration:none}}.badge{{display:inline-flex;border:1px solid #334155;background:#111827;color:#cbd5e1;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800}}.badge.good{{border-color:#166534;color:#86efac}}.badge.bad{{border-color:#7f1d1d;color:#fca5a5}}.empty{{text-align:center;color:var(--muted);padding:28px!important}}
+@media(max-width:900px){{.wrap{{padding:14px}}.top{{align-items:flex-start;flex-direction:column}}.stats{{grid-template-columns:repeat(2,1fr)}}.search{{grid-template-columns:1fr}}}}
+</style></head><body><div class="wrap">
+<div class="top"><div><h1>Casino Admin</h1><div class="sub">Admin UID: {admin_uid} · online {len(clients)} · updated {now}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin?uid={admin_uid}">Refresh</a><a class="pill" href="/api/status">API status</a><a class="pill" href="/admin_old?uid={admin_uid}">Old view</a></div></div>
+<div class="stats">
+  <div class="stat"><div class="v">{len(players)}</div><div class="l">Players</div></div><div class="stat"><div class="v">{len(clients)}</div><div class="l">Online</div></div><div class="stat"><div class="v">{banned_count}</div><div class="l">Banned</div></div><div class="stat"><div class="v">{total_nfts}</div><div class="l">NFT in users</div></div>
+  <div class="stat"><div class="v">{ton(total_deps,1)}</div><div class="l">Deposits TON</div></div><div class="stat"><div class="v">{ton(total_stars_ton,2)}</div><div class="l">Stars to TON</div></div><div class="stat"><div class="v">{ton(total_balances,1)}</div><div class="l">User balances</div></div><div class="stat"><div class="v" style="color:{pnl_color}">{pnl:+.1f}</div><div class="l">Game P/L</div></div>
+</div>
+<div class="tabs"><button class="tab active" data-tab="players">Players</button><button class="tab" data-tab="money">Money</button><button class="tab" data-tab="game">Game</button><button class="tab" data-tab="nft">NFT</button><button class="tab" data-tab="refs">Refs</button></div>
+<section class="panel active" id="tab-players"><div class="panel-head"><h2>Players</h2><span class="muted">Top 150 by balance</span></div><form class="search" action="/admin/player" method="get"><input type="hidden" name="uid" value="{admin_uid}"><input type="number" name="search_uid" placeholder="Search UID"><input type="text" name="search_username" placeholder="Search @username"><button type="submit">Search</button></form><div class="table-wrap"><table><tr><th>UID</th><th>User</th><th class="num">Balance</th><th class="num">NFT</th><th>IP</th><th>Status</th><th>Actions</th></tr>{players_list_html}</table></div></section>
+<section class="panel" id="tab-money"><div class="panel-head"><h2>Money</h2><span class="muted">Deposits and Stars</span></div><h2 style="margin:4px 0 10px">TON deposits</h2><div class="table-wrap"><table><tr><th>User</th><th>UID</th><th class="num">Amount</th><th>Note</th><th>Time</th></tr>{deps_html}</table></div><h2 style="margin:18px 0 10px">Stars deposits</h2><div class="table-wrap"><table><tr><th>User</th><th>UID</th><th class="num">Stars</th><th class="num">TON</th><th>Time</th></tr>{stars_html}</table></div></section>
+<section class="panel" id="tab-game"><div class="panel-head"><h2>Game Logs</h2><span class="muted">Bets, cashouts and cases</span></div><h2 style="margin:4px 0 10px">Bets</h2><div class="table-wrap"><table><tr><th>User</th><th class="num">Bet</th><th>Type</th><th>Round</th><th>Time</th></tr>{bets_html}</table></div><h2 style="margin:18px 0 10px">Cashouts</h2><div class="table-wrap"><table><tr><th>User</th><th class="num">Bet</th><th class="num">Win</th><th>Mult</th><th>Prize</th><th>Time</th></tr>{cashouts_html}</table></div><h2 style="margin:18px 0 10px">Cases</h2><div class="table-wrap"><table><tr><th>User</th><th>Case</th><th>Won</th><th class="num">Value</th><th>Time</th></tr>{cases_html}</table></div></section>
+<section class="panel" id="tab-nft"><div class="panel-head"><h2>NFT Withdrawals</h2><span class="muted">Sell and withdraw requests</span></div><div class="table-wrap"><table><tr><th>User</th><th>NFT</th><th class="num">Floor</th><th class="num">Amount/Fee</th><th>Type</th><th>Time</th></tr>{withdrawals_html}</table></div></section>
+<section class="panel" id="tab-refs"><div class="panel-head"><h2>Referrals</h2><span class="muted">Invite logs</span></div><div class="table-wrap"><table><tr><th>New player</th><th>Invited by</th><th>Time</th></tr>{refs_html}</table></div></section>
+</div><script>document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{{document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');}}));</script></body></html>"""
 
 @app.get("/admin/topup/{uid}/{amount}")
 async def admin_topup_get(uid: int, amount: float, request: Request):
@@ -1360,11 +1467,13 @@ async def admin_player_detail(uid: int, request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    try:
-        with open("index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse("<h1>Game loading...</h1><p>index.html not found. Please check deployment.</p>", status_code=500)
+    for filename in ("index (5).html", "index.html"):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+        except FileNotFoundError:
+            continue
+    return HTMLResponse("<h1>Game loading...</h1><p>index file not found. Please check deployment.</p>", status_code=500)
 
 @app.get("/api/status")
 async def api_status():
