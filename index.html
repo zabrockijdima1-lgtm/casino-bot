@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -1745,9 +1744,51 @@ const NFT_CATALOG=[
   {id:'durovscap',name:'Durov Cap',photo:'',floor:576.88,price:605.72,rarity:'Legendary',color:'#2e1e00'},
 ];
 // Fill photos from NFT_PHOTOS
+const NFT_PRICE_OVERRIDES={
+  snakebox:1.81,candycane:1.81,jesterhat:1.94,lolpop:2.50,spicedwine:2.18,bunnymuffin:4.27,berrybox:5.24,valentinebox:5.63,lovecandle:5.74,sakuraflower:6.24,lovepotion:8.59,toybear:22.48,sharptongue:28.25,nekohelmet:24.95,nailbracelet:81.98,astralshard:102.50,astralshards:102.50,artisanbrick:50.55,bowtie:2.60,chillflame:1.81,clovelpin:2.60,cloverpin:2.60,crystalball:6.76,cupidcharm:12.62,diamondring:17.47,eternalcandle:3.31,evileye:4.12,flyingbroom:6.75,gemsignet:45.50,genielamp:29.79,gingercookie:2.25,heartlocket:1346.98,heroichelmet:144.89,hexhot:2.23,holidaydrink:1.88,homemadecake:2.74,hypnolollipop:2.12,instantramen:1.82,ionicdrier:8.74,ionicgem:55.28,iongem:55.28,jackinthebox:2.11,jellybunny:4.18,jinglebells:5.73,lightsword:3.21,lolpop2:2.50,lootbag:83.75,lowrider:32.33,lunarsnake:1.80,lunarsnak:1.80,lushbouquet:2.74,madpumpkin:6.99,minioscars:53.94,minioscal:53.94,moodpack:2.55,moonpendant:3.11,moonpencil:3.11,moussecake:2.63,partysparkler:2.01,partysparker:2.01,perfumebottle:57.86,poolfloat:2.07,preciouspeach:246.70,recordplayer:6.99,restlessjar:2.93,santahat:2.22,scaredcat:117.64,skystiletto:9.70,skystillettos:9.70,sleighbell:5.06,snoopcigar:7.44,snoopdog:3.08,snowglobe:2.70,snowmittens:2.82,stellarrocket:2.05,swagbag:3.13,swisswatch:33.59,tamagadget:2.24,timelessbook:2.69,tophat:6.13,vintagecigar:22.80,voodoodoll:19.59,westsideside:48.07,whipcupcake:1.83,winterwreath:1.83,witchhat:3.17,freshsocks:2.13,faithamulet:3.05
+};
+const NFT_PRICE_ALIASES={happybroom:'happybrownie',hexpot:'hexhot',kissedfrong:'kissedfrog',moonpencil:'moonpendant',minioscal:'minioscars',artisanbread:'artisanbrick',skystillettos:'skystiletto'};
+function applyLocalNFTPrices(){
+  NFT_CATALOG.forEach(n=>{
+    const id=String(n.id||'').toLowerCase();
+    const key=NFT_PRICE_OVERRIDES[id]!==undefined?id:NFT_PRICE_ALIASES[id];
+    if(key&&NFT_PRICE_OVERRIDES[key]!==undefined){
+      n.floor=NFT_PRICE_OVERRIDES[key];
+      n.price=NFT_PRICE_OVERRIDES[key];
+    }
+  });
+}
+applyLocalNFTPrices();
 NFT_CATALOG.forEach(n => {
   if(NFT_PHOTOS[n.id]) n.photo = NFT_PHOTOS[n.id];
 });
+async function syncNFTCatalogPrices(){
+  try{
+    const r = await fetch(`${SERVER}/api/nft_catalog?t=${Date.now()}`);
+    const data = await r.json();
+    if(!data.ok || !Array.isArray(data.items)) return;
+    const byId = new Map(NFT_CATALOG.map(n => [String(n.id || '').toLowerCase(), n]));
+    data.items.forEach(src => {
+      const id = String(src.id || '').toLowerCase();
+      if(!id) return;
+      const existing = byId.get(id);
+      if(existing){
+        existing.floor = +(src.floor ?? existing.floor ?? 0);
+        existing.price = +(src.price ?? existing.price ?? existing.floor ?? 0);
+        existing.rarity = src.rarity || existing.rarity;
+        existing.color = src.color || existing.color;
+        if(!existing.photo && NFT_PHOTOS[id]) existing.photo = NFT_PHOTOS[id];
+      }else{
+        NFT_CATALOG.push({...src, photo: NFT_PHOTOS[id] || src.photo || ''});
+      }
+    });
+    NFT_CATALOG.sort((a,b)=>(+a.price||0)-(+b.price||0));
+    console.log('NFT catalog synced:', NFT_CATALOG.length);
+  }catch(e){
+    console.warn('NFT catalog sync failed:', e);
+  }
+}
+syncNFTCatalogPrices();
 function getPhotoById(nft){
   if(!nft)return'';
   const id=nft.id||(NFT_CATALOG.find(n=>n.name===nft.name)||{}).id;
