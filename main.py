@@ -1,4 +1,4 @@
-import asyncio, json, math, os, random, time, httpx
+import asyncio, html, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, FileResponse
@@ -20,6 +20,7 @@ BOT_TOKEN     = os.getenv("BOT_TOKEN", "8736629642:AAHe9ZvyuHRGJV4C2t-zv6STyYXbe
 ADMIN_IDS     = {1256452126, 6479535975}
 ADMIN_ID      = 1256452126
 STARS_TO_TON  = 0.0084
+NFT_WITHDRAW_TON_FEE = 0.2
 
 NFT_CATALOG = [
     {"id":"icecream","name":"Ice Cream","floor":1.29,"price":1.35,"rarity":"Common","color":"#0d2e1a"},
@@ -133,8 +134,145 @@ NFT_CATALOG = [
     {"id":"plushpepe","name":"Plush Pepe","floor":4500.00,"price":4725.00,"rarity":"Legendary","color":"#2e1e00"},
 ]
 
+NFT_PRICE_ALIASES = {
+    "lunarsnak": "lunarsnake",
+    "partysparker": "partysparkler",
+    "happybroom": "happybrownie",
+    "hexpot": "hexhot",
+    "moonpencil": "moonpendant",
+    "minioscal": "minioscars",
+    "artisanbread": "artisanbrick",
+    "skystillettos": "skystiletto",
+}
+
+# Fallback from the latest tgmrkt update log. prices.json overrides these when present.
+NFT_PRICE_OVERRIDES = {
+    "snakebox": 1.81, "candycane": 1.81, "jesterhat": 1.94, "lolpop": 2.50,
+    "spicedwine": 2.18, "bunnymuffin": 4.27, "berrybox": 5.24,
+    "valentinebox": 5.63, "lovecandle": 5.74, "sakuraflower": 6.24,
+    "lovepotion": 8.59, "toybear": 22.48, "sharptongue": 28.25,
+    "nekohelmet": 24.95, "nailbracelet": 81.98, "astralshard": 102.50,
+    "artisanbrick": 50.55, "astralshards": 102.50, "bowtie": 2.60,
+    "chillflame": 1.81, "clovelpin": 2.60, "cloverpin": 2.60,
+    "crystalball": 6.76, "cupidcharm": 12.62, "diamondring": 17.47,
+    "eternalcandle": 3.31, "evileye": 4.12, "flyingbroom": 6.75,
+    "gemsignet": 45.50, "genielamp": 29.79, "gingercookie": 2.25,
+    "heartlocket": 1346.98, "heroichelmet": 144.89, "hexhot": 2.23,
+    "holidaydrink": 1.88, "homemadecake": 2.74, "hypnolollipop": 2.12,
+    "instantramen": 1.82, "ionicdrier": 8.74, "iongem": 55.28,
+    "jackinthebox": 2.11, "jellybunny": 4.18, "jinglebells": 5.73,
+    "lightsword": 3.21, "lolpop2": 2.50, "lootbag": 83.75,
+    "lowrider": 32.33, "lunarsnake": 1.80, "lunarsnak": 1.80,
+    "lushbouquet": 2.74, "madpumpkin": 6.99, "minioscars": 53.94,
+    "minioscal": 53.94, "moodpack": 2.55, "moonpendant": 3.11,
+    "moonpencil": 3.11, "moussecake": 2.63, "partysparkler": 2.01,
+    "partysparker": 2.01, "perfumebottle": 57.86, "poolfloat": 2.07,
+    "preciouspeach": 246.70, "recordplayer": 6.99, "restlessjar": 2.93,
+    "santahat": 2.22, "scaredcat": 117.64, "skystiletto": 9.70,
+    "skystillettos": 9.70, "sleighbell": 5.06, "snoopcigar": 7.44,
+    "snoopdog": 3.08, "snowglobe": 2.70, "snowmittens": 2.82,
+    "stellarrocket": 2.05, "swagbag": 3.13, "swisswatch": 33.59,
+    "tamagadget": 2.24, "timelessbook": 2.69, "tophat": 6.13,
+    "vintagecigar": 22.80, "voodoodoll": 19.59, "westsideside": 48.07,
+    "whipcupcake": 1.83, "winterwreath": 1.83, "witchhat": 3.17,
+    "freshsocks": 2.13, "faithamulet": 3.05,
+}
+
+_PRICE_FILE_MTIME = None
+_PRICE_FILE_PATH = None
+
+def _nft_key(value):
+    return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
+
+def _price_file_candidates():
+    here = os.path.dirname(os.path.abspath(__file__))
+    return [
+        os.path.join(here, "prices.json"),
+        os.path.join(os.getcwd(), "prices.json"),
+        os.path.join(os.path.expanduser("~"), "Downloads", "prices.json"),
+    ]
+
+def _read_prices_json():
+    global _PRICE_FILE_MTIME, _PRICE_FILE_PATH
+    for path in _price_file_candidates():
+        if not os.path.exists(path):
+            continue
+        mtime = os.path.getmtime(path)
+        if _PRICE_FILE_PATH == path and _PRICE_FILE_MTIME == mtime:
+            return None
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            _PRICE_FILE_PATH = path
+            _PRICE_FILE_MTIME = mtime
+            return data
+        except Exception as e:
+            print(f"prices.json read error: {e}")
+    return None
+
+def _flatten_price_data(data):
+    out = {}
+    if isinstance(data, dict):
+        for container in ("prices", "items", "nfts", "data"):
+            if isinstance(data.get(container), (dict, list)):
+                out.update(_flatten_price_data(data[container]))
+    if isinstance(data, dict):
+        items = data.items()
+    elif isinstance(data, list):
+        items = [(None, item) for item in data]
+    else:
+        return out
+    for key, value in items:
+        nft_id = key
+        price = None
+        if isinstance(value, (int, float)):
+            price = float(value)
+        elif isinstance(value, dict):
+            nft_id = value.get("id") or value.get("slug") or value.get("name") or key
+            for field in ("price", "floor", "floor_price", "ton", "value"):
+                if value.get(field) is not None:
+                    try:
+                        price = float(value[field])
+                        break
+                    except (TypeError, ValueError):
+                        pass
+        if nft_id and price and price > 0:
+            out[_nft_key(nft_id)] = round(price, 4)
+    return out
+
+def sync_nft_prices(force=False):
+    prices = dict(NFT_PRICE_OVERRIDES)
+    data = _read_prices_json()
+    if data is not None:
+        prices.update(_flatten_price_data(data))
+    elif not force and _PRICE_FILE_MTIME is not None:
+        return
+
+    normalized = {_nft_key(k): v for k, v in prices.items()}
+    for alias, canonical in NFT_PRICE_ALIASES.items():
+        alias_key = _nft_key(alias)
+        canonical_key = _nft_key(canonical)
+        if canonical_key in normalized:
+            normalized[alias_key] = normalized[canonical_key]
+        elif alias_key in normalized:
+            normalized[canonical_key] = normalized[alias_key]
+
+    for nft in NFT_CATALOG:
+        keys = {_nft_key(nft.get("id")), _nft_key(nft.get("name"))}
+        keys.update(_nft_key(NFT_PRICE_ALIASES.get(k, "")) for k in list(keys))
+        for key in keys:
+            if key in normalized:
+                nft["floor"] = normalized[key]
+                nft["price"] = normalized[key]
+                nft["price_source"] = "prices"
+                break
+
 def get_nft_for_win(win: float):
     if win < 0.1: return None  # NFT падають при виграші від 0.1 TON
+    sync_nft_prices()
+    if not NFT_CATALOG: return None
+    
+    # Фільтруємо тільки ті NFT що вміщуються у виграш
     ok = [n for n in NFT_CATALOG if n["price"] <= win]
     if not ok: return None
     
@@ -150,6 +288,31 @@ def get_nft_for_win(win: float):
             return ok[i]
     
     return ok[-1]  # Fallback
+
+def get_nft_for_rocket_win(win: float):
+    if win < 0.1:
+        return None
+    sync_nft_prices()
+    available = [n for n in NFT_CATALOG if float(n.get("price") or n.get("floor") or 0) <= win]
+    
+    if available:
+        # Зважений випадковий вибір: дешеві NFT падають частіше
+        weights = [1.0 / float(n.get("price") or n.get("floor") or 1) for n in available]
+        total_weight = sum(weights)
+        rand = random.random() * total_weight
+        
+        for i, w in enumerate(weights):
+            rand -= w
+            if rand <= 0:
+                return available[i]
+        
+        return available[-1]  # Fallback
+    
+    # Якщо нічого не підходить - дамо один з 5 найдешевших
+    cheap = sorted(NFT_CATALOG, key=lambda n: float(n.get("price") or n.get("floor") or 999999))
+    return random.choice(cheap[:5]) if cheap else None
+
+sync_nft_prices(force=True)
 
 # НОВА ФУНКЦІЯ: Перевірка підписки на канал
 async def check_subscription(user_id: int, channel: str) -> bool:
@@ -184,8 +347,10 @@ PLAYERS_FILE = "players_data.json"
 
 def save_players():
     try:
-        with open(PLAYERS_FILE, "w") as f:
+        tmp_file = PLAYERS_FILE + ".tmp"
+        with open(tmp_file, "w") as f:
             json.dump(players, f)
+        os.replace(tmp_file, PLAYERS_FILE)
         print(f"💾 Players data saved ({len(players)} players)")
     except Exception as e:
         print(f"❌ Error saving players: {e}")
@@ -195,7 +360,20 @@ def load_players():
     try:
         if os.path.exists(PLAYERS_FILE):
             with open(PLAYERS_FILE, "r") as f:
-                players = json.load(f)
+                raw_players = json.load(f)
+            players = {}
+            for raw_uid, data in raw_players.items():
+                try:
+                    fixed_uid = int(raw_uid)
+                except Exception:
+                    fixed_uid = raw_uid
+                if isinstance(data, dict):
+                    data.setdefault("balance", 0)
+                    data.setdefault("nfts", [])
+                    data.setdefault("name", "Player")
+                    data.setdefault("nick", "")
+                    data.setdefault("photo", "")
+                    players[fixed_uid] = data
             print(f"📂 Loaded {len(players)} players from file")
         else:
             print("📂 No saved players file, starting fresh")
@@ -227,6 +405,9 @@ async def send_tg(uid: int, text: str):
                 print(f"❌ Telegram API error: {data.get('description', 'Unknown error')}")
     except Exception as e:
         print(f"❌ TG send error to {uid}: {e}")
+
+async def send_admins(text: str):
+    await asyncio.gather(*(send_tg(admin_id, text) for admin_id in ADMIN_IDS), return_exceptions=True)
 
 async def credit_balance(uid: int, amount: float, source: str = "deposit"):
     if uid not in players:
@@ -614,6 +795,9 @@ async def test_send_message(chat_id: int):
 
 @app.get("/set_webhook")
 async def set_webhook(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0) or 0)
+    if admin_uid not in ADMIN_IDS:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
     webhook_url = request.query_params.get("url")
     if not webhook_url:
         return JSONResponse({"error": "передай ?url=https://твій-сервер.com"})
@@ -626,7 +810,10 @@ async def set_webhook(request: Request):
         return JSONResponse({"error": str(e)})
 
 @app.get("/delete_webhook")
-async def delete_webhook():
+async def delete_webhook(request: Request):
+    admin_uid = int(request.query_params.get("uid", 0) or 0)
+    if admin_uid not in ADMIN_IDS:
+        return JSONResponse({"error": "forbidden"}, status_code=403)
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
@@ -690,11 +877,13 @@ async def do_cashout(uid, mult):
         win_value = round(nft_price * mult, 4)
         bet["win"] = win_value
 
-        win_nft = get_nft_for_win(win_value) if mult >= 1.1 else None
+        win_nft = get_nft_for_rocket_win(win_value) if mult >= 1.1 else None
         bet["nft"] = win_nft
 
         if win_nft:
-            p.setdefault("nfts", []).append({**win_nft, "won_at": mult, "win_ton": win_value, "ts": time.time()})
+            nft_entry = {**win_nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win_value, "ts": time.time()}
+            p.setdefault("nfts", []).append(nft_entry)
+            win_nft = nft_entry
             add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
         else:
             # mult < 1.1 або немає дорожчого NFT — повертаємо оригінальний NFT
@@ -712,15 +901,18 @@ async def do_cashout(uid, mult):
                     "bal": p.get("balance", 0), "nft": win_nft
                 }))
             except: pass
+        save_players()
 
     else:
         # Звичайна TON ставка
         win = round(bet["amount"] * mult, 4)
         bet["win"] = win
-        nft = get_nft_for_win(win) if mult >= 1.1 else None
+        nft = get_nft_for_rocket_win(win) if mult >= 1.1 else None
         bet["nft"] = nft
         if nft:
-            p.setdefault("nfts", []).append({**nft, "won_at": mult, "win_ton": win, "ts": time.time()})
+            nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
+            p.setdefault("nfts", []).append(nft_entry)
+            nft = nft_entry
             add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": nft.get("name"), "nft_floor": nft.get("floor")})
         else:
             p["balance"] = round(p.get("balance", 0) + win, 4)
@@ -730,6 +922,7 @@ async def do_cashout(uid, mult):
             try:
                 await clients[uid].send_text(json.dumps({"t": "your_co", "win": win, "mx": mult, "bal": p.get("balance", 0), "nft": nft}))
             except: pass
+        save_players()
 
 async def game_loop():
     while True:
@@ -775,6 +968,7 @@ async def game_loop():
                                 "nft": bet["nft_data"]
                             }))
                         except: pass
+        save_players()
         await broadcast({"t": "cr", "ca": g.crash_at, "rid": g.round_id, "h": g.history, "pl": players_list(), "now": time.time()})
         await asyncio.sleep(3)
 
@@ -821,7 +1015,8 @@ async def ws_ep(ws: WebSocket, uid: int):
     await ws.send_text(json.dumps({
         "t": "init", "phase": g.phase, "mult": g.mult, "ts": g.start_ts,
         "ca": g.crash_at, "rid": g.round_id, "h": g.history,
-        "pl": players_list(), "bal": players.get(uid, {}).get("balance", 1.0), "now": time.time()
+        "pl": players_list(), "bal": players.get(uid, {}).get("balance", 1.0),
+        "nfts": players.get(uid, {}).get("nfts", []), "now": time.time()
     }))
     try:
         while True:
@@ -840,6 +1035,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["name"] = d.get("name", players[uid]["name"])
                     players[uid]["nick"] = d.get("nick", players[uid]["nick"])
                     players[uid]["photo"] = d.get("photo", players[uid]["photo"])
+                save_players()
 
             elif a == "bet":
                 if g.phase != "waiting": continue
@@ -870,6 +1066,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                         "is_nft": True, "nft_data": nft_data
                     }
                     add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": nft_price, "round_id": g.round_id, "nft": nft_bet.get("nft_name")})
+                    save_players()
                     await ws.send_text(json.dumps({"t": "bet_ok", "amt": nft_price, "bal": players[uid].get("balance", 0)}))
                     await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
 
@@ -881,6 +1078,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["balance"] = round(bal - amt, 4)
                     bets[uid] = {"amount": amt, "auto_cashout": d.get("ac"), "cashed": False, "lost": False, "is_nft": False}
                     add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt, "round_id": g.round_id})
+                    save_players()
                     await ws.send_text(json.dumps({"t": "bet_ok", "amt": amt, "bal": players[uid]["balance"]}))
                     await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
 
@@ -890,7 +1088,7 @@ async def ws_ep(ws: WebSocket, uid: int):
 
             # НОВА ОБРОБКА: Перевірка підписки на канал
             elif a == "check_subscription":
-                channel = d.get("channel", "@pepe_GiftsNFT")
+                channel = "@pepe_GiftsNFT"
                 user_id = int(d.get("user_id", uid))
                 
                 # РЕАЛЬНА перевірка підписки
@@ -925,6 +1123,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 delta = float(d.get("delta", 0))
                 if target in players:
                     players[target]["balance"] = round(max(0, players[target].get("balance", 0) + delta), 4)
+                    save_players()
                     if target in clients:
                         try:
                             await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": delta, "bal": players[target]["balance"]}))
@@ -937,6 +1136,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 if target not in players:
                     players[target] = {"name": "?", "nick": "", "photo": "", "balance": 0, "nfts": []}
                 players[target]["balance"] = round(max(0, new_bal), 4)
+                save_players()
                 if target in clients:
                     try:
                         await clients[target].send_text(json.dumps({"t": "topup_ok", "credited": 0, "bal": players[target]["balance"]}))
@@ -948,6 +1148,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                 ban = bool(d.get("ban", True))
                 if target in players:
                     players[target]["banned"] = ban
+                    save_players()
                     if ban and target in clients:
                         try:
                             await clients[target].send_text(json.dumps({"t": "banned"}))
@@ -958,10 +1159,15 @@ async def ws_ep(ws: WebSocket, uid: int):
                 target = int(d.get("uid", 0))
                 if target in players:
                     players[target]["nfts"] = []
+                    save_players()
 
-            elif a == "withdraw_nft":
+            elif a in ("withdraw_nft", "nft_sell_local"):
                 nft_id = d.get("nft_id")
-                sell_price = float(d.get("price", 0))
+                try:
+                    sell_price = float(d.get("price", 0) or 0)
+                except Exception:
+                    sell_price = 0
+                nft_uid = d.get("nft_uid")
                 action_type = d.get("type", "sell")
                 print(f"💎 withdraw_nft request: nft_id={nft_id}, price={sell_price}, type={action_type}, uid={uid}")
                 if uid in players and nft_id:
@@ -969,37 +1175,50 @@ async def ws_ep(ws: WebSocket, uid: int):
                     print(f"🔍 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
                     found_nft = None; new_nfts = []; removed = False
                     for n in nfts:
-                        if n.get("id") == nft_id and not removed:
+                        same_id = n.get("id") == nft_id
+                        same_uid = not nft_uid or n.get("uid") == nft_uid
+                        if same_id and same_uid and not removed:
                             found_nft = n; removed = True
                             print(f"✅ Found NFT: {n.get('name')} (id: {n.get('id')})")
                         else:
                             new_nfts.append(n)
                     if found_nft:
-                        players[uid]["nfts"] = new_nfts
-                        save_players()
                         name = players[uid].get("name", "?")
                         nick = players[uid].get("nick", "")
                         nick_str = f"@{nick}" if nick else f"uid:{uid}"
                         
                         if action_type == "withdraw_ton_fee":
-                            # Вивід NFT за 0.2 TON
+                            fee = NFT_WITHDRAW_TON_FEE
+                            balance = float(players[uid].get("balance", 0) or 0)
+                            if balance < fee:
+                                await ws.send_text(json.dumps({
+                                    "t": "err",
+                                    "msg": f"Недостатньо TON для виводу NFT. Потрібно {fee:.2f} TON, баланс {balance:.4f} TON"
+                                }))
+                                continue
+
                             print(f"🎁 NFT withdrawal: {found_nft.get('name')} by {name} (uid:{uid})")
-                            players[uid]["balance"] = round(players[uid].get("balance", 0) - sell_price, 4)
-                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "withdraw_ton_fee"})
-                            # Оновлюємо баланс на клієнті
-                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {sell_price} TON"}))
-                            # Повідомлення адміну
-                            print(f"📨 Sending admin notification to {ADMIN_ID}")
-                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {sell_price} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
+                            players[uid]["nfts"] = new_nfts
+                            players[uid]["balance"] = round(balance - fee, 4)
+                            save_players()
+                            add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": fee, "type": "withdraw_ton_fee"})
+                            await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} withdrawal requested. Fee: {fee:.2f} TON"}))
+                            print(f"📨 Sending admin withdrawal notification to {sorted(ADMIN_IDS)}")
+                            asyncio.create_task(send_admins(f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nUID: <code>{uid}</code>\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {fee:.2f} TON\nBalance after fee: {players[uid]['balance']:.4f} TON\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
                         elif action_type == "sell":
+                            sell_price = float(found_nft.get("price") or found_nft.get("floor") or sell_price or 0)
+                            players[uid]["nfts"] = new_nfts
                             players[uid]["balance"] = round(players[uid].get("balance", 0) + sell_price, 4)
+                            save_players()
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": sell_price, "type": "sell"})
                             await ws.send_text(json.dumps({"t": "nft_sold", "nft_id": nft_id, "amount": sell_price, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
+                            asyncio.create_task(send_admins(f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
                         else:
+                            players[uid]["nfts"] = new_nfts
+                            save_players()
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw"})
                             await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
-                            asyncio.create_task(send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
+                            asyncio.create_task(send_admins(f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
                     else:
                         print(f"❌ NFT {nft_id} not found in player inventory")
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
@@ -1021,6 +1240,7 @@ async def ws_ep(ws: WebSocket, uid: int):
                         players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
                     
                     nft_entry = {
+                        "uid": f"case_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}",
                         "id": nft_id,
                         "name": nft_name,
                         "emoji": "🎁",
@@ -1032,8 +1252,15 @@ async def ws_ep(ws: WebSocket, uid: int):
                     players[uid]["nfts"].append(nft_entry)
                     save_players()
                     print(f"🎁 NFT added from case: {nft_name} for {name} (uid:{uid})")
+                    await ws.send_text(json.dumps({"t": "case_win_ok", "nft": nft_entry, "bal": players[uid].get("balance", 0)}))
                 
                 # Логуємо
+                elif not is_nft and price > 0:
+                    if uid not in players:
+                        players[uid] = {"balance": 0, "nfts": [], "name": name, "nick": ""}
+                    players[uid]["balance"] = round(players[uid].get("balance", 0) + price, 4)
+                    save_players()
+                    await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": price}))
                 add_log("cases", {
                     "uid": uid,
                     "name": name,
@@ -1043,6 +1270,37 @@ async def ws_ep(ws: WebSocket, uid: int):
                     "value": price,
                     "ts": time.time()
                 })
+
+            elif a == "case_win_sell_client":
+                try:
+                    price = float(d.get("price", 0) or 0)
+                except Exception:
+                    price = 0
+                nft_name = d.get("name", "Unknown")
+                if price <= 0:
+                    await ws.send_text(json.dumps({"t": "err", "msg": "Невірна ціна NFT"}))
+                    continue
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+                players[uid]["balance"] = round(players[uid].get("balance", 0) + price, 4)
+                save_players()
+                add_log("cases", {"uid": uid, "name": players[uid].get("name", "?"), "case_name": d.get("case_name", "Unknown"), "won_item": nft_name, "is_nft": True, "value": price, "sold": True, "ts": time.time()})
+                await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": price, "sold": True}))
+
+            elif a == "case_ton_win":
+                try:
+                    amount = float(d.get("amount", 0) or 0)
+                except Exception:
+                    amount = 0
+                if amount <= 0:
+                    await ws.send_text(json.dumps({"t": "err", "msg": "Невірна сума виграшу"}))
+                    continue
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+                players[uid]["balance"] = round(players[uid].get("balance", 0) + amount, 4)
+                save_players()
+                add_log("cases", {"uid": uid, "name": players[uid].get("name", "?"), "case_name": d.get("case_name", "Unknown"), "won_item": f"{amount} TON", "is_nft": False, "value": amount, "ts": time.time()})
+                await ws.send_text(json.dumps({"t": "case_win_ok", "bal": players[uid]["balance"], "amount": amount}))
 
 
     except WebSocketDisconnect:
@@ -1152,7 +1410,7 @@ async def debug_add_referral(user_id: int, referrer_id: int, admin_uid: int = 0)
 
 
 
-@app.get("/admin", response_class=HTMLResponse)
+@app.get("/admin_old", response_class=HTMLResponse)
 async def admin_panel(request: Request):
     admin_uid = int(request.query_params.get("uid", 0))
     if admin_uid not in ADMIN_IDS:
@@ -1203,6 +1461,113 @@ async def admin_panel(request: Request):
 <h2>🎁 Виводи NFT</h2><table><tr><th>Гравець</th><th>NFT</th><th>Floor</th><th>Продано за</th><th>Тип</th><th>Час</th></tr>{withdrawals_html}</table>
 <h2>👥 Реферали</h2><table><tr><th>Новий гравець</th><th>Запросив</th><th>Час</th></tr>{refs_html}</table>
 </body></html>"""
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_panel_v2(request: Request):
+    try:
+        admin_uid = int(request.query_params.get("uid", 0))
+    except ValueError:
+        admin_uid = 0
+    if admin_uid not in ADMIN_IDS:
+        return HTMLResponse("<h2 style='color:red;font-family:monospace;padding:40px'>Access Denied</h2>", status_code=403)
+
+    def esc(value):
+        return html.escape(str(value if value is not None else ""))
+
+    def dt(ts):
+        return time.strftime("%d.%m %H:%M:%S", time.localtime(float(ts or 0)))
+
+    def ton(value, digits=2):
+        try:
+            return f"{float(value or 0):.{digits}f}"
+        except (TypeError, ValueError):
+            return f"{0:.{digits}f}"
+
+    def empty_row(cols, text="No data"):
+        return f'<tr><td colspan="{cols}" class="empty">{esc(text)}</td></tr>'
+
+    total_bets = sum(float(l.get("amount", 0) or 0) for l in logs["bets"])
+    total_wins = sum(float(l.get("win", 0) or 0) for l in logs["cashouts"])
+    total_deps = sum(float(l.get("amount", 0) or 0) for l in logs["deposits"])
+    total_stars_ton = sum(float(l.get("ton", 0) or 0) for l in logs["stars"])
+    total_balances = sum(float(p.get("balance", 0) or 0) for p in players.values())
+    total_nfts = sum(len(p.get("nfts", [])) for p in players.values())
+    banned_count = sum(1 for p in players.values() if p.get("banned"))
+    pnl = total_bets - total_wins
+
+    ordered_players = sorted(players.items(), key=lambda item: float(item[1].get("balance", 0) or 0), reverse=True)
+    player_rows = []
+    for uid, p in ordered_players[:150]:
+        status = '<span class="badge bad">Banned</span>' if p.get("banned") else '<span class="badge good">Active</span>'
+        player_rows.append(
+            f'<tr><td><a class="link" href="/admin/player/{uid}?uid={admin_uid}">{uid}</a></td>'
+            f'<td><strong>{esc(p.get("name","?"))}</strong><span class="muted block">{esc("@"+p.get("nick") if p.get("nick") else "no username")}</span></td>'
+            f'<td class="num">{ton(p.get("balance",0), 4)}</td>'
+            f'<td class="num">{len(p.get("nfts", []))}</td>'
+            f'<td>{esc(", ".join(player_ips.get(uid, [])[:2]) or "-")}</td>'
+            f'<td>{status}</td>'
+            f'<td class="actions"><a class="btn mini green" href="/admin/topup/{uid}/1?uid={admin_uid}">+1</a>'
+            f'<a class="btn mini green" href="/admin/topup/{uid}/5?uid={admin_uid}">+5</a>'
+            f'<a class="btn mini blue" href="/admin/player/{uid}?uid={admin_uid}">Open</a>'
+            f'<a class="btn mini red" href="/admin/set_balance/{uid}?amount=0&uid={admin_uid}">Zero</a></td></tr>'
+        )
+    players_list_html = "".join(player_rows) or empty_row(7, "No players yet")
+
+    bets_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td class="num">{ton(l.get("amount"), 4)}</td><td>{esc(l.get("nft") or "TON")}</td><td>{esc(l.get("round_id",""))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["bets"][:80]
+    ]) or empty_row(5)
+    cashouts_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td class="num">{ton(l.get("bet"), 4)}</td><td class="num">{ton(l.get("win"), 4)}</td><td>{ton(l.get("mult"), 2)}x</td><td>{esc(l.get("nft") or "TON")}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["cashouts"][:80]
+    ]) or empty_row(6)
+    deps_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("uid",""))}</td><td class="num">{ton(l.get("amount"), 4)}</td><td>{esc(l.get("note",""))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["deposits"][:80]
+    ]) or empty_row(5)
+    stars_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("uid",""))}</td><td class="num">{esc(l.get("stars",0))}</td><td class="num">{ton(l.get("ton"), 4)}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["stars"][:80]
+    ]) or empty_row(5)
+    refs_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}</td><td>{esc(l.get("invited_name","?"))}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["referrals"][:80]
+    ]) or empty_row(3)
+    withdrawals_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td>{esc(l.get("nft_name","?"))}</td><td class="num">{ton(l.get("nft_floor"), 2)}</td><td class="num">{ton(l.get("sell_price"), 2)}</td><td><span class="badge">{esc(l.get("type",""))}</span></td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["withdrawals"][:80]
+    ]) or empty_row(6)
+    cases_html = "".join([
+        f'<tr><td>{esc(l.get("name","?"))}<span class="muted block">uid {esc(l.get("uid",""))}</span></td><td>{esc(l.get("case_name","?"))}</td><td>{esc(l.get("won_item","?"))}</td><td class="num">{ton(l.get("value"), 2)}</td><td>{dt(l.get("ts"))}</td></tr>'
+        for l in logs["cases"][:80]
+    ]) or empty_row(5)
+
+    pnl_color = "#22c55e" if pnl >= 0 else "#ef4444"
+    now = time.strftime("%d.%m %H:%M:%S")
+    return f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Casino Admin</title>
+<style>
+:root{{--bg:#070b16;--panel:#101827;--panel2:#0c1220;--line:#22304a;--text:#eef4ff;--muted:#8290aa;--blue:#38bdf8;--green:#22c55e;--red:#ef4444}}
+*{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;font-size:14px}}a{{color:inherit}}.wrap{{max-width:1480px;margin:0 auto;padding:22px}}
+.top{{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}}h1{{font-size:24px;margin:0}}.sub{{color:var(--muted);font-size:12px;margin-top:5px}}.pill{{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel2);padding:8px 11px;border-radius:999px;color:#cbd5e1;text-decoration:none;font-weight:700;font-size:12px}}
+.stats{{display:grid;grid-template-columns:repeat(8,minmax(130px,1fr));gap:10px;margin-bottom:16px}}.stat{{background:linear-gradient(180deg,#121c2e,#0d1424);border:1px solid var(--line);border-radius:12px;padding:14px}}.stat .v{{font-size:22px;font-weight:800;letter-spacing:.2px}}.stat .l{{color:var(--muted);font-size:11px;margin-top:5px;text-transform:uppercase;letter-spacing:.06em}}
+.tabs{{display:flex;gap:8px;overflow:auto;padding:6px 0 14px;position:sticky;top:0;background:linear-gradient(var(--bg),rgba(7,11,22,.92));z-index:5}}.tab{{border:1px solid var(--line);background:#0d1424;color:#cbd5e1;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;white-space:nowrap}}.tab.active{{background:#1e3a5f;border-color:#38bdf866;color:white}}
+.panel{{display:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:18px;box-shadow:0 12px 36px rgba(0,0,0,.22)}}.panel.active{{display:block}}.panel-head{{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}}h2{{font-size:17px;margin:0}}.muted{{color:var(--muted);font-size:12px}}.block{{display:block;margin-top:3px}}
+.search{{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:12px}}input{{width:100%;background:#090f1d;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 12px;outline:none}}button,.btn{{border:0;border-radius:10px;background:#1d4ed8;color:white;padding:10px 13px;text-decoration:none;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}}.btn.mini{{padding:6px 8px;font-size:12px;border-radius:8px}}.green{{background:#15803d}}.red{{background:#b91c1c}}.blue{{background:#2563eb}}
+.table-wrap{{overflow:auto;border:1px solid var(--line);border-radius:12px}}table{{width:100%;border-collapse:collapse;min-width:760px}}th{{background:#0b1323;color:#93a4c3;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;position:sticky;top:0}}td{{padding:10px 12px;border-top:1px solid #1b2740;vertical-align:middle}}tr:hover td{{background:#111c30}}.num{{font-variant-numeric:tabular-nums;text-align:right}}.actions{{display:flex;gap:6px;flex-wrap:wrap}}.link{{color:#7dd3fc;font-weight:800;text-decoration:none}}.badge{{display:inline-flex;border:1px solid #334155;background:#111827;color:#cbd5e1;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800}}.badge.good{{border-color:#166534;color:#86efac}}.badge.bad{{border-color:#7f1d1d;color:#fca5a5}}.empty{{text-align:center;color:var(--muted);padding:28px!important}}
+@media(max-width:900px){{.wrap{{padding:14px}}.top{{align-items:flex-start;flex-direction:column}}.stats{{grid-template-columns:repeat(2,1fr)}}.search{{grid-template-columns:1fr}}}}
+</style></head><body><div class="wrap">
+<div class="top"><div><h1>Casino Admin</h1><div class="sub">Admin UID: {admin_uid} · online {len(clients)} · updated {now}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="pill" href="/admin?uid={admin_uid}">Refresh</a><a class="pill" href="/api/status">API status</a><a class="pill" href="/admin_old?uid={admin_uid}">Old view</a></div></div>
+<div class="stats">
+  <div class="stat"><div class="v">{len(players)}</div><div class="l">Players</div></div><div class="stat"><div class="v">{len(clients)}</div><div class="l">Online</div></div><div class="stat"><div class="v">{banned_count}</div><div class="l">Banned</div></div><div class="stat"><div class="v">{total_nfts}</div><div class="l">NFT in users</div></div>
+  <div class="stat"><div class="v">{ton(total_deps,1)}</div><div class="l">Deposits TON</div></div><div class="stat"><div class="v">{ton(total_stars_ton,2)}</div><div class="l">Stars to TON</div></div><div class="stat"><div class="v">{ton(total_balances,1)}</div><div class="l">User balances</div></div><div class="stat"><div class="v" style="color:{pnl_color}">{pnl:+.1f}</div><div class="l">Game P/L</div></div>
+</div>
+<div class="tabs"><button class="tab active" data-tab="players">Players</button><button class="tab" data-tab="money">Money</button><button class="tab" data-tab="game">Game</button><button class="tab" data-tab="nft">NFT</button><button class="tab" data-tab="refs">Refs</button></div>
+<section class="panel active" id="tab-players"><div class="panel-head"><h2>Players</h2><span class="muted">Top 150 by balance</span></div><form class="search" action="/admin/player" method="get"><input type="hidden" name="uid" value="{admin_uid}"><input type="number" name="search_uid" placeholder="Search UID"><input type="text" name="search_username" placeholder="Search @username"><button type="submit">Search</button></form><div class="table-wrap"><table><tr><th>UID</th><th>User</th><th class="num">Balance</th><th class="num">NFT</th><th>IP</th><th>Status</th><th>Actions</th></tr>{players_list_html}</table></div></section>
+<section class="panel" id="tab-money"><div class="panel-head"><h2>Money</h2><span class="muted">Deposits and Stars</span></div><h2 style="margin:4px 0 10px">TON deposits</h2><div class="table-wrap"><table><tr><th>User</th><th>UID</th><th class="num">Amount</th><th>Note</th><th>Time</th></tr>{deps_html}</table></div><h2 style="margin:18px 0 10px">Stars deposits</h2><div class="table-wrap"><table><tr><th>User</th><th>UID</th><th class="num">Stars</th><th class="num">TON</th><th>Time</th></tr>{stars_html}</table></div></section>
+<section class="panel" id="tab-game"><div class="panel-head"><h2>Game Logs</h2><span class="muted">Bets, cashouts and cases</span></div><h2 style="margin:4px 0 10px">Bets</h2><div class="table-wrap"><table><tr><th>User</th><th class="num">Bet</th><th>Type</th><th>Round</th><th>Time</th></tr>{bets_html}</table></div><h2 style="margin:18px 0 10px">Cashouts</h2><div class="table-wrap"><table><tr><th>User</th><th class="num">Bet</th><th class="num">Win</th><th>Mult</th><th>Prize</th><th>Time</th></tr>{cashouts_html}</table></div><h2 style="margin:18px 0 10px">Cases</h2><div class="table-wrap"><table><tr><th>User</th><th>Case</th><th>Won</th><th class="num">Value</th><th>Time</th></tr>{cases_html}</table></div></section>
+<section class="panel" id="tab-nft"><div class="panel-head"><h2>NFT Withdrawals</h2><span class="muted">Sell and withdraw requests</span></div><div class="table-wrap"><table><tr><th>User</th><th>NFT</th><th class="num">Floor</th><th class="num">Amount/Fee</th><th>Type</th><th>Time</th></tr>{withdrawals_html}</table></div></section>
+<section class="panel" id="tab-refs"><div class="panel-head"><h2>Referrals</h2><span class="muted">Invite logs</span></div><div class="table-wrap"><table><tr><th>New player</th><th>Invited by</th><th>Time</th></tr>{refs_html}</table></div></section>
+</div><script>document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{{document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');}}));</script></body></html>"""
 
 @app.get("/admin/topup/{uid}/{amount}")
 async def admin_topup_get(uid: int, amount: float, request: Request):
@@ -1358,15 +1723,27 @@ async def admin_player_detail(uid: int, request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    try:
-        with open("index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse("<h1>Game loading...</h1><p>index.html not found. Please check deployment.</p>", status_code=500)
+    for filename in ("index (8).html", "index (7).html", "index.html"):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+        except FileNotFoundError:
+            continue
+    return HTMLResponse("<h1>Game loading...</h1><p>index file not found. Please check deployment.</p>", status_code=500)
 
 @app.get("/api/status")
 async def api_status():
-    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v2_with_logging", "nft_withdraw_fee": NFT_WITHDRAW_STARS}
+    return {"status": "ok", "round": g.round_id, "phase": g.phase, "players": len(clients), "version": "v3_fix_cashout_nft_admin", "nft_withdraw_fee": NFT_WITHDRAW_TON_FEE}
+
+@app.get("/api/nft_catalog")
+async def api_nft_catalog():
+    sync_nft_prices()
+    return {
+        "ok": True,
+        "price_file": _PRICE_FILE_PATH,
+        "count": len(NFT_CATALOG),
+        "items": NFT_CATALOG,
+    }
 
 @app.get("/debug/check_payment_handler")
 async def debug_payment_handler():
