@@ -3572,13 +3572,13 @@ function _nft(id, weight){
   const src = (typeof NFT_CATALOG !== 'undefined') ? NFT_CATALOG.find(n=>n.id===id) : null;
   if(!src){
     // fallback: запис-плейсхолдер, щоб масив був валідним навіть якщо id некоректний
-    return {id:id,name:id,emoji:'🎁',price:1,rarity:'Common',weight:weight,isNFT:true};
+    return {id:id,name:id,emoji:'🎁',price:1,floor:1,rarity:'Common',weight:weight,isNFT:true};
   }
   return {
     id: src.id,
     name: src.name,
     emoji: '🎁',
-    price: src.price,    // ціна для відображення/продажу (з маржею з prices.json)
+    price: src.floor,    // ВИПРАВЛЕНО: використовуємо floor (базова ціна без маржі)
     floor: src.floor,
     rarity: src.rarity,
     weight: weight,
@@ -4370,8 +4370,10 @@ function showCaseWin(item){
   if(item.isNFT && !caseWinProcessed){
     caseWinProcessed = true; // Захист від подвійного збереження
     const photo=(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[item.id])||null;
+    const nftUid = 'case_nft_' + item.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
     const nftEntry={
-      uid:makeNFTUid(item),
+      uid:nftUid,
+      localId:nftUid,
       id:item.id,
       name:item.name,
       emoji:item.emoji||'🎁',
@@ -4385,6 +4387,7 @@ function showCaseWin(item){
       photo:photo,
       ts:Date.now()
     };
+    console.log('[CASE WIN] Created NFT entry with uid:', nftUid, 'NFT:', nftEntry);
     myNFTs.push(nftEntry);
     saveNFTs();
     refreshInventoryLabel();
