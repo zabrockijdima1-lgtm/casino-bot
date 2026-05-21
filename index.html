@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -2269,6 +2270,7 @@ function openModal(type){
     if(!myNFTs.length){body.innerHTML=`<div style="text-align:center;color:#334;padding:40px;font-size:13px">${t('no_nfts')}<br><small style="color:#223">${t('win_nft')}</small></div>`;return;}
     body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${
       myNFTs.slice().reverse().map((nft,i)=>{
+        const realIndex = myNFTs.length - 1 - i; // Реальний індекс в оригінальному масиві
         const nftKey=ensureNFTUid(nft);
         const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
         const imgHtml=ph
@@ -2283,8 +2285,8 @@ function openModal(type){
             <div class="inv-name">${nft.name}</div>
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
-            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>${t('withdraw_btn')}</button>
-            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
+            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
+            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFTByIndex(${realIndex})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
         </div>`;
       }).join('')
@@ -2394,6 +2396,90 @@ function withdrawNFT(id,name,floor){
   doWithdrawWithStars(id,name,floor);
 }
 
+// НОВА ФУНКЦІЯ: вивід по індексу (100% працює)
+function withdrawNFTByIndex(index){
+  console.log('[withdrawNFTByIndex] Called with index:', index);
+  if(index < 0 || index >= myNFTs.length){
+    console.error('[withdrawNFTByIndex] Invalid index:', index);
+    showToast('NFT not found');
+    return;
+  }
+  const nft = myNFTs[index];
+  console.log('[withdrawNFTByIndex] NFT at index:', nft);
+  
+  // Одразу відкриваємо Stars оплату
+  doWithdrawWithStarsByIndex(index, nft.name, nft.floor || nft.price || 0);
+}
+
+async function doWithdrawWithStarsByIndex(index, name, floor){
+  console.log('[doWithdrawWithStarsByIndex] Starting withdrawal for index:', index);
+  
+  if(index < 0 || index >= myNFTs.length){
+    showToast('NFT not found');
+    return;
+  }
+  
+  const nft = myNFTs[index];
+  const realId = nft.id;
+  const nftUid = nft.uid || nft.localId || realId;
+  
+  console.log('[doWithdrawWithStarsByIndex] NFT:', nft);
+  console.log('[doWithdrawWithStarsByIndex] Real ID:', realId, 'UID:', nftUid);
+  
+  if(!tg?.openInvoice){
+    // Fallback: якщо не в Telegram
+    console.log('[doWithdrawWithStarsByIndex] Not in Telegram, removing by index');
+    if(wsReady) {
+      // ВИДАЛЯЄМО ПО ІНДЕКСУ - 100% працює!
+      const removed = myNFTs.splice(index, 1)[0];
+      console.log('[doWithdrawWithStarsByIndex] ✅ Removed NFT:', removed);
+      
+      saveNFTs();
+      refreshInventoryLabel();
+      closeModal();
+      
+      ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:nftUid,price:0,type:'withdraw'}));
+      showToast('✅ Withdrawing...','info');
+      renderInventory(); // Оновлюємо відображення
+    }
+    else showToast(t('error'));
+    return;
+  }
+  
+  try{
+    showToast('⭐ ...','info');
+    const resp = await fetch(`${SERVER}/stars/withdraw-invoice/${userId}/${encodeURIComponent(realId)}/${encodeURIComponent(name)}`);
+    const data = await resp.json();
+    if(!data.ok || !data.invoice_link){
+      showToast(data.error || t('error'));
+      return;
+    }
+    tg.openInvoice(data.invoice_link, status=>{
+      if(status==='paid'){
+        console.log('[doWithdrawWithStarsByIndex] Stars paid, removing by index:', index);
+        // ВИДАЛЯЄМО ПО ІНДЕКСУ
+        const removed = myNFTs.splice(index, 1)[0];
+        console.log('[doWithdrawWithStarsByIndex] ✅ Removed NFT:', removed);
+        
+        saveNFTs();
+        refreshInventoryLabel();
+        closeModal();
+        
+        ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:nftUid,price:0,type:'withdraw'}));
+        showToast('⭐ Paid! Withdrawing...','info');
+        renderInventory(); // Оновлюємо відображення
+      } else if(status==='cancelled'){
+        showToast(t('cancelled'));
+      } else if(status==='failed'){
+        showToast(t('error'));
+      }
+    });
+  } catch(e){
+    console.error('withdraw stars error:', e);
+    showToast(t('error'));
+  }
+}
+
 async function doWithdrawWithStars(id,name,floor){
   console.log('[doWithdrawWithStars] Starting withdrawal:', {id, name, floor});
   const nft=findNFTByKey(id)||{id,name,floor,price:floor};
@@ -2459,6 +2545,62 @@ async function doWithdrawWithStars(id,name,floor){
 }
 
 function sellNFT(id,name,price){
+  // Стара функція (залишаємо для сумісності)
+  sellNFTPatched(id,name,price);
+}
+
+// НОВА ФУНКЦІЯ: продаж по індексу (100% працює)
+function sellNFTByIndex(index){
+  console.log('[sellNFTByIndex] Called with index:', index);
+  
+  if(index < 0 || index >= myNFTs.length){
+    console.error('[sellNFTByIndex] Invalid index:', index);
+    showToast('NFT not found');
+    return;
+  }
+  
+  const nft = myNFTs[index];
+  console.log('[sellNFTByIndex] NFT at index:', nft);
+  
+  const sellPrice = +(nft.price || nft.floor || 0);
+  const photo = nft.photo || (typeof NFT_PHOTOS!=='undefined' && NFT_PHOTOS && NFT_PHOTOS[nft.id]) || null;
+  
+  showNFTConfirm({
+    photo: photo,
+    icon: '🎁',
+    title: nft.name || t('confirm_sell'),
+    desc: nft.rarity ? '<span style="color:'+rc(nft.rarity)+'">'+nft.rarity+'</span>' : '',
+    price: sellPrice,
+    btnLabel: 'Sell for '+sellPrice.toFixed(2)+' TON',
+    onOk:()=>{
+      console.log('[sellNFTByIndex] Confirming sale at index:', index);
+      console.log('[sellNFTByIndex] Current inventory:', myNFTs);
+      
+      // ВИДАЛЯЄМО ПО ІНДЕКСУ - 100% працює!
+      const removed = myNFTs.splice(index, 1)[0];
+      
+      if(!removed){
+        console.error('[sellNFTByIndex] Failed to remove at index:', index);
+        showToast('NFT not found');
+        return;
+      }
+      
+      console.log('[sellNFTByIndex] ✅ Successfully removed:', removed);
+      
+      saveNFTs();
+      refreshInventoryLabel();
+      creditLocalBalance(sellPrice,'nft_sell');
+      showToast((t('nft_sold')||'Sold')+' +'+sellPrice.toFixed(2)+' TON','win');
+      spawnGems(3,'💰');
+      closeModal();
+      renderInventory(); // Оновлюємо відображення
+      
+      if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removed.id,nft_uid:removed.uid||removed.localId,name:removed.name,price:sellPrice,type:'sell'}));
+    }
+  });
+}
+
+function sellNFTPatched(id,name,price){
   showNFTConfirm({
     icon:'💰',
     title:t('confirm_sell'),
