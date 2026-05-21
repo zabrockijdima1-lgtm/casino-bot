@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -1237,7 +1236,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 <!-- DEPOSIT -->
 <div id="mbg" onclick="if(event.target===this)closeTopup()">
   <div id="mod">
-    <h3 id="dep-title">◈ Top Up</h3>
+    <h3 id="dep-title">💎 Top Up</h3>
     <!-- TAB SWITCHER -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
       <div id="tab-ton-btn" onclick="switchDepTab('ton')" style="background:#6c4fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;border:1.5px solid #6c4fff">
@@ -1309,8 +1308,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
       <div style="font-size:11px;color:#2e4a6a;margin:0 0 14px;line-height:1.6;font-family:'Nunito',sans-serif;font-weight:700" id="nft-confirm-desc"></div>
     </div>
     <!-- price row -->
-    <div id="nft-confirm-price-row" style="margin:0 22px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-family:'Nunito',sans-serif;font-size:12px;color:#3a5a7a;font-weight:700">You receive</span>
+    <div id="nft-confirm-price-row" style="margin:0 22px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:center">
       <span id="nft-confirm-price-val" style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:#ffd600;letter-spacing:-0.5px">— TON</span>
     </div>
     <!-- divider -->
@@ -2351,7 +2349,7 @@ function showNFTConfirm({icon,photo,title,desc,price,btnLabel,btnColor,onOk}){
   const priceRow=document.getElementById('nft-confirm-price-row');
   const priceVal=document.getElementById('nft-confirm-price-val');
   if(price){
-    priceVal.textContent='◈ '+(+price).toFixed(2)+' TON';
+    priceVal.textContent='💎 '+(+price).toFixed(2)+' TON';
     priceRow.style.display='flex';
   } else {
     priceRow.style.display='none';
@@ -2506,7 +2504,9 @@ async function doWithdrawWithStarsPatched(id,name,floor){
 doWithdrawWithStars=doWithdrawWithStarsPatched;
 
 function sellNFTPatched(id,name,price){
+  console.log('[SELL NFT] Attempting to sell:', {id, name, price});
   const nft=findNFTByKey(id)||{id,name,price,floor:price};
+  console.log('[SELL NFT] Found NFT:', nft);
   const sellPrice=+(price||nft.price||nft.floor||0);
   const photo=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id||id])||null;
   showNFTConfirm({
@@ -2515,10 +2515,27 @@ function sellNFTPatched(id,name,price){
     title: name||t('confirm_sell'),
     desc: nft.rarity ? '<span style="color:'+rc(nft.rarity)+'">'+nft.rarity+'</span>' : '',
     price: sellPrice,
-    btnLabel: '💰 Sell for '+sellPrice.toFixed(2)+' TON',
+    btnLabel: 'Sell for '+sellPrice.toFixed(2)+' TON',
     onOk:()=>{
-      const removedNFT=removeNFTByKey(id);
-      if(!removedNFT){showToast(t('error'));return;}
+      console.log('[SELL NFT] Confirming sale for ID:', id);
+      console.log('[SELL NFT] Current inventory before removal:', myNFTs);
+      let removedNFT=removeNFTByKey(id);
+      if(!removedNFT){
+        console.error('[SELL NFT] removeNFTByKey failed, trying direct search');
+        // Пробуємо знайти і видалити напряму
+        const idx = myNFTs.findIndex(n => n.uid===id || n.localId===id || n.id===id);
+        if(idx >= 0) {
+          removedNFT = myNFTs.splice(idx, 1)[0];
+          console.log('[SELL NFT] Removed directly at index', idx, ':', removedNFT);
+        }
+      }
+      if(!removedNFT){
+        console.error('[SELL NFT] Failed to remove NFT with ID:', id);
+        console.error('[SELL NFT] Inventory:', myNFTs);
+        showToast(t('error')||'NFT not found');
+        return;
+      }
+      console.log('[SELL NFT] Successfully removed:', removedNFT);
       saveNFTs();
       refreshInventoryLabel();
       creditLocalBalance(sellPrice,'nft_sell');
@@ -2734,7 +2751,7 @@ function connect(){
       triggerBigWin(+d.mx); // конфеті/зірки залежно від множника
       BB().className='';BB().innerHTML=t('place_bet');
     }
-    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`◈ +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
+    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`💎 +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
     else if(d.t==='nft_sold'){
       // NFT вже видалено локально в sellNFT(), просто синхронізуємо баланс із сервером
       if(d.bal){balance=d.bal;updBal();saveBal();}
@@ -2940,7 +2957,7 @@ function showToast(msg,type='crash'){
   el.className=[type==='win'?'win':type==='info'?'info':'','show'].join(' ');
   clearTimeout(tT);tT=setTimeout(()=>el.className=type==='win'?'win':type==='info'?'info':'',2800);
 }
-function spawnGems(n,emoji='◈'){
+function spawnGems(n,emoji='💎'){
   const cnt=Math.min(12,Math.max(2,n));
   for(let i=0;i<cnt;i++){
     const s=document.createElement('div');s.className='sp';s.textContent=emoji;
@@ -2990,7 +3007,7 @@ function spawnCoinsToBal(n=6){
       animation-duration:${0.6+Math.random()*0.4}s;
       animation-delay:${i*0.08}s;
     `;
-    el.textContent='◈';
+    el.textContent='💎';
     document.body.appendChild(el);
     setTimeout(()=>el.remove(),1500);
   }
@@ -3068,11 +3085,11 @@ const LANGS = {
     wallet_connect:'Connect', wallet_disconnect:'Disconnect', wallet_status:'Not connected',
     wallet_connected_lbl:'Connected', cancel:'Cancel', send_ton:'Send TON',
     already_paid:'✅ Already paid — confirm', min_ton:'Min. 0.1 TON',
-    not_enough:'Not enough TON', sent:'◈ Sent! Waiting for confirmation...',
-    cancelled:'Cancelled', error:'Error', credited:'◈ credited!',
+    not_enough:'Not enough TON', sent:'💎 Sent! Waiting for confirmation...',
+    cancelled:'Cancelled', error:'Error', credited:'💎 credited!',
     link_copied:'Link copied! 🔗', no_nfts:'Your NFTs will appear here',
     win_nft:'Win ≥2.8 TON', my_nfts:'🎁 My NFT Gifts',
-    sell_btn:'💰 Sell for', withdraw_btn:'📤 Withdraw',
+    sell_btn:'Sell for', withdraw_btn:'📤 Withdraw',
     invite_earn:'Earn', invite_from:'by inviting referrals',
     invite_btn:'🔗 Invite Friends', copy_btn:'📋 Copy Link',
     total_earned_lbl:'Total earned', my_invites_lbl:'My Invites',
@@ -3080,7 +3097,7 @@ const LANGS = {
     confirm_withdraw:'Withdraw NFT', confirm_sell:'Sell NFT',
     confirm_withdraw_desc:'Withdraw to your Telegram wallet?',
     confirm_sell_desc:'Sell for',
-    confirm_btn_withdraw:'📤 Withdraw', confirm_btn_sell:'💰 Sell for',
+    confirm_btn_withdraw:'📤 Withdraw', confirm_btn_sell:'Sell for',
     stars_rate:'Exchange rate', stars_auto:'Credited automatically',
     stars_amount:'Amount in Stars (10 – 10 000)',
     stars_topup:'Top Up',
@@ -3104,7 +3121,7 @@ const LANGS = {
     win_popup_close:'Close', win_credited:'Credited to balance',
     available_case:'🔥 Available case',
     spin_btn:'Spin for', prizes_btn:'🎁 Prizes',
-    case_sell_nft:'💰 Sell for', case_take:'✅ Take',
+    case_sell_nft:'Sell for', case_take:'✅ Take',
     case_keep_nft:'Keep NFT',
     case_choice_label:'What do you want to do?',
     you_badge:'you',
@@ -3139,11 +3156,11 @@ const LANGS = {
     wallet_connect:'Подключить', wallet_disconnect:'Отключить', wallet_status:'Не подключён',
     wallet_connected_lbl:'Подключён', cancel:'Отмена', send_ton:'Отправить TON',
     already_paid:'✅ Уже оплатил — зачислить', min_ton:'Мин. 0.1 TON',
-    not_enough:'Недостаточно TON', sent:'◈ Отправлено! Ждём подтверждения...',
-    cancelled:'Отменено', error:'Ошибка', credited:'◈ зачислено!',
+    not_enough:'Недостаточно TON', sent:'💎 Отправлено! Ждём подтверждения...',
+    cancelled:'Отменено', error:'Ошибка', credited:'💎 зачислено!',
     link_copied:'Ссылка скопирована! 🔗', no_nfts:'Здесь будут твои NFT',
     win_nft:'Выиграй ≥2.8 TON', my_nfts:'🎁 Мои NFT Gifts',
-    sell_btn:'💰 Продать за', withdraw_btn:'📤 Вывести',
+    sell_btn:'Продать за', withdraw_btn:'📤 Вывести',
     invite_earn:'Зарабатывай', invite_from:'приглашая рефералов',
     invite_btn:'🔗 Пригласить друзей', copy_btn:'📋 Копировать ссылку',
     total_earned_lbl:'Всего заработано', my_invites_lbl:'Мои рефералы',
@@ -3200,10 +3217,9 @@ const LANGS = {
 };
 let currentLang = (() => {
   const saved = localStorage.getItem('rkt_lang');
-  if(saved === 'en' || saved === 'ru' || saved === 'ua') return saved;
+  if(saved === 'en' || saved === 'ru') return saved;
   // Автовизначення мови Telegram
   const tgLang = tg?.initDataUnsafe?.user?.language_code || navigator.language || 'en';
-  if(tgLang.startsWith('uk')) return 'ua';
   return tgLang.startsWith('ru') ? 'ru' : 'en';
 })();
 function t(key){ return LANGS[currentLang]?.[key] || LANGS['en'][key] || key; }
@@ -3398,7 +3414,7 @@ function openAdminPanel(){
               <div style="font-size:10px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700">Current Balance</div>
               <div id="admin-current-bal" style="font-family:'Fredoka One',cursive;font-size:24px;color:#fff;margin-top:4px">${balance.toFixed(2)} TON</div>
             </div>
-            <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)">◈</div>
+            <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)">💎</div>
           </div>
 
           <!-- TON amount input -->
@@ -4413,7 +4429,7 @@ function showCaseWin(item){
       ?`<img src="${ph}" style="width:90px;height:90px;border-radius:16px;object-fit:cover;border:2px solid ${rc(item.rarity)}">`
       :`<span style="font-size:64px">${item.emoji||'🎁'}</span>`;
     document.getElementById('case-win-name').textContent=item.name;
-    document.getElementById('case-win-val').textContent='◈ '+item.price+' TON floor';
+    document.getElementById('case-win-val').textContent='💎 '+item.price+' TON floor';
     document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
     keepBtn.textContent='✅ '+t('case_take'); // Змінюємо текст на "Взяти" бо вже збережено
@@ -5662,10 +5678,26 @@ function confirmNFTBet(){
   if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
   if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
   var nft=myNFTs[_nftBetIdx];
-  if(!nft)return;
+  if(!nft){
+    console.error('[NFT BET] NFT not found at index', _nftBetIdx);
+    if(typeof showToast==='function')showToast('NFT not found');
+    return;
+  }
+  console.log('[NFT BET] Selected NFT:', nft);
   var nftKey=ensureNFTUid(nft);
+  console.log('[NFT BET] NFT key:', nftKey);
   var removedNFT=removeNFTByKey(nftKey);
-  if(!removedNFT){if(typeof showToast==='function')showToast('NFT not found');return;}
+  if(!removedNFT){
+    console.error('[NFT BET] Failed to remove NFT with key:', nftKey);
+    console.error('[NFT BET] Current inventory:', myNFTs);
+    // Пробуємо знайти NFT напряму
+    removedNFT = myNFTs.splice(_nftBetIdx, 1)[0];
+    if(!removedNFT){
+      if(typeof showToast==='function')showToast('NFT not found');
+      return;
+    }
+    console.log('[NFT BET] Removed directly from index:', removedNFT);
+  }
   saveNFTs();
   refreshInventoryLabel();
   closeNFTBetPicker();
