@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -3538,65 +3539,63 @@ const CASES=[
   {id:'free_daily', name:'FREE DAILY', emoji:'', price:0, color:'#ffd700',
    gradient:'linear-gradient(135deg,#3a2f0a,#4a3f1a)',
    accent:'#ffd700',
-   cooldown: 86400000,
+   cooldown: 86400000, // 24 години
    requireChannel: '@pepe_GiftsNFT',
    previewNFTs:['icecream','santahat','moussecake'],
    items:[
-     {ton:0.01, weight:9999, isTon:true},
-     _nft('icecream', 0.5),
-     _nft('santahat', 0.3),
-     _nft('moussecake', 0.15),
-     _nft('lolpop2', 0.05),
+     {ton:0.01, weight:9999, isTon:true},  // 99.99% шанс на 0.01 TON
+     _nft('icecream', 0.5),      // 1.29 TON - 0.5% шанс
+     _nft('santahat', 0.3),      // 1.63 TON - 0.3% шанс
+     _nft('moussecake', 0.15),   // 1.80 TON - 0.15% шанс
+     _nft('lolpop2', 0.05),      // 1.90 TON - 0.05% шанс
    ]},
-  // ── BICHUGAN — 0.4 TON ───────────────────────────────────────────────────
-  {id:'bichugan', name:'BICHUGAN', emoji:'', price:0.4, color:'#a87d3a',
-   gradient:'linear-gradient(135deg,#2a1f10,#3a2a15)',
-   accent:'#f5a623',
-   previewNFTs:['icecream','santahat','moussecake'],
+
+  // ── MYSTERY BOX — 1 TON — містична скриня ────────────────────────────────
+  {id:'mystery_box', name:'MYSTERY BOX', emoji:'', price:1, color:'#b87333',
+   gradient:'linear-gradient(135deg,#2a1f15,#3a2f20)',
+   accent:'#d4a574',
+   imageUrl:'https://github.com/zabrockijdima1-lgtm/casino-bot/blob/main/case_1ton.png?raw=true',
+   previewNFTs:['chillflame','vicecream','hangingstar'],
    items:[
-     {ton:0.1, weight:33, isTon:true},
-     {ton:0.2, weight:33, isTon:true},
+     // 99.2% TON або дешеві NFT
      {ton:0.3, weight:33, isTon:true},
-     _nft('icecream', 0.15),
-     _nft('santahat', 0.12),
-     _nft('moussecake', 0.10),
-     _nft('lolpop2', 0.08),
-     _nft('instantramen', 0.06),
-     _nft('springbasket', 0.05),
-     _nft('homemadecake', 0.04),
-     _nft('restlessjar', 0.03),
-     _nft('witchhat', 0.02),
-     _nft('chillflame', 0.015),
-     _nft('xmasstocking', 0.01),
+     {ton:0.4, weight:33, isTon:true},
+     {ton:0.5, weight:33, isTon:true},
+     {ton:0.6, weight:33, isTon:true},
+     _nft('chillflame',    6),       // Chill Flame - 2.10 TON
+     _nft('vicecream',     5),       // Vice Cream - 2.52 TON
+     _nft('petsnake',      4),       // Pet Snake - 3.11 TON
+     _nft('instantramen',  3.5),     // Instant Ramen - 2.00 TON
+     _nft('candycane',     3),       // Candy Cane - 2.73 TON
+     _nft('icecream',      2.5),     // Ice Cream - 1.29 TON
+     _nft('hangingstar',   2),       // Hanging Star - 2.94 TON
+     _nft('lovecandle',    1.5),     // Love Candle - 2.42 TON
+     _nft('santahat',      0.05),    // Santa Hat - 1.63 TON
+     _nft('moussecake',    0.03),    // Mousse Cake - 1.80 TON
    ]},
-  // ── SPRING — 0.7 TON ─────────────────────────────────────────────────────
-  {id:'spring', name:'SPRING', emoji:'', price:0.7, color:'#7dd87a',
-   gradient:'linear-gradient(135deg,#143a1a,#1f5028)',
-   accent:'#7ded7a',
-   previewNFTs:['sakuraflower','bunnymuffin','lushbouquet'],
+
+  // ── NFT TREASURE — 4 TON — золота скриня тільки з NFT ────────────────────
+  {id:'nft_treasure', name:'NFT TREASURE', emoji:'', price:4, color:'#ffd700',
+   gradient:'linear-gradient(135deg,#3a2f0a,#5a4a1a)',
+   accent:'#ffd700',
+   imageUrl:'https://github.com/zabrockijdima1-lgtm/casino-bot/blob/main/case_4ton.png?raw=true',
+   previewNFTs:['vicecream','instantramen','eternalrose'],
    items:[
-     _nft('petsnake',     22),
-     _nft('easteregg',    20),
-     _nft('partysparkler',18),
-     _nft('happybrownie', 15),
-     _nft('gingercookie', 12),
-     _nft('starnotepad',  10),
-     _nft('lushbouquet',  8),
-     _nft('moonpendant',  6),
-     _nft('snowmittens',  5),
-     _nft('faithamulet',  4),
-     _nft('jollychimp',   3),
-     _nft('swagbag',      2),
-     _nft('sakuraflower', 1),
-     _nft('flyingbroom',  0.6),
-     _nft('tophat',       0.4),
-     _nft('lovepotion',   0.2),
-     _nft('skullflower',  0.1),
-     _nft('eternalrose',  0.05),
-     _nft('genielamp',    0.02),
-     _nft('swisswatch',   0.01),
-     _nft('artisanbrick', 0.003),
-     _nft('durovscap',    0.0005),
+     // 99% дешеві NFT (до 3 TON)
+     _nft('vicecream',     25),      // Vice Cream - 2.52 TON
+     _nft('instantramen',  25),      // Instant Ramen - 2.00 TON
+     _nft('petsnake',      15),      // Pet Snake - 3.11 TON
+     _nft('candycane',     12),      // Candy Cane - 2.73 TON
+     _nft('icecream',      10),      // Ice Cream - 1.29 TON
+     _nft('lovecandle',    8),       // Love Candle - 2.42 TON
+     _nft('faithamulet',   4),       // Faith Amulet - 5.36 TON
+     _nft('inputkey',      0.5),     // Input Key - 4.63 TON
+     _nft('swisswatch',    0.3),     // Swiss Watch - 7.78 TON
+     _nft('electricskull', 0.15),    // Electric Skull - 7.15 TON
+     _nft('valentinebox',  0.03),    // Valentine Box - 8.22 TON
+     _nft('lovepotion',    0.015),   // Love Potion - 6.05 TON
+     _nft('eternalrose',   0.005),   // Eternal Rose - 14.68 TON
+     _nft('snoopdog',      0.002),   // Snoop Dogg - 4.84 TON
    ]},
 ];
 
