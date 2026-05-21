@@ -2732,6 +2732,11 @@ function connect(){
         saveBal();
       }
     }
+    else if(d.t==='case_opened'){
+      // Сервер підтвердив відкриття кейса
+      // НЕ оновлюємо баланс - він вже знятий локально
+      console.log('✅ Case opened confirmed by server');
+    }
     else if(d.t==='err'){showToast(d.msg);}
   };
   ws.onclose=()=>{wsReady=false;document.getElementById('conn').textContent='🔴';setTimeout(connect,2000);};
@@ -4536,7 +4541,20 @@ function continueSpinCase(){
   
   // Знімаємо баланс тільки якщо кейс платний
   if(curCase.price > 0){
-    balance=+(balance-curCase.price).toFixed(4);updBal();saveBal();
+    balance=+(balance-curCase.price).toFixed(4);
+    updBal();
+    saveBal();
+    
+    // Повідомляємо сервер про відкриття кейса (списання балансу)
+    if(wsReady){
+      ws.send(JSON.stringify({
+        a:'case_opened',
+        case_id:curCase.id,
+        case_name:curCase.name,
+        price:curCase.price,
+        balance_after:balance
+      }));
+    }
   }
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
@@ -4615,7 +4633,15 @@ function showCaseWin(item){
     saveNFTs();
     refreshInventoryLabel();
     // Повідомляємо сервер з назвою кейсу
-    if(wsReady)ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',nft_id:item.id,price:item.price,name:item.name,is_nft:true}));
+    if(wsReady)ws.send(JSON.stringify({
+      a:'case_win_keep',
+      case_name:curCase?.name||'Unknown',
+      case_price:curCase?.price||0,
+      nft_id:item.id,
+      price:item.price,
+      name:item.name,
+      is_nft:true
+    }));
     console.log('✅ NFT auto-saved:', item.name);
   }
   
@@ -4625,7 +4651,15 @@ function showCaseWin(item){
     // Додаємо тільки виграш (item.ton), а не повертаємо витрату на кейс
     creditLocalBalance(item.ton, 'case_ton_direct_win');
     // Повідомляємо сервер (але НЕ чекаємо на оновлення балансу)
-    if(wsReady) ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',price:item.ton,name:item.ton+' TON',is_nft:false,update_balance:false}));
+    if(wsReady) ws.send(JSON.stringify({
+      a:'case_win_keep',
+      case_name:curCase?.name||'Unknown',
+      case_price:curCase?.price||0,
+      price:item.ton,
+      name:item.ton+' TON',
+      is_nft:false,
+      update_balance:false
+    }));
   }
   
   const emojiEl=document.getElementById('case-win-emoji');
