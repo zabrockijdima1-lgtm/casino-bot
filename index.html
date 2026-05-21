@@ -2141,7 +2141,20 @@ function renderPlayers(list){
     const ava=p.photo?`<img src="${p.photo}">`:`<span>${(p.name||'?').slice(0,2).toUpperCase()}</span>`;
     let rowCls='pr'+(isMe?' me':'')+(p.cashed?' won':p.lost?' lost':'');
     const m=p.mult&&+p.mult>0?' ×'+(+p.mult).toFixed(2):'';
-    const betTag=p.bet?(p.is_nft?'<span class="pr-bet">🎁 NFT'+m+'</span>':`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`):'';
+    let betTag = '';
+    if(p.bet){
+      if(p.is_nft){
+        const nftPhoto = p.nft_photo || (p.nft_id && getPhotoById({id: p.nft_id})) || null;
+        const nftName = p.nft_name || 'NFT';
+        if(nftPhoto){
+          betTag = `<span class="pr-bet"><img src="${nftPhoto}" style="width:20px;height:20px;border-radius:4px;vertical-align:middle;margin-right:4px;object-fit:cover">${nftName}${m}</span>`;
+        }else{
+          betTag = `<span class="pr-bet">${nftName}${m}</span>`;
+        }
+      }else{
+        betTag = `<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`;
+      }
+    }
     let right='';
     if(p.cashed&&p.nft){
       const np=getPhotoById(p.nft);
@@ -2325,8 +2338,18 @@ function nftConfirmOk(){
   if(_nftConfirmCb) _nftConfirmCb();
   closeNFTConfirm();
 }
-function showNFTConfirm({icon,title,desc,btnLabel,btnColor,onOk}){
-  document.getElementById('nft-confirm-icon').textContent=icon||'🎁';
+function showNFTConfirm({photo,nftName,icon,title,desc,btnLabel,btnColor,onOk}){
+  const iconEl = document.getElementById('nft-confirm-icon');
+  if(photo){
+    // Показуємо фото NFT
+    iconEl.innerHTML = `<img src="${photo}" style="width:100px;height:100px;object-fit:cover;border-radius:16px;border:2px solid rgba(192,132,252,0.5)">`;
+  }else if(icon){
+    iconEl.textContent = icon;
+    iconEl.innerHTML = iconEl.textContent; // reset
+  }else{
+    iconEl.textContent = '🎁';
+    iconEl.innerHTML = iconEl.textContent; // reset
+  }
   document.getElementById('nft-confirm-title').textContent=title||'';
   document.getElementById('nft-confirm-desc').innerHTML=desc||'';
   const btn=document.getElementById('nft-confirm-okbtn');
@@ -2379,11 +2402,17 @@ async function doWithdrawWithStars(id,name,floor){
 }
 
 function sellNFT(id,name,price){
+  // Знаходимо NFT щоб отримати фото
+  const nft = findNFTByKey(id);
+  const photo = nft?.photo || (typeof NFT_PHOTOS !== 'undefined' && NFT_PHOTOS && NFT_PHOTOS[nft?.id]) || null;
+  
   showNFTConfirm({
-    icon:'💰',
+    photo: photo,
+    nftName: name,
+    icon:'',
     title:t('confirm_sell'),
     desc:`${t('confirm_sell_desc')} <b style="color:#ffd700">${(+price).toFixed(2)} TON</b>?<br><small style="color:#778">${name}</small>`,
-    btnLabel:`${t('confirm_btn_sell')} ${(+price).toFixed(2)} TON`,
+    btnLabel:`Sell for ${(+price).toFixed(2)} TON`,
     btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
     onOk:()=>{
       let removed=false;
@@ -3043,7 +3072,7 @@ const LANGS = {
     cancelled:'Cancelled', error:'Error', credited:'◈ credited!',
     link_copied:'Link copied! 🔗', no_nfts:'Your NFTs will appear here',
     win_nft:'Win ≥2.8 TON', my_nfts:'🎁 My NFT Gifts',
-    sell_btn:'💰 Sell for', withdraw_btn:'📤 Withdraw',
+    sell_btn:'Sell for', withdraw_btn:'Withdraw',
     invite_earn:'Earn', invite_from:'by inviting referrals',
     invite_btn:'🔗 Invite Friends', copy_btn:'📋 Copy Link',
     total_earned_lbl:'Total earned', my_invites_lbl:'My Invites',
@@ -3114,7 +3143,7 @@ const LANGS = {
     cancelled:'Отменено', error:'Ошибка', credited:'◈ зачислено!',
     link_copied:'Ссылка скопирована! 🔗', no_nfts:'Здесь будут твои NFT',
     win_nft:'Выиграй ≥2.8 TON', my_nfts:'🎁 Мои NFT Gifts',
-    sell_btn:'💰 Продать за', withdraw_btn:'📤 Вывести',
+    sell_btn:'Продать за', withdraw_btn:'Вывести',
     invite_earn:'Зарабатывай', invite_from:'приглашая рефералов',
     invite_btn:'🔗 Пригласить друзей', copy_btn:'📋 Копировать ссылку',
     total_earned_lbl:'Всего заработано', my_invites_lbl:'Мои рефералы',
@@ -5939,9 +5968,10 @@ function confirmNFTBet(){
   window._pendingNFTBet=null;
   var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+nft.name;
   var nftPrice=+(nft.price||nft.floor||0);
+  var nftPhoto=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[removedNFT.id])||null;
   betAmt=nftPrice;
   hasBet=true;
-  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:removedNFT.id,nft_uid:removedNFT.uid,nft_price:nftPrice,nft_name:removedNFT.name}}));
+  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:removedNFT.id,nft_uid:removedNFT.uid,nft_price:nftPrice,nft_name:removedNFT.name,nft_photo:nftPhoto}}));
   var bb=document.getElementById('bb');
   if(bb){bb.innerHTML='<span style="font-size:11px;opacity:.8">🎁 NFT: '+nft.name+'</span>';bb.disabled=false;bb.className='co';}
   if(typeof showToast==='function')showToast('NFT bet placed!','win');
