@@ -1225,6 +1225,24 @@ async def ws_ep(ws: WebSocket, uid: int):
                 else:
                     print(f"❌ Player {uid} not found or nft_id is None")
 
+            elif a == "case_opened":
+                # Списуємо баланс на сервері при відкритті кейса
+                try:
+                    case_price = float(d.get("price", 0) or 0)
+                except Exception:
+                    case_price = 0
+                if case_price > 0:
+                    if uid not in players:
+                        players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+                    server_bal = players[uid].get("balance", 0)
+                    if server_bal < case_price:
+                        await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо коштів"}))
+                        continue
+                    players[uid]["balance"] = round(server_bal - case_price, 4)
+                    save_players()
+                    print(f"[CASE] {players[uid].get('name','?')} (uid:{uid}) відкрив кейс '{d.get('case_name','')}' за {case_price} TON | Баланс: {server_bal} -> {players[uid]["balance"]}")
+                    await ws.send_text(json.dumps({"t": "case_opened", "bal": players[uid]["balance"]}))
+
             elif a == "case_win_keep":
                 # Логування відкриття кейсу та виграшу
                 case_name = d.get("case_name", "Unknown")
