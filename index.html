@@ -2405,8 +2405,19 @@ async function doWithdrawWithStars(id,name,floor){
     // Fallback: якщо не в Telegram — надсилаємо WS напряму (для тесту в браузері)
     console.log('[doWithdrawWithStars] Not in Telegram, sending WS directly');
     if(wsReady) {
+      // ВИДАЛЯЄМО NFT З ІНВЕНТАРЯ ОДРАЗУ
+      const removed = removeNFTByKey(id);
+      if(!removed){
+        showToast('NFT not found');
+        return;
+      }
+      saveNFTs();
+      refreshInventoryLabel();
+      closeModal();
+      
       console.log('[doWithdrawWithStars] Sending withdraw_nft:', {nft_id: realId, nft_uid: id});
       ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
+      showToast('✅ Withdrawing...','info');
     }
     else showToast(t('error'));
     return;
@@ -2421,7 +2432,17 @@ async function doWithdrawWithStars(id,name,floor){
     }
     tg.openInvoice(data.invoice_link, status=>{
       if(status==='paid'){
-        // Зірки сплачено — тепер відправляємо вивід через WS
+        // Зірки сплачено — ВИДАЛЯЄМО NFT З ІНВЕНТАРЯ
+        const removed = removeNFTByKey(id);
+        if(!removed){
+          showToast('NFT not found');
+          return;
+        }
+        saveNFTs();
+        refreshInventoryLabel();
+        closeModal();
+        
+        // Тепер відправляємо вивід через WS
         console.log('[doWithdrawWithStars] Stars paid, sending withdraw_nft:', {nft_id: realId, nft_uid: id});
         if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
         showToast('⭐ Paid! Withdrawing...','info');
