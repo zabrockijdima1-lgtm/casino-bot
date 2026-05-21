@@ -1802,8 +1802,14 @@ function makeNFTUid(nft){
   return 'nft_'+(nft?.id||'gift')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
 }
 function ensureNFTUid(nft){
-  if(!nft)return '';
-  if(!nft.uid)nft.uid=nft.localId||makeNFTUid(nft);
+  if(!nft){
+    console.warn('[ensureNFTUid] NFT is null/undefined');
+    return '';
+  }
+  if(!nft.uid){
+    nft.uid=nft.localId||makeNFTUid(nft);
+    console.log('[ensureNFTUid] Created new uid for NFT:', nft.name, 'uid:', nft.uid);
+  }
   return nft.uid;
 }
 function normalizeNFTInventory(){
@@ -1824,11 +1830,28 @@ function findNFTByKey(key){
   return myNFTs.find(n=>n.uid===key||n.localId===key||n.id===key)||null;
 }
 function removeNFTByKey(key){
+  console.log('[removeNFTByKey] Trying to remove NFT with key:', key);
+  console.log('[removeNFTByKey] Current inventory:', myNFTs.map(n => ({uid: n.uid, localId: n.localId, id: n.id, name: n.name})));
+  
   let removed=null;
   myNFTs=myNFTs.filter(n=>{
-    if(!removed&&(n.uid===key||n.localId===key||n.id===key)){removed=n;return false;}
+    const matches = (n.uid===key || n.localId===key || n.id===key);
+    console.log('[removeNFTByKey] Checking NFT:', {uid: n.uid, localId: n.localId, id: n.id, name: n.name}, 'matches:', matches);
+    if(!removed && matches){
+      removed=n;
+      console.log('[removeNFTByKey] Found match! Removing:', removed);
+      return false;
+    }
     return true;
   });
+  
+  if(removed){
+    console.log('[removeNFTByKey] ✅ Successfully removed NFT:', removed.name);
+  } else {
+    console.error('[removeNFTByKey] ❌ NFT not found with key:', key);
+    console.error('[removeNFTByKey] Available keys in inventory:', myNFTs.map(n => ({uid: n.uid, localId: n.localId, id: n.id})));
+  }
+  
   return removed;
 }
 function creditLocalBalance(amount,reason){
@@ -2365,16 +2388,26 @@ function showNFTConfirm({icon,photo,title,desc,price,btnLabel,btnColor,onOk}){
 const NFT_WITHDRAW_STARS = 25;
 
 function withdrawNFT(id,name,floor){
+  console.log('[withdrawNFT] Called with:', {id, name, floor});
+  console.log('[withdrawNFT] Current inventory:', myNFTs.map(n => ({uid: n.uid, localId: n.localId, id: n.id, name: n.name})));
   // Одразу відкриваємо Stars оплату — без зайвого popup
   doWithdrawWithStars(id,name,floor);
 }
 
 async function doWithdrawWithStars(id,name,floor){
+  console.log('[doWithdrawWithStars] Starting withdrawal:', {id, name, floor});
   const nft=findNFTByKey(id)||{id,name,floor,price:floor};
+  console.log('[doWithdrawWithStars] Found NFT:', nft);
   const realId=nft.id||id;
+  console.log('[doWithdrawWithStars] Real ID:', realId);
+  
   if(!tg?.openInvoice){
     // Fallback: якщо не в Telegram — надсилаємо WS напряму (для тесту в браузері)
-    if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
+    console.log('[doWithdrawWithStars] Not in Telegram, sending WS directly');
+    if(wsReady) {
+      console.log('[doWithdrawWithStars] Sending withdraw_nft:', {nft_id: realId, nft_uid: id});
+      ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
+    }
     else showToast(t('error'));
     return;
   }
@@ -2389,7 +2422,8 @@ async function doWithdrawWithStars(id,name,floor){
     tg.openInvoice(data.invoice_link, status=>{
       if(status==='paid'){
         // Зірки сплачено — тепер відправляємо вивід через WS
-        if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:id,price:0,type:'withdraw'}));
+        console.log('[doWithdrawWithStars] Stars paid, sending withdraw_nft:', {nft_id: realId, nft_uid: id});
+        if(wsReady) ws.send(JSON.stringify({a:'withdraw_nft',nft_id:realId,nft_uid:id,price:0,type:'withdraw'}));
         showToast('⭐ Paid! Withdrawing...','info');
       } else if(status==='cancelled'){
         showToast(t('cancelled'));
