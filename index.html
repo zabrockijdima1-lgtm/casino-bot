@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -2725,7 +2724,13 @@ function connect(){
       if(d.bal){balance=d.bal;updBal();saveBal();}
     }
     else if(d.t==='case_win_ok'){
-      if(d.bal){balance=d.bal;updBal();saveBal();}
+      // Оновлюємо баланс тільки якщо сервер явно відправив update_balance: true
+      // Для TON виграшів баланс вже оновлено локально через creditLocalBalance
+      if(d.bal && d.update_balance !== false){
+        balance=d.bal;
+        updBal();
+        saveBal();
+      }
     }
     else if(d.t==='err'){showToast(d.msg);}
   };
@@ -4614,10 +4619,13 @@ function showCaseWin(item){
     console.log('✅ NFT auto-saved:', item.name);
   }
   
-  // Логування TON виграшу з кейсу
-  if(!item.isNFT && !caseWinProcessed && wsReady){
+  // Логування TON виграшу з кейсу - ДОДАЄМО БАЛАНС ЛОКАЛЬНО
+  if(!item.isNFT && !caseWinProcessed){
     caseWinProcessed = true;
-    ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',price:item.ton,name:item.ton+' TON',is_nft:false}));
+    // Додаємо тільки виграш (item.ton), а не повертаємо витрату на кейс
+    creditLocalBalance(item.ton, 'case_ton_direct_win');
+    // Повідомляємо сервер (але НЕ чекаємо на оновлення балансу)
+    if(wsReady) ws.send(JSON.stringify({a:'case_win_keep',case_name:curCase?.name||'Unknown',price:item.ton,name:item.ton+' TON',is_nft:false,update_balance:false}));
   }
   
   const emojiEl=document.getElementById('case-win-emoji');
@@ -4642,13 +4650,14 @@ function showCaseWin(item){
   } else {
     emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
-    document.getElementById('case-win-val').textContent=t('case_credited');
+    document.getElementById('case-win-val').textContent=t('case_credited'); // "Зачислено"
     document.getElementById('case-win-sub').textContent=item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
     document.getElementById('cwb-sell').textContent=t('case_take');
     document.getElementById('cwb-sell').onclick=function(){
-      // Кнопка для TON працює як "Забрати"
-      showToast('+'+item.ton+' TON '+t('case_ton_win'),'win');
+      // TON вже додано в showCaseWin через creditLocalBalance
+      // Просто закриваємо popup
+      showToast('✅ '+item.ton+' TON '+t('case_ton_win'),'win');
       spawnGems(3,'💰');
       closeCaseWin();
     };
