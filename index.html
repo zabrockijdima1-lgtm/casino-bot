@@ -1847,7 +1847,15 @@ const canvas=document.getElementById('gc');
 const ctx=canvas.getContext('2d');
 const ME=()=>document.getElementById('mult');
 const BB=()=>document.getElementById('bb');
-function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
+function resize(){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  // НЕ робимо ctx.scale - замість цього малюємо з урахуванням dpr
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+}
 
 function calcMult(el){return Math.round(Math.pow(Math.E,el*0.07)*100)/100;}
 
