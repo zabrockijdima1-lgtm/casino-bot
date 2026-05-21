@@ -128,12 +128,13 @@ body.light-theme #bb:disabled{background:#d8d0f0;box-shadow:none;color:#9985cc}
 #nft-bet-sheet{background:linear-gradient(160deg,#0d0820,#160a30,#0d0820);border:1px solid rgba(192,132,252,0.25);border-radius:24px 24px 0 0;padding:0 0 20px;width:100%;max-width:480px;max-height:82vh;display:flex;flex-direction:column}
 #nft-bet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid rgba(192,132,252,0.12)}
 #nft-bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;overflow-y:auto;flex:1;scrollbar-width:none}
-.nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s}
+.nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
 .nft-bet-card.sel{border-color:rgba(192,132,252,0.7);box-shadow:0 0 14px rgba(192,132,252,0.3);background:#1a0a3a}
-.nft-bet-card img{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
-.nbt-emoji-wrap{width:64px;height:64px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:34px;background:var(--bg2)}
+.nft-bet-card img{width:90px;height:90px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
+.nbt-emoji-wrap{width:90px;height:90px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:48px;background:var(--bg2)}
 .nbt-name{font-size:10px;font-weight:700;color:var(--cream);font-family:'Nunito',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .nbt-price{font-size:11px;font-family:'Fredoka One',cursive;color:var(--acc)}
+.nbt-win{position:absolute;top:12px;right:8px;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);padding:3px 8px;border-radius:8px;font-family:'Fredoka One',cursive;font-size:9px;color:#ffd700;border:1px solid rgba(255,215,0,0.25);font-weight:700}
 #nft-bet-confirm{width:calc(100% - 28px);margin:6px 14px 0;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:16px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;padding:15px;cursor:pointer}
 #nft-bet-confirm:disabled{opacity:.35;cursor:not-allowed}
 /* NFT hint */
@@ -2217,15 +2218,20 @@ function openModal(type){
         const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
         const imgHtml=ph
           ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
-          :`<div style="font-size:52px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+          :`<div style="font-size:68px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+        const winTonValue = +(nft.winTon||nft.price||nft.floor||0);
         return `
         <div class="inv-card">
-          <div style="width:100%;aspect-ratio:1;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden">${imgHtml}</div>
+          <div style="width:100%;aspect-ratio:1.2;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden;position:relative">
+            ${imgHtml}
+            <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:4px 10px;border-radius:12px;font-family:'Fredoka One',cursive;font-size:11px;color:#ffd700;font-weight:700;border:1px solid rgba(255,215,0,0.3)">
+              ${winTonValue.toFixed(2)} TON
+            </div>
+          </div>
           <div class="inv-body">
             <div class="inv-name">${nft.name}</div>
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
-            <div class="inv-mult">+${(+(nft.winTon||nft.price||0)).toFixed(2)} TON</div>
             <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>${t('withdraw_btn')}</button>
             <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
@@ -4612,7 +4618,10 @@ function showCaseWin(item){
     document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
     keepBtn.textContent='✅ '+t('case_take'); // Змінюємо текст на "Взяти" бо вже збережено
-    document.getElementById('cwb-sell').textContent=t('case_sell_nft')+' '+item.price+' TON';
+    keepBtn.onclick=caseWinKeep;
+    const sellBtn=document.getElementById('cwb-sell');
+    sellBtn.textContent=t('case_sell_nft')+' '+item.price+' TON';
+    sellBtn.onclick=caseWinSell;
     keepBtn.style.display='';
     if(choiceLabel) choiceLabel.style.display='none'; // Ховаємо "Що ви хочете зробити?" бо вже збережено
   } else {
@@ -4622,6 +4631,12 @@ function showCaseWin(item){
     document.getElementById('case-win-sub').textContent=item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
     document.getElementById('cwb-sell').textContent=t('case_take');
+    document.getElementById('cwb-sell').onclick=function(){
+      // Кнопка для TON працює як "Забрати"
+      showToast('+'+item.ton+' TON '+t('case_ton_win'),'win');
+      spawnGems(3,'💰');
+      closeCaseWin();
+    };
     keepBtn.style.display='none';
     if(choiceLabel) choiceLabel.style.display='none';
   }
@@ -5793,7 +5808,8 @@ function openNFTBetPicker(){
     grid.innerHTML=myNFTs.map(function(nft,i){
       var ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id]);
       var img=ph?'<img src="'+ph+'">':'<div class="nbt-emoji-wrap">'+(nft.emoji||'&#x1F381;')+'</div>';
-      return'<div class="nft-bet-card" data-idx="'+i+'">'+img+'<div class="nbt-name">'+nft.name+'</div><div class="nbt-price">&#9661; '+(+(nft.price||nft.floor||0)).toFixed(2)+'</div></div>';
+      var winTon=(+(nft.winTon||nft.price||nft.floor||0)).toFixed(2);
+      return'<div class="nft-bet-card" data-idx="'+i+'">'+img+'<div class="nbt-win">'+winTon+'</div><div class="nbt-name">'+nft.name+'</div><div class="nbt-price">&#9661; '+(+(nft.price||nft.floor||0)).toFixed(2)+'</div></div>';
     }).join('');
     grid.querySelectorAll('.nft-bet-card').forEach(function(c){c.onclick=function(){selectNFTBet(parseInt(this.dataset.idx));};});
     btn.disabled=true;btn.textContent='Pick an NFT to bet';
