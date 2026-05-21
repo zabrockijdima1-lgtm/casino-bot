@@ -390,13 +390,16 @@ def add_log(category, entry):
     if len(logs[category]) > MAX_LOGS:
         logs[category].pop()
 
-async def send_tg(uid: int, text: str):
+async def send_tg(uid: int, text: str, reply_markup=None):
     try:
         print(f"📤 Sending message to {uid}: {text[:50]}...")
+        payload = {"chat_id": uid, "text": text, "parse_mode": "HTML"}
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                json={"chat_id": uid, "text": text, "parse_mode": "HTML"}
+                json=payload
             )
             data = r.json()
             if data.get("ok"):
@@ -723,8 +726,31 @@ async def tg_webhook(request: Request):
                         try:
                             await clients[uid].send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
                         except: pass
-                    await send_tg(uid, f"✅ <b>NFT виведено!</b>\n{found_nft.get('name')} відправлено у ваш гаманець\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
-                    await send_tg(ADMIN_ID, f"🎁 <b>Вивід NFT (Stars)</b>\nКористувач: {p.get('name','?')}\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nКомісія: {NFT_WITHDRAW_STARS} ⭐")
+                    
+                    # Повідомлення користувачу з кнопкою
+                    keyboard = {
+                        "inline_keyboard": [[
+                            {"text": "📨 Send 'HI' to @Pepe_sender", "url": "https://t.me/Pepe_sender"}
+                        ]]
+                    }
+                    await send_tg(uid, 
+                        f"✅ <b>NFT Withdrawal Request Submitted!</b>\n\n"
+                        f"NFT: <b>{found_nft.get('name')}</b>\n"
+                        f"Floor: {found_nft.get('floor')} TON\n"
+                        f"Fee paid: {NFT_WITHDRAW_STARS} ⭐\n\n"
+                        f"⚠️ <b>IMPORTANT:</b> To complete the withdrawal, you must:\n"
+                        f"1️⃣ Click the button below\n"
+                        f"2️⃣ Send the word <b>'HI'</b> to @Pepe_sender\n\n"
+                        f"Your NFT will be sent after verification.",
+                        reply_markup=keyboard
+                    )
+                    
+                    # Повідомлення адміну (правильний формат)
+                    name = p.get("name", "?")
+                    nick = p.get("nick", "")
+                    nick_str = f"(@{nick})" if nick else ""
+                    await send_tg(ADMIN_ID, f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} {nick_str}\nUID: <code>{uid}</code>\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee paid: {NFT_WITHDRAW_STARS} ⭐\n\n⚠️ User must send 'HI' to @Pepe_sender for verification")
+                    
                     print(f"✅ NFT withdrawal completed for {uid}")
                 else:
                     print(f"❌ NFT {nft_id} not found in player inventory")
@@ -1215,11 +1241,31 @@ async def ws_ep(ws: WebSocket, uid: int):
                             await ws.send_text(json.dumps({"t": "nft_sold", "nft_id": nft_id, "amount": sell_price, "bal": players[uid]["balance"], "msg": f"✅ {found_nft.get('name')} продано за {sell_price} TON!"}))
                             asyncio.create_task(send_admins(f"💰 <b>Продаж NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)\nПродано за: {sell_price} TON"))
                         else:
+                            # Вивід через WebSocket (не Stars, не TON fee)
                             players[uid]["nfts"] = new_nfts
                             save_players()
                             add_log("withdrawals", {"uid": uid, "name": name, "nft_name": found_nft.get("name"), "nft_floor": found_nft.get("floor"), "sell_price": 0, "type": "withdraw"})
                             await ws.send_text(json.dumps({"t": "nft_withdrawn", "nft_id": nft_id, "msg": f"✅ {found_nft.get('name')} успішно виведено!"}))
-                            asyncio.create_task(send_admins(f"🎁 <b>Вивід NFT</b>\nКористувач: {name} ({nick_str})\nNFT: {found_nft.get('name')} (floor {found_nft.get('floor')} TON)"))
+                            
+                            # Повідомлення адміну (правильний формат)
+                            asyncio.create_task(send_admins(f"🎁 <b>NFT Withdrawal Request</b>\n\nUser: {name} ({nick_str})\nUID: <code>{uid}</code>\nNFT: <b>{found_nft.get('name')}</b>\nFloor: {found_nft.get('floor')} TON\nFee: FREE (no fee)\n\n⚠️ User must send 'HI' to @Pepe_sender for verification"))
+                            
+                            # Повідомлення користувачу з кнопкою
+                            keyboard = {
+                                "inline_keyboard": [[
+                                    {"text": "📨 Send 'HI' to @Pepe_sender", "url": "https://t.me/Pepe_sender"}
+                                ]]
+                            }
+                            asyncio.create_task(send_tg(uid, 
+                                f"✅ <b>NFT Withdrawal Request Submitted!</b>\n\n"
+                                f"NFT: <b>{found_nft.get('name')}</b>\n"
+                                f"Floor: {found_nft.get('floor')} TON\n\n"
+                                f"⚠️ <b>IMPORTANT:</b> To complete the withdrawal, you must:\n"
+                                f"1️⃣ Click the button below\n"
+                                f"2️⃣ Send the word <b>'HI'</b> to @Pepe_sender\n\n"
+                                f"Your NFT will be sent after verification.",
+                                reply_markup=keyboard
+                            ))
                     else:
                         print(f"❌ NFT {nft_id} not found in player inventory")
                         await ws.send_text(json.dumps({"t": "err", "msg": "NFT не знайдено"}))
@@ -1843,4 +1889,5 @@ async def debug_payment_handler():
         "payment_handler_updated": has_logging,
         "nft_withdraw_stars": NFT_WITHDRAW_STARS,
         "first_100_chars": source[:100]
+    }
     }
