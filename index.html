@@ -5393,29 +5393,21 @@ function _applyPrices(prices){
 // Запит floor-ціни однієї колекції з tgmrkt API
 async function _fetchFloorFromAPI(collectionName, signal){
   try {
-    const resp = await fetch(TGMRKT_API, {
+    // Замість прямого запиту до tgmrkt.io, використовуємо наш сервер як проксі
+    const resp = await fetch('/api/nft-price', {
       method: 'POST',
       signal,
       headers: {
-        'Authorization': TGMRKT_AUTH,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        collectionNames: [collectionName],
-        modelNames: [], backdropNames: [], symbolNames: [],
-        ordering: 'Price', lowToHigh: true,
-        maxPrice: null, minPrice: null, mintable: null,
-        number: null, count: 1, cursor: '', query: null,
-        promotedFirst: false,
+        collectionName: collectionName
       }),
     });
     if (!resp.ok) return null;
     const data = await resp.json();
-    const gifts = data.gifts || [];
-    if (!gifts.length) return null;
-    const salePrice = gifts[0].salePrice;
-    if (salePrice == null) return null;
-    return +(salePrice / 1_000_000_000).toFixed(2);
+    if (!data.success || data.price == null) return null;
+    return data.price;
   } catch(e) {
     if (e.name !== 'AbortError') console.warn('fetch err', collectionName, e.message);
     return null;
