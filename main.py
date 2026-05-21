@@ -1739,6 +1739,75 @@ async def admin_player_detail(uid: int, request: Request):
 
 
 
+# ============================================================================
+# NFT PRICE API PROXY - для обходу CORS помилок
+# ============================================================================
+@app.post("/api/nft-price")
+async def nft_price_proxy(request: Request):
+    """Проксі для запитів до tgmrkt.io API (обхід CORS)"""
+    try:
+        data = await request.json()
+        collection_name = data.get('collectionName')
+        
+        if not collection_name:
+            return JSONResponse({"success": False, "error": "collectionName required"}, status_code=400)
+        
+        # Робимо запит до tgmrkt.io з серверу (немає CORS проблеми)
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                'https://api.tgmrkt.io/api/v1/gifts/saling',
+                headers={
+                    'Authorization': f'Bot {BOT_TOKEN}',
+                    'Content-Type': 'application/json',
+                },
+                json={
+                    'collectionNames': [collection_name],
+                    'modelNames': [],
+                    'backdropNames': [],
+                    'symbolNames': [],
+                    'ordering': 'Price',
+                    'lowToHigh': True,
+                    'maxPrice': None,
+                    'minPrice': None,
+                    'mintable': None,
+                    'number': None,
+                    'count': 1,
+                    'cursor': '',
+                    'query': None,
+                    'promotedFirst': False,
+                },
+                timeout=10.0
+            )
+            
+            if resp.status_code != 200:
+                return JSONResponse({"success": False, "error": f"API returned {resp.status_code}"})
+            
+            api_data = resp.json()
+            gifts = api_data.get('gifts', [])
+            
+            if not gifts:
+                return JSONResponse({"success": False, "error": "No gifts found"})
+            
+            sale_price = gifts[0].get('salePrice')
+            if sale_price is None:
+                return JSONResponse({"success": False, "error": "No price found"})
+            
+            # Конвертуємо з nanoTON в TON
+            price_ton = round(sale_price / 1_000_000_000, 2)
+            
+            return JSONResponse({
+                "success": True,
+                "price": price_ton,
+                "collectionName": collection_name
+            })
+            
+    except httpx.TimeoutException:
+        return JSONResponse({"success": False, "error": "Timeout"}, status_code=504)
+    except Exception as e:
+        print(f"[NFT Price API] Error: {e}")
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     for filename in ("index (8).html", "index (7).html", "index.html"):
