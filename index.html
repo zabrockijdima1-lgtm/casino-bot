@@ -130,11 +130,11 @@ body.light-theme #bb:disabled{background:#d8d0f0;box-shadow:none;color:#9985cc}
 #nft-bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;overflow-y:auto;flex:1;scrollbar-width:none}
 .nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
 .nft-bet-card.sel{border-color:rgba(192,132,252,0.7);box-shadow:0 0 14px rgba(192,132,252,0.3);background:#1a0a3a}
-.nft-bet-card img{width:90px;height:90px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
-.nbt-emoji-wrap{width:90px;height:90px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:48px;background:var(--bg2)}
+.nft-bet-card img{width:70px;height:70px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
+.nbt-emoji-wrap{width:70px;height:70px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:40px;background:var(--bg2)}
 .nbt-name{font-size:10px;font-weight:700;color:var(--cream);font-family:'Nunito',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
 .nbt-price{font-size:11px;font-family:'Fredoka One',cursive;color:var(--acc)}
-.nbt-win{position:absolute;top:12px;right:8px;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);padding:3px 8px;border-radius:8px;font-family:'Fredoka One',cursive;font-size:9px;color:#ffd700;border:1px solid rgba(255,215,0,0.25);font-weight:700}
+.nbt-win{position:absolute;top:10px;right:6px;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);padding:2px 6px;border-radius:6px;font-family:'Fredoka One',cursive;font-size:9px;color:#ffd700;border:1px solid rgba(255,215,0,0.25);font-weight:700}
 #nft-bet-confirm{width:calc(100% - 28px);margin:6px 14px 0;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:16px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;padding:15px;cursor:pointer}
 #nft-bet-confirm:disabled{opacity:.35;cursor:not-allowed}
 /* NFT hint */
@@ -1748,7 +1748,7 @@ function getPhotoById(nft){
   return'';
 }
 function getNFT(win){
-  if(!win||win<2.72)return null;
+  if(!win||win<1.0)return null; // Мінімум 1 TON замість 2.72
   // NFT тільки якщо множник >= 1.1 (перевіряється окремо де викликається)
   const ok=NFT_CATALOG.filter(n=>n.price<=win);
   return ok.length?ok.reduce((a,b)=>a.floor>b.floor?a:b):null;
@@ -2080,7 +2080,22 @@ function startClientAnim(){
     const el=Math.max(0,(Date.now()-t0)/1000);
     mult=calcMult(el);points.push({t:el,m:mult});
     ME().textContent=mult.toFixed(2)+'×';
-    if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){var _nw=getNFTSafe(betAmt*mult,mult);BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 CASH OUT</span>`+(_nw?`<span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`:` NFT`);}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;}}
+    if(hasBet){
+      BB().disabled=false;
+      BB().className='co';
+      if(window._activeNFTBet){
+        var _nw=getNFTSafe(betAmt*mult,mult);
+        if(_nw){
+          // Є NFT який можна забрати
+          BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 CASH OUT</span><span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`;
+        }else{
+          // Немає NFT на цю суму - показуємо TON
+          BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
+        }
+      }else{
+        BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
+      }
+    }
     drawGraph(false);
     loopId=requestAnimationFrame(tick);
   }
@@ -2218,14 +2233,14 @@ function openModal(type){
         const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
         const imgHtml=ph
           ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
-          :`<div style="font-size:68px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+          :`<div style="font-size:48px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
         const winTonValue = +(nft.winTon||nft.price||nft.floor||0);
         return `
         <div class="inv-card">
-          <div style="width:100%;aspect-ratio:1.2;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden;position:relative">
+          <div style="width:100%;aspect-ratio:1;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden;position:relative">
             ${imgHtml}
-            <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:4px 10px;border-radius:12px;font-family:'Fredoka One',cursive;font-size:11px;color:#ffd700;font-weight:700;border:1px solid rgba(255,215,0,0.3)">
-              ${winTonValue.toFixed(2)} TON
+            <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);padding:3px 8px;border-radius:8px;font-family:'Fredoka One',cursive;font-size:10px;color:#ffd700;font-weight:700;border:1px solid rgba(255,215,0,0.3)">
+              ${winTonValue.toFixed(2)}
             </div>
           </div>
           <div class="inv-body">
@@ -5830,13 +5845,26 @@ function cashoutActiveNFTBetLocal(){
   var cur=typeof mult!=='undefined'?+mult:1;
   var base=+(active.price||active.floor||betAmt||0);
   var winValue=+(base*cur).toFixed(2);
-  var winNFT=(typeof getNFTSafe==='function'&&getNFTSafe(winValue,cur))||Object.assign({},active,{price:winValue,floor:winValue});
-  winNFT.price=+(winNFT.price||winNFT.floor||winValue);
-  winNFT.floor=+(winNFT.floor||winNFT.price||winValue);
-  addNFTToInventory(winNFT,winValue,cur);
-  showWinPopup(cur,winValue,winNFT);
-  if(typeof showToast==='function')showToast('NFT cashout '+cur.toFixed(2)+'x','win');
-  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_local',nft_id:active.id,win_nft_id:winNFT.id,win_value:winValue,mult:cur}));
+  
+  // Перевіряємо чи є NFT на цю суму
+  var winNFT=(typeof getNFTSafe==='function'&&getNFTSafe(winValue,cur));
+  
+  if(winNFT){
+    // Є NFT - додаємо його
+    winNFT.price=+(winNFT.price||winNFT.floor||winValue);
+    winNFT.floor=+(winNFT.floor||winNFT.price||winValue);
+    addNFTToInventory(winNFT,winValue,cur);
+    showWinPopup(cur,winValue,winNFT);
+    if(typeof showToast==='function')showToast('NFT cashout '+cur.toFixed(2)+'x','win');
+    if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_local',nft_id:active.id,win_nft_id:winNFT.id,win_value:winValue,mult:cur,is_nft:true}));
+  }else{
+    // Немає NFT - видаємо TON
+    creditLocalBalance(winValue,'nft_bet_ton_cashout');
+    showWinPopup(cur,winValue,null); // null = TON виграш
+    if(typeof showToast==='function')showToast('Cashed out '+winValue.toFixed(2)+' TON','win');
+    if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_ton',nft_id:active.id,win_value:winValue,mult:cur,is_nft:false}));
+  }
+  
   window._activeNFTBet=null;
   window._pendingNFTBet=null;
   hasBet=false;
