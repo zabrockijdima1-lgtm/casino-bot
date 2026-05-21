@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -465,13 +466,13 @@ html,body{height:100%;background:var(--bg);color:var(--cream);font-family:'Nunit
 #tab-game .tabn-lbl{margin-top:-2px;color:var(--acc);font-weight:800;letter-spacing:0.5px;font-size:9px}
 #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;backdrop-filter:blur(6px)}
 #modal-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-radius:24px 24px 0 0;border-top:1px solid rgba(77,143,255,0.15);max-height:85vh;overflow-y:auto;padding:0 0 20px}
-.inv-card{background:linear-gradient(180deg,#0c1322 0%,#07101d 100%);border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.45)}
-.inv-body{padding:10px 10px 9px}
-.inv-name{font-size:12px;font-weight:800;color:#c8d4ee;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Nunito',sans-serif;letter-spacing:-0.2px}
+.inv-card{background:var(--bg3);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden}
+.inv-body{padding:8px}
+.inv-name{font-size:11px;font-weight:700;color:var(--cream);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Nunito',sans-serif}
 .inv-r{font-size:8px;padding:2px 6px;border-radius:5px;display:inline-block;margin-bottom:4px}
-.inv-price{font-size:10px;color:#2e4a6a;margin-bottom:5px;font-family:'Nunito',sans-serif;font-weight:700}
-.inv-mult{font-family:'Nunito',sans-serif;font-weight:900;font-size:12px;color:#4d8fff;margin-bottom:7px}
-.inv-btn{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;color:#5a7299;font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;padding:7px;cursor:pointer;letter-spacing:-0.2px}
+.inv-price{font-size:9px;color:#3a5a8a;margin-bottom:4px;font-family:'Nunito',sans-serif}
+.inv-mult{font-family:'Fredoka One',cursive;font-size:11px;color:var(--acc);margin-bottom:6px}
+.inv-btn{width:100%;background:linear-gradient(135deg,var(--pepe-dark),var(--pepe));border:none;border-radius:10px;color:#fff;font-family:'Fredoka One',cursive;font-size:11px;font-weight:400;padding:7px;cursor:pointer}
 .rare-Common{background:#0d1e3a;color:#4ade80}
 .rare-Rare{background:#0d1e3a;color:#60a5fa}
 .rare-Epic{background:#1e0d3a;color:#c084fc}
@@ -737,70 +738,17 @@ body.light-theme .case-card-v2 .cc-name{color:#fff}
 #spin-btn:disabled{opacity:.4;cursor:not-allowed}
 #spin-prizes-btn{background:rgba(77,143,255,0.1);border:1px solid rgba(77,143,255,0.2);border-radius:16px;color:rgba(77,143,255,0.7);font-size:12px;padding:15px 16px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700}
 /* win popup */
-#case-win-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(18px)}
+#case-win-popup{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
 #case-win-popup.show{display:flex}
-#case-win-box{
-  background:linear-gradient(170deg,#0b1220 0%,#080e1c 55%,#060c18 100%);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:20px;
-  padding:0;
-  text-align:center;
-  max-width:288px;
-  width:90%;
-  overflow:hidden;
-  box-shadow:0 40px 80px rgba(0,0,0,0.85),0 0 0 0.5px rgba(255,255,255,0.04);
-  position:relative;
-}
-#case-win-box::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.10) 50%,transparent 100%);
-}
-#case-win-header-bar{
-  padding:26px 22px 22px;
-}
-#case-win-emoji{margin:0 0 14px;line-height:1;font-size:0}
-#case-win-emoji img{display:block;margin:0 auto;width:92px;height:92px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,0.09)}
-#case-win-emoji span{display:block;line-height:1}
-#case-win-name{
-  font-family:'Nunito',sans-serif;
-  font-size:17px;font-weight:800;
-  color:#ccd8f0;margin:0 0 7px;
-  letter-spacing:-0.3px;
-}
-#case-win-val{
-  font-family:'Nunito',sans-serif;
-  font-size:21px;font-weight:900;
-  color:#ffd600;margin:0 0 5px;
-  letter-spacing:-0.5px;
-}
-#case-win-sub{
-  font-size:10px;color:#2e4a6a;
-  font-family:'Nunito',sans-serif;font-weight:800;
-  letter-spacing:0.8px;text-transform:uppercase;
-  margin:0;
-}
-#case-win-choice-label{display:none!important}
-.case-win-divider{height:1px;background:rgba(255,255,255,0.05);margin:0}
-.case-win-actions{display:grid;grid-template-columns:1fr 1fr;gap:0}
-.case-win-actions button{
-  border:none;border-radius:0;
-  font-family:'Nunito',sans-serif;
-  font-size:13px;font-weight:800;
-  padding:15px 8px;cursor:pointer;
-  letter-spacing:-0.2px;
-  transition:opacity .12s;
-}
-.case-win-actions button:active{opacity:.75}
-#cwb-keep{
-  background:rgba(255,255,255,0.04);color:#6a80a8;
-  border-right:1px solid rgba(255,255,255,0.06);
-  border-bottom-left-radius:20px;
-}
-#cwb-sell{
-  background:linear-gradient(135deg,#082d14,#0a3d1c);
-  color:#4ade80;
-  border-bottom-right-radius:20px;
-}
+#case-win-box{background:linear-gradient(135deg,#0f2a0f,#0a1540);border:1.5px solid var(--gold);border-radius:24px;padding:28px 24px;text-align:center;max-width:300px;width:90%;box-shadow:0 0 60px rgba(255,214,0,0.2)}
+#case-win-emoji{font-size:64px;margin-bottom:10px}
+#case-win-name{font-family:'Fredoka One',cursive;font-size:18px;font-weight:400;color:var(--cream);margin-bottom:6px}
+#case-win-val{font-family:'Fredoka One',cursive;font-size:24px;color:var(--gold);margin-bottom:4px}
+#case-win-sub{font-size:11px;color:#3a5a8a;margin-bottom:18px;font-family:'Nunito',sans-serif;font-weight:700}
+.case-win-actions{display:flex;gap:8px}
+.case-win-actions button{flex:1;border:none;border-radius:12px;font-family:'Fredoka One',cursive;font-size:13px;font-weight:400;padding:11px 6px;cursor:pointer}
+#cwb-keep{background:linear-gradient(135deg,var(--pepe-dark),var(--pepe));color:#fff}
+#cwb-sell{background:var(--bg3);border:1px solid rgba(255,255,255,0.08)!important;color:#aaa}
 /* prizes modal */
 #prizes-modal{display:none;position:fixed;inset:0;background:#0a1a0a;z-index:250;flex-direction:column}
 #prizes-modal.show{display:flex}
@@ -1345,14 +1293,33 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 </div>
 
 <!-- NFT WITHDRAW CONFIRM POPUP -->
-<div id="nft-confirm-bg" style="display:none;position:fixed;inset:0;background:#000000cc;z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
-  <div id="nft-confirm-box" style="background:linear-gradient(135deg,#111827,#0d1428);border:1px solid #6c4fff55;border-radius:20px;padding:24px 20px;text-align:center;min-width:270px;max-width:320px;margin:16px;box-shadow:0 0 40px #6c4fff22;position:relative">
-    <button onclick="closeNFTConfirm()" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#445;font-size:20px;cursor:pointer">×</button>
-    <div style="font-size:40px;margin-bottom:10px" id="nft-confirm-icon">🎁</div>
-    <div style="font-family:'Fredoka One',cursive;font-size:15px;font-weight:700;margin-bottom:6px" id="nft-confirm-title">Confirm</div>
-    <div style="font-size:12px;color:#778;margin-bottom:16px;line-height:1.5" id="nft-confirm-desc"></div>
-    <button id="nft-confirm-okbtn" onclick="nftConfirmOk()" style="width:100%;background:linear-gradient(135deg,#166534,#15803d);border:none;border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;font-weight:700;padding:13px;cursor:pointer;margin-bottom:8px" id="nft-confirm-action-btn"></button>
-    <button onclick="closeNFTConfirm()" style="width:100%;background:transparent;border:none;color:#334;font-size:12px;padding:8px;cursor:pointer" id="nft-confirm-cancel">Cancel</button>
+<div id="nft-confirm-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(20px)">
+  <div id="nft-confirm-box" style="background:linear-gradient(170deg,#0b1220 0%,#080e1c 55%,#060c18 100%);border:1px solid rgba(255,255,255,0.07);border-radius:22px;padding:0;text-align:center;min-width:270px;max-width:300px;margin:16px;box-shadow:0 40px 80px rgba(0,0,0,0.85),0 0 0 0.5px rgba(255,255,255,0.04);position:relative;overflow:hidden">
+    <!-- top line shimmer -->
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.10),transparent)"></div>
+    <!-- close -->
+    <button onclick="closeNFTConfirm()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,0.06);border:none;color:rgba(255,255,255,0.35);font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2">×</button>
+    <!-- photo / icon area -->
+    <div id="nft-confirm-photo-wrap" style="padding:26px 24px 16px">
+      <div id="nft-confirm-icon" style="font-size:0;margin:0 auto;width:96px;height:96px;border-radius:16px;overflow:hidden;background:#0d1428;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center"></div>
+    </div>
+    <!-- content -->
+    <div style="padding:0 22px 6px">
+      <div style="font-family:'Nunito',sans-serif;font-size:17px;font-weight:800;color:#ccd8f0;margin:0 0 5px;letter-spacing:-0.3px" id="nft-confirm-title">Confirm</div>
+      <div style="font-size:11px;color:#2e4a6a;margin:0 0 14px;line-height:1.6;font-family:'Nunito',sans-serif;font-weight:700" id="nft-confirm-desc"></div>
+    </div>
+    <!-- price row -->
+    <div id="nft-confirm-price-row" style="margin:0 22px 18px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-family:'Nunito',sans-serif;font-size:12px;color:#3a5a7a;font-weight:700">You receive</span>
+      <span id="nft-confirm-price-val" style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:900;color:#ffd600;letter-spacing:-0.5px">— TON</span>
+    </div>
+    <!-- divider -->
+    <div style="height:1px;background:rgba(255,255,255,0.05)"></div>
+    <!-- buttons -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      <button onclick="closeNFTConfirm()" style="border:none;border-radius:0;border-bottom-left-radius:22px;background:rgba(255,255,255,0.04);color:#5a7299;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;padding:15px 8px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.05)" id="nft-confirm-cancel">Cancel</button>
+      <button id="nft-confirm-okbtn" onclick="nftConfirmOk()" style="border:none;border-radius:0;border-bottom-right-radius:22px;background:linear-gradient(135deg,#082d14,#0a3d1c);color:#4ade80;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;padding:15px 8px;cursor:pointer"></button>
+    </div>
   </div>
 </div>
 
@@ -1415,16 +1382,13 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 <!-- WIN POPUP -->
 <div id="case-win-popup">
   <div id="case-win-box">
-    <div id="case-win-header-bar">
-      <div id="case-win-emoji"></div>
-      <div id="case-win-name"></div>
-      <div id="case-win-val"></div>
-      <div id="case-win-sub"></div>
-    </div>
-    <div id="case-win-choice-label" style="display:none"></div>
-    <div class="case-win-divider"></div>
+    <div id="case-win-emoji">🎁</div>
+    <div id="case-win-name"></div>
+    <div id="case-win-val"></div>
+    <div id="case-win-sub"></div>
+    <div id="case-win-choice-label" style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-family:'Nunito',sans-serif;font-weight:700">What do you want to do?</div>
     <div class="case-win-actions">
-      <button id="cwb-keep" onclick="caseWinKeep()">✅ Keep</button>
+      <button id="cwb-keep" onclick="caseWinKeep()">🎒 Keep NFT</button>
       <button id="cwb-sell" onclick="caseWinSell()">💰 Sell</button>
     </div>
   </div>
@@ -2299,7 +2263,7 @@ function openModal(type){
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
             <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.floor||nft.price||0})'>${t('withdraw_btn')}</button>
-            <button class="inv-btn" style="background:linear-gradient(135deg,#061d0e,#082d14);border:1px solid rgba(74,222,128,0.18);color:#3ecf72" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
+            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFT(${JSON.stringify(nftKey)},${JSON.stringify(nft.name)},${nft.price||nft.floor||0})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
         </div>`;
       }).join('')
@@ -2373,13 +2337,28 @@ function nftConfirmOk(){
   if(_nftConfirmCb) _nftConfirmCb();
   closeNFTConfirm();
 }
-function showNFTConfirm({icon,title,desc,btnLabel,btnColor,onOk}){
-  document.getElementById('nft-confirm-icon').textContent=icon||'🎁';
+function showNFTConfirm({icon,photo,title,desc,price,btnLabel,btnColor,onOk}){
+  // Photo / icon
+  const iconEl=document.getElementById('nft-confirm-icon');
+  if(photo){
+    iconEl.innerHTML=`<img src="${photo}" style="width:96px;height:96px;object-fit:cover;display:block;border-radius:0">`;
+  } else {
+    iconEl.innerHTML=`<span style="font-size:52px;line-height:1">${icon||'🎁'}</span>`;
+  }
   document.getElementById('nft-confirm-title').textContent=title||'';
   document.getElementById('nft-confirm-desc').innerHTML=desc||'';
+  // Price row
+  const priceRow=document.getElementById('nft-confirm-price-row');
+  const priceVal=document.getElementById('nft-confirm-price-val');
+  if(price){
+    priceVal.textContent='◈ '+(+price).toFixed(2)+' TON';
+    priceRow.style.display='flex';
+  } else {
+    priceRow.style.display='none';
+  }
   const btn=document.getElementById('nft-confirm-okbtn');
   btn.textContent=btnLabel||t('confirm_btn_withdraw');
-  btn.style.background=btnColor||'linear-gradient(135deg,#166534,#15803d)';
+  if(btnColor) btn.style.background=btnColor;
   _nftConfirmCb=onOk;
   const bg=document.getElementById('nft-confirm-bg');
   bg.style.display='flex';
@@ -2529,20 +2508,22 @@ doWithdrawWithStars=doWithdrawWithStarsPatched;
 function sellNFTPatched(id,name,price){
   const nft=findNFTByKey(id)||{id,name,price,floor:price};
   const sellPrice=+(price||nft.price||nft.floor||0);
+  const photo=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id||id])||null;
   showNFTConfirm({
-    icon:'рџ’°',
-    title:t('confirm_sell'),
-    desc:`${t('confirm_sell_desc')} <b style="color:#ffd700">${sellPrice.toFixed(2)} TON</b>?<br><small style="color:#778">${name}</small>`,
-    btnLabel:`${t('confirm_btn_sell')} ${sellPrice.toFixed(2)} TON`,
-    btnColor:'linear-gradient(135deg,#1a6228,#0d4018)',
+    photo: photo,
+    icon: '🎁',
+    title: name||t('confirm_sell'),
+    desc: nft.rarity ? '<span style="color:'+rc(nft.rarity)+'">'+nft.rarity+'</span>' : '',
+    price: sellPrice,
+    btnLabel: '💰 Sell for '+sellPrice.toFixed(2)+' TON',
     onOk:()=>{
       const removedNFT=removeNFTByKey(id);
       if(!removedNFT){showToast(t('error'));return;}
       saveNFTs();
       refreshInventoryLabel();
       creditLocalBalance(sellPrice,'nft_sell');
-      showToast(`${t('nft_sold')} ${sellPrice.toFixed(2)} TON!`,'win');
-      spawnGems(3,'рџ’°');
+      showToast((t('nft_sold')||'Sold')+' +'+sellPrice.toFixed(2)+' TON','win');
+      spawnGems(3,'💰');
       closeModal();
       if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removedNFT.id,nft_uid:removedNFT.uid,name:removedNFT.name,price:sellPrice,type:'sell'}));
     }
@@ -2785,14 +2766,9 @@ function connect(){
       }
     }
     else if(d.t==='case_opened'){
-      // Сервер підтвердив списання та повернув актуальний баланс
-      if(d.bal !== undefined){
-        balance = d.bal;
-        updBal();
-        saveBal();
-        document.getElementById('spin-bal-display').textContent = balance.toFixed(2)+' TON';
-      }
-      console.log('✅ Case opened confirmed by server, balance:', d.bal);
+      // Сервер підтвердив відкриття кейса
+      // НЕ оновлюємо баланс - він вже знятий локально
+      console.log('✅ Case opened confirmed by server');
     }
     else if(d.t==='err'){showToast(d.msg);}
   };
@@ -4396,8 +4372,6 @@ function showCaseWin(item){
     myNFTs.push(nftEntry);
     saveNFTs();
     refreshInventoryLabel();
-    // Зберігаємо uid щоб caseWinSell міг видалити NFT якщо юзер вирішить продати
-    if(typeof lastWin !== 'undefined' && lastWin) lastWin._autoSavedUid = nftEntry.uid;
     // Повідомляємо сервер з назвою кейсу
     if(wsReady)ws.send(JSON.stringify({
       a:'case_win_keep',
@@ -4436,32 +4410,29 @@ function showCaseWin(item){
   if(item.isNFT){
     const ph=typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[item.id];
     emojiEl.innerHTML=ph
-      ?`<img src="${ph}" style="width:92px;height:92px;border-radius:14px;object-fit:cover;border:1px solid rgba(255,255,255,0.09)">`
-      :`<span style="font-size:72px;display:block;line-height:1">${item.emoji||'🎁'}</span>`;
+      ?`<img src="${ph}" style="width:90px;height:90px;border-radius:16px;object-fit:cover;border:2px solid ${rc(item.rarity)}">`
+      :`<span style="font-size:64px">${item.emoji||'🎁'}</span>`;
     document.getElementById('case-win-name').textContent=item.name;
     document.getElementById('case-win-val').textContent='◈ '+item.price+' TON floor';
-    document.getElementById('case-win-sub').textContent='NFT · '+item.rarity;
+    document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
-    keepBtn.textContent='✅ Keep';
+    keepBtn.textContent='✅ '+t('case_take'); // Змінюємо текст на "Взяти" бо вже збережено
     keepBtn.onclick=caseWinKeep;
     const sellBtn=document.getElementById('cwb-sell');
-    sellBtn.textContent='💰 Sell for '+item.price+' TON';
+    sellBtn.textContent=t('case_sell_nft')+' '+item.price+' TON';
     sellBtn.onclick=caseWinSell;
     keepBtn.style.display='';
-    if(choiceLabel) choiceLabel.style.display='none';
+    if(choiceLabel) choiceLabel.style.display='none'; // Ховаємо "Що ви хочете зробити?" бо вже збережено
   } else {
-    emojiEl.innerHTML=`<div style="width:92px;height:92px;border-radius:14px;background:linear-gradient(135deg,#071830,#0a2040);display:flex;align-items:center;justify-content:center;margin:0 auto;border:1px solid rgba(0,152,234,0.25)"><svg width="52" height="52" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="28" fill="#0098EA"/><path d="M37.56 15.63H18.44c-3.52 0-5.74 3.79-3.97 6.86l11.8 20.45c.77 1.34 2.7 1.34 3.47 0l11.8-20.45c1.77-3.07-.45-6.86-3.98-6.86zm-11.3 20.63l-3.06-5.53-6.28-10.99c-.37-.64.08-1.45.82-1.45h8.52v17.97zm12.81-17.97l-6.27 10.99-3.06 5.53V18.28h8.52c.74 0 1.19.81.81 1.45z" fill="#fff"/></svg></div>`;
+    emojiEl.innerHTML=`<img src="https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-ton.png" style="width:120px;height:120px;border-radius:50%;object-fit:cover" onerror="this.outerHTML='<div style=\\'font-size:64px\\'>💰</div>'">`;
     document.getElementById('case-win-name').textContent='+'+item.ton+' TON';
-    document.getElementById('case-win-val').textContent=t('case_credited');
+    document.getElementById('case-win-val').textContent=t('case_credited'); // "Зачислено"
     document.getElementById('case-win-sub').textContent=item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
-    const sellBtn=document.getElementById('cwb-sell');
-    sellBtn.textContent='✅ Take';
-    sellBtn.style.color='#6a80a8';
-    sellBtn.style.background='rgba(255,255,255,0.04)';
-    sellBtn.style.borderBottomRightRadius='20px';
-    sellBtn.style.borderBottomLeftRadius='20px';
-    sellBtn.onclick=function(){
+    document.getElementById('cwb-sell').textContent=t('case_take');
+    document.getElementById('cwb-sell').onclick=function(){
+      // TON вже додано в showCaseWin через creditLocalBalance
+      // Просто закриваємо popup
       showToast('✅ '+item.ton+' TON '+t('case_ton_win'),'win');
       spawnGems(3,'💰');
       closeCaseWin();
@@ -4481,26 +4452,21 @@ function caseWinKeep(){
 }
 function caseWinSell(){
   if(!lastWin)return;
+  // SECURITY: захист від подвійного виклику Keep+Sell
+  if(caseWinProcessed){return;}
+  caseWinProcessed=true;
   if(lastWin.isNFT){
-    // NFT було автоматично збережено в showCaseWin — видаляємо його перед продажем
-    if(lastWin._autoSavedUid){
-      removeNFTByKey(lastWin._autoSavedUid);
-    } else {
-      // fallback: видаляємо останній NFT з таким же id
-      const idx=myNFTs.map(n=>n.id).lastIndexOf(lastWin.id);
-      if(idx!==-1) myNFTs.splice(idx,1);
-    }
-    saveNFTs();
-    refreshInventoryLabel();
+    // SECURITY: ціну визначає сервер, баланс оновиться через WS відповідь
     creditLocalBalance(lastWin.price,'case_nft_sell');
     if(wsReady)ws.send(JSON.stringify({a:'case_win_sell_client',nft_id:lastWin.id,price:lastWin.price,name:lastWin.name}));
-    showToast('💰 +'+(lastWin.price)+' TON '+(t('nft_sold')||'sold'),'win');
+    showToast(t('nft_sold')+' '+lastWin.price+' TON!','win');
   } else {
-    // TON вже зарахований у showCaseWin
-    showToast('✅ +'+lastWin.ton+' TON','win');
+    creditLocalBalance(lastWin.ton,'case_ton_win');
+    if(wsReady)ws.send(JSON.stringify({a:'case_ton_win',amount:lastWin.ton}));
+    showToast('+'+lastWin.ton+' TON '+t('case_ton_win'),'win');
   }
-  spawnGems(3,'💰');
-  closeCaseWin();
+  // Баланс оновиться через WS case_win_ok від сервера
+  spawnGems(3,'💰');closeCaseWin();
 }
 function showPrizesModal(){
   if(!curCase)return;
