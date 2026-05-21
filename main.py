@@ -907,7 +907,8 @@ async def do_cashout(uid, mult):
         # Звичайна TON ставка
         win = round(bet["amount"] * mult, 4)
         bet["win"] = win
-        nft = get_nft_for_rocket_win(win) if mult >= 1.1 else None
+        # NFT тільки якщо виграш >= 2.8 TON і множник >= 1.1
+        nft = get_nft_for_rocket_win(win) if (win >= 2.8 and mult >= 1.1) else None
         bet["nft"] = nft
         if nft:
             nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
