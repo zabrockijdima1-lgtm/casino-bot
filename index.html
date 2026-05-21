@@ -2785,9 +2785,14 @@ function connect(){
       }
     }
     else if(d.t==='case_opened'){
-      // Сервер підтвердив відкриття кейса
-      // НЕ оновлюємо баланс - він вже знятий локально
-      console.log('✅ Case opened confirmed by server');
+      // Сервер підтвердив списання та повернув актуальний баланс
+      if(d.bal !== undefined){
+        balance = d.bal;
+        updBal();
+        saveBal();
+        document.getElementById('spin-bal-display').textContent = balance.toFixed(2)+' TON';
+      }
+      console.log('✅ Case opened confirmed by server, balance:', d.bal);
     }
     else if(d.t==='err'){showToast(d.msg);}
   };
