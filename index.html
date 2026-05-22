@@ -2386,6 +2386,52 @@ function showNFTConfirm({icon,photo,title,desc,price,btnLabel,btnColor,onOk}){
   bg.style.display='flex';
 }
 
+// Модалка верифікації після виведення NFT
+function showNFTWithdrawalVerification(nftName){
+  const modal = document.getElementById('gen-modal');
+  const title = document.getElementById('gen-modal-title');
+  const body = document.getElementById('gen-modal-body');
+  
+  title.innerHTML = '✅ NFT Withdrawal Request Submitted!';
+  
+  body.innerHTML = `
+    <div style="text-align:center;padding:20px">
+      <div style="font-size:64px;margin-bottom:16px">🎁</div>
+      <div style="font-size:18px;font-weight:700;color:#ffd600;margin-bottom:8px">${nftName}</div>
+      <div style="font-size:13px;color:#889;margin-bottom:20px">Withdrawal request submitted</div>
+      
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:#ffd600">⚠️ IMPORTANT:</div>
+        <div style="font-size:13px;color:#aab;line-height:1.6">
+          To complete the withdrawal, you must:<br><br>
+          1️⃣ Click the button below<br>
+          2️⃣ Send the word <b style="color:#ffd600">'HI'</b> to @Pepe_sender<br><br>
+          Your NFT will be sent after verification.
+        </div>
+      </div>
+      
+      <button onclick="openPepeSender()" style="width:100%;background:linear-gradient(135deg,#6c4fff,#8b5cff);border:none;border-radius:12px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:14px;cursor:pointer;margin-bottom:10px">
+        📨 Send 'HI' to @Pepe_sender
+      </button>
+      
+      <button onclick="closeModal()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#aab;font-family:'Nunito',sans-serif;font-size:14px;padding:12px;cursor:pointer">
+        Close
+      </button>
+    </div>
+  `;
+  
+  openModal('gen-modal');
+}
+
+function openPepeSender(){
+  const url = 'https://t.me/Pepe_sender';
+  if(typeof tg !== 'undefined' && tg?.openTelegramLink){
+    tg.openTelegramLink(url);
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
 const NFT_WITHDRAW_STARS = 25;
 
 function withdrawNFT(id,name,floor){
@@ -2961,7 +3007,9 @@ function connect(){
       saveNFTs();
       const cnt=myNFTs.length;
       document.getElementById('inv-tab-lbl').textContent=cnt?`${t('inv')} (${cnt})`:t('inv');
-      showToast(d.msg||`✅ NFT ${t('withdraw_btn')}`,'win');
+      
+      // Показуємо модалку з верифікацією
+      showNFTWithdrawalVerification(d.nft_name || 'NFT');
       closeModal();
     }
     else if(d.t==='ref_bonus'){balance=d.bal;updBal();saveBal();showToast(`👥 +${d.bonus} TON bonus!`,'win');}
