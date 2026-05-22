@@ -5867,7 +5867,7 @@ function _applyPrices(prices){
 async function _fetchFloorFromAPI(collectionName, signal){
   try {
     // Замість прямого запиту до tgmrkt.io, використовуємо наш сервер як проксі
-    const resp = await fetch('/api/nft-price', {
+    const resp = await fetch(SERVER + '/api/nft-price', {
       method: 'POST',
       signal,
       headers: {
