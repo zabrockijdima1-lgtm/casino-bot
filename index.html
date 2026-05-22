@@ -3283,15 +3283,24 @@ function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=a
 let tonUI=null,tonConnected=false;
 function initTon(){
   try{
-    // Чекаємо поки бібліотека завантажиться
     if(!window.TonConnectUI){
       console.log('TonConnectUI not ready yet, retrying...');
       setTimeout(initTon, 500);
       return;
     }
+    if(tonUI) return; // вже ініціалізований
+    
+    // Створюємо невидимий контейнер для TonConnect якщо немає
+    if(!document.getElementById('ton-connect-root')){
+      const root = document.createElement('div');
+      root.id = 'ton-connect-root';
+      root.style.cssText = 'position:fixed;z-index:99999;top:0;left:0;width:100%;height:0;pointer-events:none';
+      document.body.appendChild(root);
+    }
     
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnect-manifest.json'
+      manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnect-manifest.json',
+      buttonRootId: 'ton-connect-root',
     });
     
     tonUI.onStatusChange(w => {
@@ -3303,7 +3312,7 @@ function initTon(){
     console.log('✅ TON Connect initialized successfully');
   }catch(e){
     console.error('❌ TON Connect init error:', e);
-    // Retry after 1 second
+    tonUI = null;
     setTimeout(initTon, 1000);
   }
 }
@@ -3314,16 +3323,26 @@ function updateWalletUI(){
   else{dot.style.background='#333';txt.textContent=t('wallet_not_connected');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
 }
 async function toggleWallet(){
-  if(tonConnected){tonUI?.disconnect();return;}
+  if(tonConnected){try{await tonUI?.disconnect();}catch(e){} return;}
   // Якщо tonUI ще не готовий — ініціалізуємо і чекаємо
   if(!tonUI){
+    showToast('⏳ Connecting...','info');
     initTon();
     let waited=0;
     while(!tonUI && waited<5000){await new Promise(r=>setTimeout(r,200));waited+=200;}
   }
   if(tonUI){
-    try{await tonUI.openModal();}
-    catch(e){console.error('openModal error:',e);}
+    try{
+      await tonUI.openModal();
+    } catch(e){
+      console.error('openModal error:',e);
+      // Якщо openModal не спрацював — спробуємо перестворити tonUI
+      tonUI = null;
+      initTon();
+      let waited=0;
+      while(!tonUI && waited<3000){await new Promise(r=>setTimeout(r,200));waited+=200;}
+      if(tonUI){try{await tonUI.openModal();}catch(e2){showToast('Wallet error, refresh page','error');}}
+    }
   } else {
     showToast('Wallet not available, try refreshing','error');
   }
