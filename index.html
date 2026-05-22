@@ -3291,7 +3291,7 @@ function initTon(){
     }
     
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnnect-manifest.json'
+      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json'
     });
     
     tonUI.onStatusChange(w => {
@@ -3338,11 +3338,17 @@ async function doTonPayment(){
   
   // Перевірка чи TON Connect готовий
   if(!tonUI){
-    showToast('⚠️ TON Connect is loading... Please wait or refresh the page.','error');
-    console.error('TON Connect UI not initialized');
-    // Спробуємо ініціалізувати знову
+    showToast('⏳ Initializing wallet...', 'info');
+    console.log('TON Connect UI not initialized, trying to init...');
     initTon();
-    return;
+    // Чекаємо до 5 секунд поки tonUI з'явиться
+    let waited = 0;
+    while(!tonUI && waited < 5000){ await new Promise(r=>setTimeout(r,200)); waited+=200; }
+    if(!tonUI){
+      showToast('❌ Wallet unavailable. Please refresh the page.','error');
+      console.error('TON Connect UI still not initialized after waiting');
+      return;
+    }
   }
   
   if(!tonConnected){
