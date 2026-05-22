@@ -980,7 +980,7 @@ async def game_loop():
                 if ac and g.mult >= ac: await do_cashout(uid, g.mult)
             # ДОДАНО: elapsed для синхронізації графіка між клієнтами
             await broadcast({"t": "tick", "m": g.mult, "el": el, "pl": players_list(), "now": time.time()})
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(0.1)  # 100ms для максимальної синхронізації
         g.phase = "crashed"; g.history.insert(0, g.crash_at); g.history = g.history[:20]
         for uid, bet in bets.items():
             if not bet.get("cashed"):
