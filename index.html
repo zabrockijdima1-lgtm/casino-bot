@@ -2118,7 +2118,12 @@ function startClientAnim(){
   function tick(){
     if(phase!=='flying'){loopId=null;return;}
     const el=Math.max(0,(Date.now()-t0)/1000);
-    mult=calcMult(el);points.push({t:el,m:mult});
+    mult=calcMult(el);
+    
+    // ЗАХИСТ: обмежуємо множник максимум до 1000x (сервер не дасть більше)
+    if(mult > 1000) mult = 1000;
+    
+    points.push({t:el,m:mult});
     ME().textContent=mult.toFixed(2)+'×';
     if(hasBet){
       BB().disabled=false;
@@ -2237,7 +2242,8 @@ function showWinPopup(mx,win,nft){
 function addNFTToInventory(nft,winTon,mx){
   const photo=getPhotoById(nft);
   const entry={
-    uid:makeNFTUid(nft),
+    uid:'rocket_nft_' + nft.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9),
+    localId:'rocket_nft_' + nft.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9),
     id:nft.id,
     name:nft.name,
     emoji:nft.emoji||'🎁',
@@ -2392,29 +2398,40 @@ function showNFTWithdrawalVerification(nftName){
   const title = document.getElementById('gen-modal-title');
   const body = document.getElementById('gen-modal-body');
   
-  title.innerHTML = '✅ NFT Withdrawal Request Submitted!';
+  title.innerHTML = '';
+  title.style.display = 'none';
   
   body.innerHTML = `
-    <div style="text-align:center;padding:20px">
-      <div style="font-size:64px;margin-bottom:16px">🎁</div>
-      <div style="font-size:18px;font-weight:700;color:#ffd600;margin-bottom:8px">${nftName}</div>
-      <div style="font-size:13px;color:#889;margin-bottom:20px">Withdrawal request submitted</div>
+    <div style="text-align:center;padding:30px 20px">
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:30px">✅ NFT Withdrawal Request</div>
       
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left">
-        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:#ffd600">⚠️ IMPORTANT:</div>
-        <div style="font-size:13px;color:#aab;line-height:1.6">
-          To complete the withdrawal, you must:<br><br>
-          1️⃣ Click the button below<br>
-          2️⃣ Send the word <b style="color:#ffd600">'HI'</b> to @Pepe_sender<br><br>
-          Your NFT will be sent after verification.
+      <div style="font-size:64px;margin-bottom:20px">🎁</div>
+      
+      <div style="font-size:20px;font-weight:700;color:#ffd600;margin-bottom:8px">${nftName}</div>
+      <div style="font-size:14px;color:#889;margin-bottom:30px">Request submitted successfully</div>
+      
+      <div style="background:linear-gradient(135deg,rgba(108,76,255,0.1),rgba(139,92,255,0.1));border:1px solid rgba(108,76,255,0.3);border-radius:16px;padding:20px;margin-bottom:25px;text-align:left">
+        <div style="font-size:15px;font-weight:700;margin-bottom:15px;color:#ffd600;display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">⚠️</span>
+          <span>VERIFICATION REQUIRED</span>
+        </div>
+        <div style="font-size:14px;color:#ccd;line-height:1.8">
+          To complete your NFT withdrawal:<br><br>
+          <span style="display:inline-block;background:rgba(255,214,0,0.1);padding:4px 10px;border-radius:6px;margin:5px 0">
+            1️⃣ Click the button below
+          </span><br>
+          <span style="display:inline-block;background:rgba(255,214,0,0.1);padding:4px 10px;border-radius:6px;margin:5px 0">
+            2️⃣ Send <b style="color:#ffd600">"HI"</b> to @Pepe_sender
+          </span><br><br>
+          <span style="font-size:12px;opacity:0.7">Your NFT will be delivered after verification ✨</span>
         </div>
       </div>
       
-      <button onclick="openPepeSender()" style="width:100%;background:linear-gradient(135deg,#6c4fff,#8b5cff);border:none;border-radius:12px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:14px;cursor:pointer;margin-bottom:10px">
-        📨 Send 'HI' to @Pepe_sender
+      <button onclick="openPepeSender()" style="width:100%;background:linear-gradient(135deg,#6c4fff,#8b5cff);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:16px;padding:16px;cursor:pointer;margin-bottom:12px;box-shadow:0 4px 15px rgba(108,76,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        📨 Send "HI" to @Pepe_sender
       </button>
       
-      <button onclick="closeModal()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#aab;font-family:'Nunito',sans-serif;font-size:14px;padding:12px;cursor:pointer">
+      <button onclick="closeModal();document.getElementById('gen-modal-title').style.display=''" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;color:#aab;font-family:'Nunito',sans-serif;font-size:14px;padding:14px;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
         Close
       </button>
     </div>
@@ -2430,6 +2447,88 @@ function openPepeSender(){
   } else {
     window.open(url, '_blank');
   }
+}
+
+// ============ КРАСИВА МОДАЛКА ВИГРАШУ NFT З РАКЕТИ ============
+function showRocketNFTWin(nft, mult){
+  const modal = document.getElementById('gen-modal');
+  const title = document.getElementById('gen-modal-title');
+  const body = document.getElementById('gen-modal-body');
+  
+  title.innerHTML = '';
+  title.style.display = 'none';
+  
+  const photo = (typeof NFT_PHOTOS !== 'undefined' && NFT_PHOTOS && NFT_PHOTOS[nft.id]) || null;
+  
+  body.innerHTML = `
+    <div style="text-align:center;padding:30px 20px">
+      <div style="font-size:16px;font-weight:600;color:#fff;margin-bottom:25px">🚀 Rocket NFT Win</div>
+      
+      ${photo 
+        ? `<img src="${photo}" style="width:120px;height:120px;border-radius:16px;object-fit:cover;border:3px solid #ffd600;margin-bottom:20px">`
+        : `<div style="font-size:80px;margin-bottom:20px">${nft.emoji || '🎁'}</div>`
+      }
+      
+      <div style="font-size:22px;font-weight:700;color:#ffd600;margin-bottom:8px">${nft.name}</div>
+      <div style="font-size:14px;color:#aab;margin-bottom:6px">💎 ${nft.price.toFixed(2)} TON floor</div>
+      <div style="font-size:13px;color:#8b5cff;margin-bottom:25px">${mult.toFixed(2)}× multiplier</div>
+      
+      <button onclick="rocketNFTSell()" style="width:100%;background:linear-gradient(135deg,#ff4d6d,#ff758c);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:15px;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 15px rgba(255,77,109,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        💰 Sell for ${nft.price.toFixed(2)} TON
+      </button>
+      
+      <button onclick="rocketNFTKeep()" style="width:100%;background:linear-gradient(135deg,#6c4fff,#8b5cff);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:15px;cursor:pointer;box-shadow:0 4px 15px rgba(108,76,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        ✅ Keep NFT
+      </button>
+    </div>
+  `;
+  
+  // Зберігаємо NFT для обробників
+  window._tempRocketNFT = nft;
+  
+  openModal('gen-modal');
+  playCaseWinSound();
+  spawnGems(5,'🎁');
+}
+
+function rocketNFTSell(){
+  const nft = window._tempRocketNFT;
+  if(!nft) return;
+  
+  // Видаляємо NFT з інвентаря
+  const index = myNFTs.findIndex(n => n.id === nft.id && n.uid && n.uid.includes('rocket'));
+  if(index !== -1){
+    myNFTs.splice(index, 1);
+    saveNFTs();
+    refreshInventoryLabel();
+  }
+  
+  // Додаємо TON
+  creditLocalBalance(nft.price, 'rocket_nft_sell');
+  
+  // Повідомляємо сервер
+  if(wsReady) ws.send(JSON.stringify({
+    a:'rocket_nft_sell',
+    nft_id:nft.id,
+    price:nft.price
+  }));
+  
+  showToast(`✅ Sold for ${nft.price.toFixed(2)} TON`,'win');
+  closeModal();
+  document.getElementById('gen-modal-title').style.display = '';
+  window._tempRocketNFT = null;
+}
+
+function rocketNFTKeep(){
+  const nft = window._tempRocketNFT;
+  if(!nft) return;
+  
+  showToast(`✅ ${nft.name} added to inventory`,'win');
+  closeModal();
+  document.getElementById('gen-modal-title').style.display = '';
+  window._tempRocketNFT = null;
+  
+  // NFT вже в інвентарі через addNFTToInventory
 }
 
 const NFT_WITHDRAW_STARS = 25;
@@ -5850,7 +5949,7 @@ loadNFTPrices()
         }
                 if(d.t==='admin_user_found'&&d.user)_adminShowUserCard(d.user);
         if(d.t==='admin_user_not_found'){var c=document.getElementById('admin-user-card');if(c)c.style.display='none';var nf=document.getElementById('admin-user-not-found');if(nf)nf.style.display='';}
-        if(d.t==='win_nft_rocket'&&d.nft){if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price,d.mult||1);if(typeof showToast==='function')showToast('Won '+d.nft.name,'win');}
+        if(d.t==='win_nft_rocket'&&d.nft){if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price,d.mult||1);if(typeof showRocketNFTWin==='function')showRocketNFTWin(d.nft,d.mult||1);}
       }catch(err){}
       if(_orig)_orig.call(ws,e);
     };
