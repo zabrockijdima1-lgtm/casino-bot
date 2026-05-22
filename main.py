@@ -1890,4 +1890,3 @@ async def debug_payment_handler():
         "nft_withdraw_stars": NFT_WITHDRAW_STARS,
         "first_100_chars": source[:100]
     }
-    }
