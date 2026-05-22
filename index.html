@@ -3290,14 +3290,19 @@ function initTon(){
       return;
     }
     
+    console.log('✅ TonConnectUI loaded, initializing...');
+    
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnnect-manifest.json'
+      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json'
     });
     
     tonUI.onStatusChange(w => {
       tonConnected = !!w;
       updateWalletUI();
-      if(w) showToast(t('wallet_connected'),'win');
+      if(w) {
+        console.log('✅ Wallet connected:', w.account.address);
+        showToast(t('wallet_connected'),'win');
+      }
     });
     
     console.log('✅ TON Connect initialized successfully');
