@@ -3067,7 +3067,7 @@ function connect(){
     else if(d.t==='cd'){
       cancelAnimationFrame(loopId);loopId=null;
       const newRound=d.rid!==parseInt(document.getElementById('rid').textContent||'0');
-      if(newRound){hasBet=false;}
+      if(newRound){hasBet=false;betAmt=0;}
       phase='waiting';document.getElementById('rid').textContent=d.rid;
       stopWaveParticles();
       ME().className='waiting';ME().textContent=`${t('start_in')} ${d.sec}...`;
@@ -3134,8 +3134,9 @@ function connect(){
       setTimeout(()=>sky.style.animation='',600);
       document.getElementById('particles').innerHTML='';
       if(points.length>1)drawGraph(true);
+      const _oldBetPill=document.querySelector('.hbet');if(_oldBetPill)_oldBetPill.remove();
       addH(d.ca);
-      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;playCrashSound();vibrateOnCrash();}
+      if(hasBet){showToast(`💥 ${t('crash')} ${d.ca.toFixed(2)}×`);hasBet=false;betAmt=0;playCrashSound();vibrateOnCrash();}
       // НЕ скидаємо pendingBet тут - він має зберегтися для наступного раунду
       if(pendingBet){
         BB().disabled=true;BB().innerHTML=t('bet_next_round');
@@ -3147,8 +3148,12 @@ function connect(){
     else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
     else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();if(window._activeNFTBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 NFT: ${window._activeNFTBet.name}</span>`;}else{BB().disabled=true;BB().innerHTML=t('bet_accepted');}}
     else if(d.t==='your_co'){
-      hasBet=false;balance=d.bal;updBal();saveBal();
+      // GUARD: ігноруємо застарілий your_co якщо раунд вже завершився крешем
+      if(phase==='crashed'){console.warn('[your_co] ignored — round already crashed');return;}
+      hasBet=false;betAmt=0;balance=d.bal;updBal();saveBal();
       stopFlightTicks();
+      // Прибираємо BET індикатор з стрічки
+      const _oldBetPill2=document.querySelector('.hbet');if(_oldBetPill2)_oldBetPill2.remove();
       playCashoutSound();
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
       if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
