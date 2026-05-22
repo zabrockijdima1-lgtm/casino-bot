@@ -2115,9 +2115,25 @@ function startClientAnim(){
   cancelAnimationFrame(loopId);points=[];rocketAngle=45;spawnParticles();
   startWaveParticles(); // хвилясті частинки фону
   const t0=startTs*1000;
+  
+  // СИНХРОНІЗАЦІЯ: зберігаємо останній elapsed з сервера
+  window._serverElapsed = 0;
+  window._lastSyncTime = Date.now();
+  
   function tick(){
     if(phase!=='flying'){loopId=null;return;}
-    const el=Math.max(0,(Date.now()-t0)/1000);
+    
+    // СИНХРОНІЗАЦІЯ: якщо є elapsed з сервера - використовуємо його
+    let el;
+    if(window._serverElapsed > 0){
+      // Інтерполюємо між серверними тіками (сервер надсилає кожні 150ms)
+      const timeSinceSync = (Date.now() - window._lastSyncTime) / 1000;
+      el = window._serverElapsed + timeSinceSync;
+    } else {
+      // Fallback на локальний час
+      el = Math.max(0,(Date.now()-t0)/1000);
+    }
+    
     mult=calcMult(el);
     
     // ЗАХИСТ: обмежуємо множник максимум до 1000x (сервер не дасть більше)
@@ -3053,7 +3069,14 @@ function connect(){
       if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){BB().innerHTML='<span style="font-size:11px;opacity:.8">🎁 CASH OUT NFT</span>';}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;}startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
-    else if(d.t==='tick'){renderPlayers(d.pl);}
+    else if(d.t==='tick'){
+      renderPlayers(d.pl);
+      // СИНХРОНІЗАЦІЯ: оновлюємо elapsed з сервера
+      if(typeof d.el === 'number'){
+        window._serverElapsed = d.el;
+        window._lastSyncTime = Date.now();
+      }
+    }
     else if(d.t==='cr'){
       cancelAnimationFrame(loopId);loopId=null;
       stopFlightTicks();
