@@ -1236,7 +1236,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 <!-- DEPOSIT -->
 <div id="mbg" onclick="if(event.target===this)closeTopup()">
   <div id="mod">
-    <h3 id="dep-title"><img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> Top Up</h3>
+    <h3 id="dep-title">💎 Top Up</h3>
     <!-- TAB SWITCHER -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
       <div id="tab-ton-btn" onclick="switchDepTab('ton')" style="background:#6c4fff;border-radius:10px;padding:10px 4px;text-align:center;cursor:pointer;border:1.5px solid #6c4fff">
@@ -2373,7 +2373,7 @@ function showNFTConfirm({icon,photo,title,desc,price,btnLabel,btnColor,onOk}){
   const priceRow=document.getElementById('nft-confirm-price-row');
   const priceVal=document.getElementById('nft-confirm-price-val');
   if(price){
-    priceVal.textContent='<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> '+(+price).toFixed(2)+' TON';
+    priceVal.textContent='💎 '+(+price).toFixed(2)+' TON';
     priceRow.style.display='flex';
   } else {
     priceRow.style.display='none';
@@ -2993,7 +2993,7 @@ function connect(){
       triggerBigWin(+d.mx); // конфеті/зірки залежно від множника
       BB().className='';BB().innerHTML=t('place_bet');
     }
-    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
+    else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`💎 +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
     else if(d.t==='nft_sold'){
       // NFT вже видалено локально в sellNFT(), просто синхронізуємо баланс із сервером
       if(d.bal){balance=d.bal;updBal();saveBal();}
@@ -3201,7 +3201,7 @@ function showToast(msg,type='crash'){
   el.className=[type==='win'?'win':type==='info'?'info':'','show'].join(' ');
   clearTimeout(tT);tT=setTimeout(()=>el.className=type==='win'?'win':type==='info'?'info':'',2800);
 }
-function spawnGems(n,emoji='<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'>'){
+function spawnGems(n,emoji='💎'){
   const cnt=Math.min(12,Math.max(2,n));
   for(let i=0;i<cnt;i++){
     const s=document.createElement('div');s.className='sp';s.textContent=emoji;
@@ -3251,7 +3251,7 @@ function spawnCoinsToBal(n=6){
       animation-duration:${0.6+Math.random()*0.4}s;
       animation-delay:${i*0.08}s;
     `;
-    el.textContent='<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'>';
+    el.textContent='💎';
     document.body.appendChild(el);
     setTimeout(()=>el.remove(),1500);
   }
@@ -3329,8 +3329,8 @@ const LANGS = {
     wallet_connect:'Connect', wallet_disconnect:'Disconnect', wallet_status:'Not connected',
     wallet_connected_lbl:'Connected', cancel:'Cancel', send_ton:'Send TON',
     already_paid:'✅ Already paid — confirm', min_ton:'Min. 0.1 TON',
-    not_enough:'Not enough TON', sent:'<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> Sent! Waiting for confirmation...',
-    cancelled:'Cancelled', error:'Error', credited:'<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> credited!',
+    not_enough:'Not enough TON', sent:'💎 Sent! Waiting for confirmation...',
+    cancelled:'Cancelled', error:'Error', credited:'💎 credited!',
     link_copied:'Link copied! 🔗', no_nfts:'Your NFTs will appear here',
     win_nft:'Win ≥2.8 TON', my_nfts:'🎁 My NFT Gifts',
     sell_btn:'Sell for', withdraw_btn:'📤 Withdraw',
@@ -3400,8 +3400,8 @@ const LANGS = {
     wallet_connect:'Подключить', wallet_disconnect:'Отключить', wallet_status:'Не подключён',
     wallet_connected_lbl:'Подключён', cancel:'Отмена', send_ton:'Отправить TON',
     already_paid:'✅ Уже оплатил — зачислить', min_ton:'Мин. 0.1 TON',
-    not_enough:'Недостаточно TON', sent:'<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> Отправлено! Ждём подтверждения...',
-    cancelled:'Отменено', error:'Ошибка', credited:'<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> зачислено!',
+    not_enough:'Недостаточно TON', sent:'💎 Отправлено! Ждём подтверждения...',
+    cancelled:'Отменено', error:'Ошибка', credited:'💎 зачислено!',
     link_copied:'Ссылка скопирована! 🔗', no_nfts:'Здесь будут твои NFT',
     win_nft:'Выиграй ≥2.8 TON', my_nfts:'🎁 Мои NFT Gifts',
     sell_btn:'Продать за', withdraw_btn:'📤 Вывести',
@@ -3658,7 +3658,7 @@ function openAdminPanel(){
               <div style="font-size:10px;color:#b48fff;text-transform:uppercase;letter-spacing:1px;font-weight:700">Current Balance</div>
               <div id="admin-current-bal" style="font-family:'Fredoka One',cursive;font-size:24px;color:#fff;margin-top:4px">${balance.toFixed(2)} TON</div>
             </div>
-            <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)"><img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'></div>
+            <div style="font-size:36px;filter:drop-shadow(0 0 10px #7b3fff)">💎</div>
           </div>
 
           <!-- TON amount input -->
@@ -4689,7 +4689,7 @@ function showCaseWin(item){
       ?`<img src="${ph}" style="width:90px;height:90px;border-radius:16px;object-fit:cover;border:2px solid ${rc(item.rarity)}">`
       :`<span style="font-size:64px">${item.emoji||'🎁'}</span>`;
     document.getElementById('case-win-name').textContent=item.name;
-    document.getElementById('case-win-val').textContent='<img src='https://ton.org/download/ton_symbol.svg' style='width:14px;height:14px;vertical-align:middle;display:inline-block'> '+item.price+' TON floor';
+    document.getElementById('case-win-val').textContent='💎 '+item.price+' TON floor';
     document.getElementById('case-win-sub').textContent='🎁 NFT · '+item.rarity;
     document.getElementById('case-win-sub').style.color=rc(item.rarity);
     keepBtn.textContent='✅ '+t('case_take'); // Змінюємо текст на "Взяти" бо вже збережено
