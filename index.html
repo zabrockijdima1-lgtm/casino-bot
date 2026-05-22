@@ -6,28 +6,7 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-(function(){
-  // Спробуємо завантажити TonConnect з кількох CDN по черзі
-  var cdns = [
-    'https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
-    'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
-    'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'
-  ];
-  var idx = 0;
-  function tryLoad(){
-    if(idx >= cdns.length) return;
-    var s = document.createElement('script');
-    s.src = cdns[idx];
-    s.crossOrigin = 'anonymous';
-    s.onerror = function(){ idx++; tryLoad(); };
-    s.onload = function(){ console.log('✅ TonConnect loaded from:', cdns[idx-1] || cdns[0]); };
-    document.head.appendChild(s);
-    idx++;
-  }
-  tryLoad();
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -3304,24 +3283,15 @@ function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=a
 let tonUI=null,tonConnected=false;
 function initTon(){
   try{
+    // Чекаємо поки бібліотека завантажиться
     if(!window.TonConnectUI){
       console.log('TonConnectUI not ready yet, retrying...');
       setTimeout(initTon, 500);
       return;
     }
-    if(tonUI) return; // вже ініціалізований
-    
-    // Створюємо невидимий контейнер для TonConnect якщо немає
-    if(!document.getElementById('ton-connect-root')){
-      const root = document.createElement('div');
-      root.id = 'ton-connect-root';
-      root.style.cssText = 'position:fixed;z-index:99999;top:0;left:0;width:100%;height:0;pointer-events:none';
-      document.body.appendChild(root);
-    }
     
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnect-manifest.json',
-      buttonRootId: 'ton-connect-root',
+      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json'
     });
     
     tonUI.onStatusChange(w => {
@@ -3333,7 +3303,7 @@ function initTon(){
     console.log('✅ TON Connect initialized successfully');
   }catch(e){
     console.error('❌ TON Connect init error:', e);
-    tonUI = null;
+    // Retry after 1 second
     setTimeout(initTon, 1000);
   }
 }
@@ -3344,26 +3314,16 @@ function updateWalletUI(){
   else{dot.style.background='#333';txt.textContent=t('wallet_not_connected');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
 }
 async function toggleWallet(){
-  if(tonConnected){try{await tonUI?.disconnect();}catch(e){} return;}
+  if(tonConnected){tonUI?.disconnect();return;}
   // Якщо tonUI ще не готовий — ініціалізуємо і чекаємо
   if(!tonUI){
-    showToast('⏳ Connecting...','info');
     initTon();
     let waited=0;
     while(!tonUI && waited<5000){await new Promise(r=>setTimeout(r,200));waited+=200;}
   }
   if(tonUI){
-    try{
-      await tonUI.openModal();
-    } catch(e){
-      console.error('openModal error:',e);
-      // Якщо openModal не спрацював — спробуємо перестворити tonUI
-      tonUI = null;
-      initTon();
-      let waited=0;
-      while(!tonUI && waited<3000){await new Promise(r=>setTimeout(r,200));waited+=200;}
-      if(tonUI){try{await tonUI.openModal();}catch(e2){showToast('Wallet error, refresh page','error');}}
-    }
+    try{await tonUI.openModal();}
+    catch(e){console.error('openModal error:',e);}
   } else {
     showToast('Wallet not available, try refreshing','error');
   }
@@ -3378,17 +3338,11 @@ async function doTonPayment(){
   
   // Перевірка чи TON Connect готовий
   if(!tonUI){
-    showToast('⏳ Initializing wallet...', 'info');
-    console.log('TON Connect UI not initialized, trying to init...');
+    showToast('⚠️ TON Connect is loading... Please wait or refresh the page.','error');
+    console.error('TON Connect UI not initialized');
+    // Спробуємо ініціалізувати знову
     initTon();
-    // Чекаємо до 5 секунд поки tonUI з'явиться
-    let waited = 0;
-    while(!tonUI && waited < 5000){ await new Promise(r=>setTimeout(r,200)); waited+=200; }
-    if(!tonUI){
-      showToast('❌ Wallet unavailable. Please refresh the page.','error');
-      console.error('TON Connect UI still not initialized after waiting');
-      return;
-    }
+    return;
   }
   
   if(!tonConnected){
@@ -5888,7 +5842,7 @@ function _applyPrices(prices){
 async function _fetchFloorFromAPI(collectionName, signal){
   try {
     // Замість прямого запиту до tgmrkt.io, використовуємо наш сервер як проксі
-    const resp = await fetch(SERVER + '/api/nft-price', {
+    const resp = await fetch('/api/nft-price', {
       method: 'POST',
       signal,
       headers: {
