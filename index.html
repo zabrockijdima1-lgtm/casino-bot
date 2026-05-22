@@ -1189,7 +1189,9 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
   </div>
 
   <div id="nft-hint" style="display:none;"></div>
-<div id="pw">
+
+
+  <div id="pw">
     <div class="st" id="lbl-players">PLAYERS <span class="pc" id="pcnt">0</span></div>
     <div id="pl"></div>
   </div>
@@ -3279,30 +3281,30 @@ function x2B(){document.getElementById('bi').value=((parseFloat(document.getElem
 function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=autoOn?'tog on':'tog';}
 
 let tonUI=null,tonConnected=false;
-let _tonInitAttempts = 0;
 function initTon(){
-  _tonInitAttempts++;
   try{
+    // Чекаємо поки бібліотека завантажиться
     if(!window.TonConnectUI){
-      if(_tonInitAttempts < 20){
-        setTimeout(initTon, 500);
-      } else {
-        console.warn('TonConnectUI failed to load — wallet will use fallback');
-      }
+      console.log('TonConnectUI not ready yet, retrying...');
+      setTimeout(initTon, 500);
       return;
     }
+    
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnnect-manifest.json'
+      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnnect-manifest.json'
     });
+    
     tonUI.onStatusChange(w => {
       tonConnected = !!w;
       updateWalletUI();
       if(w) showToast(t('wallet_connected'),'win');
     });
-    console.log('✅ TON Connect initialized');
+    
+    console.log('✅ TON Connect initialized successfully');
   }catch(e){
     console.error('❌ TON Connect init error:', e);
-    if(_tonInitAttempts < 5) setTimeout(initTon, 1500);
+    // Retry after 1 second
+    setTimeout(initTon, 1000);
   }
 }
 function updateWalletUI(){
@@ -3322,13 +3324,11 @@ async function doTonPayment(){
   
   // Перевірка чи TON Connect готовий
   if(!tonUI){
+    showToast('⚠️ TON Connect is loading... Please wait or refresh the page.','error');
+    console.error('TON Connect UI not initialized');
+    // Спробуємо ініціалізувати знову
     initTon();
-    // Short wait and retry
-    await new Promise(r=>setTimeout(r,800));
-    if(!tonUI){
-      showToast('⚠️ Wallet not available. Try refreshing.','error');
-      return;
-    }
+    return;
   }
   
   if(!tonConnected){
