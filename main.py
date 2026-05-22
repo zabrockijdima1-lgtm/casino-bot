@@ -290,28 +290,33 @@ def get_nft_for_win(win: float):
     return ok[-1]  # Fallback
 
 def get_nft_for_rocket_win(win: float):
+    """
+    Повертає NFT тільки якщо є NFT з ціною яка вписується у win.
+    NFT вибирається як найдорожче серед тих чия ціна <= win.
+    Якщо найдорожче доступне NFT коштує менше ніж 95% від win — не даємо NFT
+    (щоб не давати дешевий NFT при великому виграші).
+    Якщо нічого не підходить — повертаємо None (виплата TON).
+    """
     if win < 0.1:
         return None
     sync_nft_prices()
-    
+
     # Знаходимо NFT з ціною <= win
     available = [n for n in NFT_CATALOG if float(n.get("price") or n.get("floor") or 0) <= win]
-    
-    if available:
-        # ВИПРАВЛЕНО: вибираємо NFT з НАЙБЛИЖЧОЮ ціною до win
-        # Сортуємо по ціні (від найдорожчих до найдешевших)
-        available_sorted = sorted(
-            available, 
-            key=lambda n: float(n.get("price") or n.get("floor") or 0),
-            reverse=True
-        )
-        
-        # Беремо найдорожчий NFT (найближчий до win)
-        return available_sorted[0]
-    
-    # Якщо нічого не підходить - дамо один з 5 найдешевших
-    cheap = sorted(NFT_CATALOG, key=lambda n: float(n.get("price") or n.get("floor") or 999999))
-    return random.choice(cheap[:5]) if cheap else None
+
+    if not available:
+        return None
+
+    # Беремо найдорожче NFT серед доступних
+    best = max(available, key=lambda n: float(n.get("price") or n.get("floor") or 0))
+    best_price = float(best.get("price") or best.get("floor") or 0)
+
+    # NFT падає тільки якщо його ціна >= 90% від виграшу
+    # (щоб при виграші 2.5 TON не давати NFT за 1.29 TON)
+    if best_price < win * 0.90:
+        return None
+
+    return best
 
 sync_nft_prices(force=True)
 
@@ -899,33 +904,22 @@ async def do_cashout(uid, mult):
     p = players.get(uid, {})
 
     if bet.get("is_nft"):
-        # NFT ставка: виграш = nft_price * mult -> даємо NFT з каталогу відповідної вартості
+        # NFT ставка: виграш завжди в TON (nft_price * mult)
         nft_price = bet["amount"]
         win_value = round(nft_price * mult, 4)
         bet["win"] = win_value
+        bet["nft"] = None
 
-        win_nft = get_nft_for_rocket_win(win_value) if mult >= 1.1 else None
-        bet["nft"] = win_nft
-
-        if win_nft:
-            nft_entry = {**win_nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win_value, "ts": time.time()}
-            p.setdefault("nfts", []).append(nft_entry)
-            win_nft = nft_entry
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
-        else:
-            # mult < 1.1 або немає дорожчого NFT — повертаємо оригінальний NFT
-            orig = bet.get("nft_data")
-            if orig:
-                p.setdefault("nfts", []).append(orig)
-                win_nft = orig
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_low"})
+        # Виплачуємо TON на баланс
+        p["balance"] = round(p.get("balance", 0) + win_value, 4)
+        add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_ton"})
 
         await broadcast({"t": "co", "uid": uid, "win": win_value, "mx": mult, "pl": players_list(), "now": time.time()})
         if uid in clients:
             try:
                 await clients[uid].send_text(json.dumps({
                     "t": "your_co", "win": win_value, "mx": mult,
-                    "bal": p.get("balance", 0), "nft": win_nft
+                    "bal": p.get("balance", 0), "nft": None
                 }))
             except: pass
         save_players()
@@ -1073,7 +1067,10 @@ async def ws_ep(ws: WebSocket, uid: int):
                 bal = players.get(uid, {}).get("balance", 0)
 
                 if nft_bet:
-                    # NFT ставка — не знімаємо TON
+                    # NFT ставки в ракеті вимкнено
+                    await ws.send_text(json.dumps({"t": "err", "msg": "NFT ставки в ракеті вимкнено"}))
+                    continue
+                if False and nft_bet:
                     nft_price = float(nft_bet.get("nft_price", 0))
                     if nft_price <= 0:
                         await ws.send_text(json.dumps({"t": "err", "msg": "Невірна ціна NFT"}))
