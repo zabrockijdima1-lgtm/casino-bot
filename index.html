@@ -2114,43 +2114,65 @@ function spawnParticles(){
 function startClientAnim(){
   cancelAnimationFrame(loopId);points=[];rocketAngle=45;spawnParticles();
   startWaveParticles(); // хвилясті частинки фону
-  const t0=startTs*1000;
   
-  // СИНХРОНІЗАЦІЯ: зберігаємо останній elapsed з сервера
+  // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: використовуємо тільки дані з сервера
+  window._serverMult = 1.0;
   window._serverElapsed = 0;
-  window._lastSyncTime = Date.now();
+  window._lastServerTime = Date.now();
+  window._useServerSync = true;
+  
+  // Ініціалізуємо clock offset якщо не встановлено
+  if(typeof window._clockOffset === 'undefined'){
+    window._clockOffset = 0;
+  }
   
   function tick(){
     if(phase!=='flying'){loopId=null;return;}
     
-    // СИНХРОНІЗАЦІЯ: якщо є elapsed з сервера - використовуємо його
-    let el;
-    if(window._serverElapsed > 0){
-      // Інтерполюємо між серверними тіками (сервер надсилає кожні 150ms)
-      const timeSinceSync = (Date.now() - window._lastSyncTime) / 1000;
-      el = window._serverElapsed + timeSinceSync;
+    // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: пріоритет серверним даним
+    if(window._useServerSync && window._serverMult > 0){
+      // Використовуємо множник з сервера + мінімальна інтерполяція
+      const timeSinceUpdate = (Date.now() - window._lastServerTime) / 1000;
+      
+      // Компенсуємо clock offset
+      const compensatedTime = timeSinceUpdate - (window._clockOffset || 0);
+      
+      // Обмежуємо інтерполяцію до 150ms
+      const interpolation = Math.min(Math.max(compensatedTime, 0), 0.15);
+      const interpolatedElapsed = window._serverElapsed + interpolation;
+      
+      mult = calcMult(interpolatedElapsed);
+      
+      // Жорстке обмеження: не даємо локальному множнику обігнати серверний
+      if(mult > window._serverMult + 0.03){
+        mult = window._serverMult + 0.03;
+      }
+      
+      // Також не даємо відставати більше ніж на 0.03
+      if(mult < window._serverMult - 0.03){
+        mult = window._serverMult - 0.03;
+      }
     } else {
-      // Fallback на локальний час
-      el = Math.max(0,(Date.now()-t0)/1000);
+      // Fallback: тільки якщо сервер не надсилає дані
+      const t0 = startTs * 1000;
+      const el = Math.max(0, (Date.now() - t0) / 1000);
+      mult = calcMult(el);
     }
     
-    mult=calcMult(el);
-    
-    // ЗАХИСТ: обмежуємо множник максимум до 1000x (сервер не дасть більше)
+    // ЗАХИСТ: обмежуємо множник максимум до 1000x
     if(mult > 1000) mult = 1000;
     
-    points.push({t:el,m:mult});
+    points.push({t:window._serverElapsed || 0, m:mult});
     ME().textContent=mult.toFixed(2)+'×';
+    
     if(hasBet){
       BB().disabled=false;
       BB().className='co';
       if(window._activeNFTBet){
         var _nw=getNFTSafe(betAmt*mult,mult);
         if(_nw){
-          // Є NFT який можна забрати
           BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 CASH OUT</span><span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`;
         }else{
-          // Немає NFT на цю суму - показуємо TON
           BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
         }
       }else{
@@ -3065,17 +3087,30 @@ function connect(){
     }
     else if(d.t==='st'){
       phase='flying';startTs=d.ts;document.getElementById('rid').textContent=d.rid;
+      
+      // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: розраховуємо clock offset
+      if(typeof d.now === 'number'){
+        const clientTime = Date.now() / 1000;
+        window._clockOffset = d.now - clientTime;
+        console.log('[SYNC] Clock offset:', window._clockOffset.toFixed(3), 'seconds');
+      }
+      
       ME().className='';ME().textContent='1.00×';points=[];startClientAnim();
       if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){BB().innerHTML='<span style="font-size:11px;opacity:.8">🎁 CASH OUT NFT</span>';}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;}startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
     else if(d.t==='tick'){
       renderPlayers(d.pl);
-      // СИНХРОНІЗАЦІЯ: оновлюємо elapsed з сервера
+      // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: оновлюємо ВСІ дані з сервера
+      if(typeof d.m === 'number'){
+        window._serverMult = d.m;
+        window._lastServerTime = Date.now();
+      }
       if(typeof d.el === 'number'){
         window._serverElapsed = d.el;
-        window._lastSyncTime = Date.now();
       }
+      // Логування для дебагу (можна видалити пізніше)
+      console.log('[SYNC] Server mult:', d.m?.toFixed(2), 'elapsed:', d.el?.toFixed(2));
     }
     else if(d.t==='cr'){
       cancelAnimationFrame(loopId);loopId=null;
