@@ -3313,7 +3313,21 @@ function updateWalletUI(){
   if(tonConnected){dot.style.background='var(--green)';txt.textContent=t('wallet_connected_lbl');btn.textContent=t('wallet_disconnect');btn.style.background='#2a0d0d';btn.style.color='var(--red)';}
   else{dot.style.background='#333';txt.textContent=t('wallet_not_connected');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
 }
-function toggleWallet(){if(tonConnected)tonUI?.disconnect();else tonUI?.openModal();}
+async function toggleWallet(){
+  if(tonConnected){tonUI?.disconnect();return;}
+  // Якщо tonUI ще не готовий — ініціалізуємо і чекаємо
+  if(!tonUI){
+    initTon();
+    let waited=0;
+    while(!tonUI && waited<5000){await new Promise(r=>setTimeout(r,200));waited+=200;}
+  }
+  if(tonUI){
+    try{await tonUI.openModal();}
+    catch(e){console.error('openModal error:',e);}
+  } else {
+    showToast('Wallet not available, try refreshing','error');
+  }
+}
 function openTopup(){document.getElementById('mbg').className='open';updateWalletUI();}
 function closeTopup(){document.getElementById('mbg').className='';}
 function pickT(el,n){selTon=n;document.querySelectorAll('.so').forEach(s=>s.classList.remove('sel'));el.classList.add('sel');document.getElementById('cton').value=n;}
@@ -3980,7 +3994,7 @@ window.addEventListener('resize',resize);
 resize();
 applyLang();
 initAudio();
-setTimeout(()=>{try{initTon();}catch(e){console.error('Failed to init TON:', e);}},1000);
+try{initTon();}catch(e){console.error('Failed to init TON:',e);}
 
 // ── CASES ──────────────────────────────────────────────────────────────────
 // ── Хелпери для побудови кейсів ─────────────────────────────────────────────
