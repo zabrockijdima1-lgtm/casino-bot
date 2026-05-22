@@ -2115,7 +2115,7 @@ function startClientAnim(){
   cancelAnimationFrame(loopId);points=[];rocketAngle=45;spawnParticles();
   startWaveParticles(); // хвилясті частинки фону
   
-  // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: використовуємо тільки дані з сервера
+  // СИНХРОНІЗАЦІЯ: використовуємо дані з сервера + плавна інтерполяція
   window._serverMult = 1.0;
   window._serverElapsed = 0;
   window._lastServerTime = Date.now();
@@ -2129,28 +2129,25 @@ function startClientAnim(){
   function tick(){
     if(phase!=='flying'){loopId=null;return;}
     
-    // МАКСИМАЛЬНА СИНХРОНІЗАЦІЯ: пріоритет серверним даним
+    // СИНХРОНІЗАЦІЯ: пріоритет серверним даним з м'якою інтерполяцією
     if(window._useServerSync && window._serverMult > 0){
-      // Використовуємо множник з сервера + мінімальна інтерполяція
+      // Час з останнього tick від сервера
       const timeSinceUpdate = (Date.now() - window._lastServerTime) / 1000;
       
-      // Компенсуємо clock offset
-      const compensatedTime = timeSinceUpdate - (window._clockOffset || 0);
-      
-      // Обмежуємо інтерполяцію до 150ms
-      const interpolation = Math.min(Math.max(compensatedTime, 0), 0.15);
+      // Інтерполяція: якщо сервер давно мовчить — продовжуємо рухатись локально
+      // Максимум 500ms інтерполяції (щоб не заморожувало на мобільному)
+      const interpolation = Math.min(Math.max(timeSinceUpdate, 0), 0.5);
       const interpolatedElapsed = window._serverElapsed + interpolation;
       
       mult = calcMult(interpolatedElapsed);
       
-      // Жорстке обмеження: не даємо локальному множнику обігнати серверний
-      if(mult > window._serverMult + 0.03){
-        mult = window._serverMult + 0.03;
+      // М'яке обмеження: не більше ніж +0.15 від серверного (замість 0.03)
+      if(mult > window._serverMult + 0.15){
+        mult = window._serverMult + 0.15;
       }
-      
-      // Також не даємо відставати більше ніж на 0.03
-      if(mult < window._serverMult - 0.03){
-        mult = window._serverMult - 0.03;
+      // Не дозволяємо йти назад (тільки вперед або стояти)
+      if(mult < window._serverMult){
+        mult = window._serverMult;
       }
     } else {
       // Fallback: тільки якщо сервер не надсилає дані
@@ -3055,7 +3052,16 @@ function connect(){
       balance=d.bal||0;updBal();saveBal();
       if(d.h)d.h.slice().reverse().forEach(v=>addH(v));
       renderPlayers(d.pl);
-      if(d.phase==='flying'){phase='flying';startTs=d.ts;ME().className='';ME().textContent=(d.mult||1).toFixed(2)+'×';startClientAnim();}
+      if(d.phase==='flying'){
+        phase='flying';startTs=d.ts;
+        // Ініціалізуємо серверні дані для синхронізації при підключенні під час гри
+        window._serverMult = d.mult || 1.0;
+        window._serverElapsed = typeof d.el === 'number' ? d.el : Math.max(0, (Date.now()/1000 - d.ts));
+        window._lastServerTime = Date.now();
+        if(typeof d.now === 'number') window._clockOffset = d.now - Date.now()/1000;
+        ME().className='';ME().textContent=(d.mult||1).toFixed(2)+'×';
+        startClientAnim();
+      }
       else{phase='waiting';ME().className='waiting';ME().textContent=t('waiting');}
     }
     else if(d.t==='cd'){
