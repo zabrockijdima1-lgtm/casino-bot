@@ -6,7 +6,28 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<script>
+(function(){
+  // Спробуємо завантажити TonConnect з кількох CDN по черзі
+  var cdns = [
+    'https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
+    'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
+    'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'
+  ];
+  var idx = 0;
+  function tryLoad(){
+    if(idx >= cdns.length) return;
+    var s = document.createElement('script');
+    s.src = cdns[idx];
+    s.crossOrigin = 'anonymous';
+    s.onerror = function(){ idx++; tryLoad(); };
+    s.onload = function(){ console.log('✅ TonConnect loaded from:', cdns[idx-1] || cdns[0]); };
+    document.head.appendChild(s);
+    idx++;
+  }
+  tryLoad();
+})();
+</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
