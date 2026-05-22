@@ -3290,15 +3290,28 @@ function initTon(){
       return;
     }
     
+    // TELEGRAM WEBAPP: використовуємо buttonRootId: null для нативної модалки
     tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json'
+      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json',
+      buttonRootId: null // Для Telegram WebApp - відкриває нативну модалку Tonkeeper
     });
     
     tonUI.onStatusChange(w => {
       tonConnected = !!w;
       updateWalletUI();
-      if(w) showToast(t('wallet_connected'),'win');
+      if(w) {
+        console.log('✅ Wallet connected:', w.account.address);
+        showToast(t('wallet_connected'),'win');
+      }
     });
+    
+    // Перевіряємо чи вже підключено
+    const currentWallet = tonUI.wallet;
+    if(currentWallet){
+      tonConnected = true;
+      updateWalletUI();
+      console.log('✅ Wallet already connected:', currentWallet.account.address);
+    }
     
     console.log('✅ TON Connect initialized successfully');
   }catch(e){
@@ -3994,6 +4007,36 @@ window.addEventListener('resize',resize);
 resize();
 applyLang();
 initAudio();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TELEGRAM WEBAPP INITIALIZATION
+// ═══════════════════════════════════════════════════════════════════════════
+try {
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    console.log('✅ Telegram WebApp detected');
+    console.log('Platform:', tg.platform);
+    console.log('Version:', tg.version);
+    
+    // Розширюємо на весь екран
+    tg.ready();
+    tg.expand();
+    
+    // Встановлюємо колір header bar
+    tg.setHeaderColor('#0a0f1a');
+    tg.setBackgroundColor('#0a0f1a');
+    
+    // Вимикаємо вертикальні свайпи (щоб не закривало застосунок)
+    tg.disableVerticalSwipes();
+    
+    console.log('✅ Telegram WebApp initialized');
+  } else {
+    console.log('ℹ️ Running in browser mode (not Telegram)');
+  }
+} catch (e) {
+  console.error('❌ Telegram WebApp init error:', e);
+}
+
 try{initTon();}catch(e){console.error('Failed to init TON:',e);}
 
 // ── CASES ──────────────────────────────────────────────────────────────────
