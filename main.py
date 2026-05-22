@@ -1,4 +1,3 @@
-
 import asyncio, html, json, math, os, random, time, httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -294,20 +293,21 @@ def get_nft_for_rocket_win(win: float):
     if win < 0.1:
         return None
     sync_nft_prices()
+    
+    # Знаходимо NFT з ціною <= win
     available = [n for n in NFT_CATALOG if float(n.get("price") or n.get("floor") or 0) <= win]
     
     if available:
-        # Зважений випадковий вибір: дешеві NFT падають частіше
-        weights = [1.0 / float(n.get("price") or n.get("floor") or 1) for n in available]
-        total_weight = sum(weights)
-        rand = random.random() * total_weight
+        # ВИПРАВЛЕНО: вибираємо NFT з НАЙБЛИЖЧОЮ ціною до win
+        # Сортуємо по ціні (від найдорожчих до найдешевших)
+        available_sorted = sorted(
+            available, 
+            key=lambda n: float(n.get("price") or n.get("floor") or 0),
+            reverse=True
+        )
         
-        for i, w in enumerate(weights):
-            rand -= w
-            if rand <= 0:
-                return available[i]
-        
-        return available[-1]  # Fallback
+        # Беремо найдорожчий NFT (найближчий до win)
+        return available_sorted[0]
     
     # Якщо нічого не підходить - дамо один з 5 найдешевших
     cheap = sorted(NFT_CATALOG, key=lambda n: float(n.get("price") or n.get("floor") or 999999))
@@ -978,7 +978,8 @@ async def game_loop():
                 if bet.get("cashed") or bet.get("lost"): continue
                 ac = bet.get("auto_cashout")
                 if ac and g.mult >= ac: await do_cashout(uid, g.mult)
-            await broadcast({"t": "tick", "m": g.mult, "pl": players_list(), "now": time.time()})
+            # ДОДАНО: elapsed для синхронізації графіка між клієнтами
+            await broadcast({"t": "tick", "m": g.mult, "el": el, "pl": players_list(), "now": time.time()})
             await asyncio.sleep(0.15)
         g.phase = "crashed"; g.history.insert(0, g.crash_at); g.history = g.history[:20]
         for uid, bet in bets.items():
