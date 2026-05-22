@@ -6,7 +6,7 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -5883,6 +5883,11 @@ function _applyPrices(prices){
 
 // Запит floor-ціни однієї колекції з tgmrkt API
 async function _fetchFloorFromAPI(collectionName, signal){
+  // ТИМЧАСОВО ВИМКНЕНО: Railway endpoint не працює
+  // Використовуємо тільки fallback prices.json
+  return null;
+  
+  /* ЗАКОМЕНТОВАНО:
   try {
     // Замість прямого запиту до tgmrkt.io, використовуємо наш сервер як проксі
     const resp = await fetch('/api/nft-price', {
@@ -5903,6 +5908,7 @@ async function _fetchFloorFromAPI(collectionName, signal){
     if (e.name !== 'AbortError') console.warn('fetch err', collectionName, e.message);
     return null;
   }
+  */
 }
 
 // Тягнемо ВСІ ціни паралельно (з лімітом конкурентності)
