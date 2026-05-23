@@ -2201,7 +2201,7 @@ function startClientAnim(){
       if(window._activeNFTBet){
         var _nw=getNFTSafe(betAmt*mult,mult);
         if(_nw){
-          BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 CASH OUT</span><span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`;
+          BB().innerHTML=`<span style="font-size:11px;opacity:.8">CASH OUT</span><span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`;
         }else{
           BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
         }
@@ -2843,10 +2843,10 @@ function sellNFTByIndex(index){
       saveNFTs();
       refreshInventoryLabel();
       creditLocalBalance(sellPrice,'nft_sell');
+      renderInventory(); // Оновлюємо відображення ПЕРЕД закриттям
+      closeModal(); // Закриваємо ПІСЛЯ оновлення
       showToast((t('nft_sold')||'Sold')+' +'+sellPrice.toFixed(2)+' TON','win');
-      spawnGems(3,'💰');
-      closeModal();
-      renderInventory(); // Оновлюємо відображення
+      spawnGems(3);
       
       if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removed.id,nft_uid:removed.uid||removed.localId,name:removed.name,price:sellPrice,type:'sell'}));
     }
@@ -3176,7 +3176,7 @@ function connect(){
       }
       
       ME().className='';ME().textContent='1.00×';points=[];startClientAnim();
-      if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){BB().innerHTML='<span style="font-size:11px;opacity:.8">🎁 CASH OUT NFT</span>';}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;}startFlightTicks();}
+      if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){BB().innerHTML='<span style="font-size:11px;opacity:.8">CASH OUT NFT</span>';}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;}startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
     else if(d.t==='tick'){
@@ -3220,7 +3220,7 @@ function connect(){
       renderPlayers(d.pl);
     }
     else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
-    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();if(window._activeNFTBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8">🎁 NFT: ${window._activeNFTBet.name}</span>`;}else{BB().disabled=true;BB().innerHTML=t('bet_accepted');}}
+    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();if(window._activeNFTBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8">NFT: ${window._activeNFTBet.name}</span>`;}else{BB().disabled=true;BB().innerHTML=t('bet_accepted');}}
     else if(d.t==='your_co'){
       if(phase==='crashed'){console.warn('[your_co] ignored — round already crashed');return;}
       hasBet=false;betAmt=0;balance=d.bal;updBal();saveBal();
@@ -3600,7 +3600,7 @@ const LANGS = {
     place_bet:'PLACE BET', bet_nft:'BET NFT', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
     bet_label:'BET TON', auto_label:'AUTO CASHOUT', auto:'Auto',
     nft_hint:'Win ≥2.8 TON at ≥1.1× → get', players:'PLAYERS',
-    lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'📤 Withdraw',
+    lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'Withdraw',
     sell_confirm:'Sell for', earn:'Earn', from_deposits:'From deposits',
     total_earned:'Total earned', my_invites:'My Invites',
     copy_link:'Copy Link',
@@ -3671,7 +3671,7 @@ const LANGS = {
     place_bet:'ПОСТАВИТЬ', bet_nft:'ПОСТАВИТЬ NFT', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
     bet_label:'СТАВКА TON', auto_label:'АВТО-ВЫВОД', auto:'Авто',
     nft_hint:'Выигрыш ≥2.8 TON при ≥1.1× → получишь', players:'ИГРОКИ',
-    lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'📤 Вывести',
+    lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'Вывести',
     sell_confirm:'Продать за', earn:'Зарабатывай', from_deposits:'С депозитов',
     total_earned:'Всего заработано', my_invites:'Мои рефералы',
     copy_link:'Копировать ссылку',
@@ -6244,7 +6244,7 @@ function confirmNFTBet(){
   hasBet=true;
   if(wsReady&&window.ws)ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:removedNFT.id,nft_uid:removedNFT.uid,nft_price:nftPrice,nft_name:removedNFT.name}}));
   var bb=document.getElementById('bb');
-  if(bb){bb.innerHTML='<span style="font-size:11px;opacity:.8">🎁 NFT: '+nft.name+'</span>';bb.disabled=false;bb.className='co';}
+  if(bb){bb.innerHTML='<span style="font-size:11px;opacity:.8">NFT: '+nft.name+'</span>';bb.disabled=false;bb.className='co';}
   if(typeof showToast==='function')showToast('NFT bet placed!','win');
   if(navigator.vibrate)navigator.vibrate([30,15,60]);
 }
