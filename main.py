@@ -1216,20 +1216,40 @@ async def ws_ep(ws: WebSocket, uid: int):
 
             elif a == "case_opened":
                 # Списуємо баланс на сервері при відкритті кейса
+                case_id = d.get("case_id", "")
                 try:
                     case_price = float(d.get("price", 0) or 0)
                 except Exception:
                     case_price = 0
+
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+
+                # ── ЗАХИСТ FREE DAILY від подвійного відкриття з різних пристроїв ──
+                if case_id == "free_daily":
+                    last_open = players[uid].get("free_daily_last_open", 0)
+                    cooldown = 86400  # 24 години
+                    elapsed = time.time() - last_open
+                    if elapsed < cooldown:
+                        hours_left = math.ceil((cooldown - elapsed) / 3600)
+                        print(f"[FREE_DAILY] {players[uid].get('name','?')} (uid:{uid}) — cooldown! {hours_left}h left")
+                        await ws.send_text(json.dumps({"t": "free_daily_cooldown", "hours_left": hours_left, "msg": f"Wait {hours_left}h before opening again"}))
+                        continue
+                    # Записуємо час відкриття на сервері — до спіну
+                    players[uid]["free_daily_last_open"] = time.time()
+                    save_players()
+                    print(f"[FREE_DAILY] {players[uid].get('name','?')} (uid:{uid}) — opened, cooldown set")
+                    await ws.send_text(json.dumps({"t": "case_opened", "bal": players[uid].get("balance", 0), "case_id": "free_daily"}))
+                    continue
+
                 if case_price > 0:
-                    if uid not in players:
-                        players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
                     server_bal = players[uid].get("balance", 0)
                     if server_bal < case_price:
                         await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо коштів"}))
                         continue
                     players[uid]["balance"] = round(server_bal - case_price, 4)
                     save_players()
-                    print(f"[CASE] {players[uid].get('name','?')} (uid:{uid}) відкрив кейс '{d.get('case_name','')}' за {case_price} TON | Баланс: {server_bal} -> {players[uid]["balance"]}")
+                    print(f"[CASE] {players[uid].get('name','?')} (uid:{uid}) відкрив кейс '{d.get('case_name','')}' за {case_price} TON | Баланс: {server_bal} -> {players[uid]['balance']}")
                     await ws.send_text(json.dumps({"t": "case_opened", "bal": players[uid]["balance"]}))
 
             elif a == "case_win_keep":
