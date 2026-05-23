@@ -4238,8 +4238,10 @@ let tonUI=null,tonConnected=false;
 function initTon(){
   try{
     if(tonUI) return; // вже ініціалізований
-    if(!window.TonConnectUI){
-      console.error('❌ TonConnectUI not found - SDK may not be loaded');
+    // SDK реєструється як window.TON_CONNECT_UI (не window.TonConnectUI)
+    const TCUI = window.TON_CONNECT_UI || window.TonConnectUI;
+    if(!TCUI || !TCUI.TonConnectUI){
+      console.error('❌ TonConnectUI not found in window.TON_CONNECT_UI or window.TonConnectUI');
       return;
     }
     // Створюємо невидимий контейнер для TonConnect якщо немає
@@ -4250,7 +4252,7 @@ function initTon(){
       document.body.appendChild(root);
     }
     
-    tonUI = new window.TonConnectUI({
+    tonUI = new TCUI.TonConnectUI({
       manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnect-manifest.json',
       buttonRootId: 'ton-connect-root',
     });
@@ -4281,24 +4283,13 @@ function updateWalletUI(){
 }
 async function toggleWallet(){
   if(tonConnected){try{await tonUI?.disconnect();}catch(e){} return;}
-  // Якщо tonUI ще не готовий — ініціалізуємо і чекаємо
-  if(!tonUI){
-    showToast('⏳ Connecting...','info');
-    initTon();
-    let waited=0;
-    while(!tonUI && waited<5000){await new Promise(r=>setTimeout(r,200));waited+=200;}
-  }
+  if(!tonUI){ initTon(); } // Спробуємо ініціалізувати якщо ще не зроблено
   if(tonUI){
     try{
       await tonUI.openModal();
     } catch(e){
       console.error('openModal error:',e);
-      // Якщо openModal не спрацював — спробуємо перестворити tonUI
-      tonUI = null;
-      initTon();
-      let waited=0;
-      while(!tonUI && waited<3000){await new Promise(r=>setTimeout(r,200));waited+=200;}
-      if(tonUI){try{await tonUI.openModal();}catch(e2){showToast('Wallet error, refresh page','error');}}
+      showToast('Wallet error, try again','error');
     }
   } else {
     showToast('Wallet not available, try refreshing','error');
