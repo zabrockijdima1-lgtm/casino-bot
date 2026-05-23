@@ -887,8 +887,7 @@ def players_list():
          "cashed": b.get("cashed", False), "win": b.get("win"), "mult": b.get("mult"),
          "lost": b.get("lost", False),
          # NFT показуємо тільки після кешауту (не під час польоту)
-         "nft": b.get("nft") if b.get("cashed") else None,
-         "is_nft": b.get("is_nft", False)}
+         "nft": b.get("nft") if b.get("cashed") else None}
         for uid, b in bets.items()
     ]
 
@@ -899,68 +898,29 @@ async def do_cashout(uid, mult):
     bet["mult"] = mult
     p = players.get(uid, {})
 
-    if bet.get("is_nft"):
-        # NFT ставка: виграш = nft_price * mult
-        nft_price = bet["amount"]
-        win_value = round(nft_price * mult, 4)
-        bet["win"] = win_value
-
-        # Пробуємо дати NFT якщо множник >= 1.1
-        win_nft = get_nft_for_rocket_win(win_value) if mult >= 1.1 else None
-        bet["nft"] = win_nft
-
-        if win_nft:
-            # Падає NFT з каталогу
-            nft_entry = {**win_nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win_value, "ts": time.time()}
-            p.setdefault("nfts", []).append(nft_entry)
-            win_nft = nft_entry
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
-        elif mult < 1.1:
-            # Програш (mult < 1.1) — повертаємо оригінальний NFT назад
-            orig = bet.get("nft_data")
-            if orig:
-                p.setdefault("nfts", []).append(orig)
-                win_nft = orig
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_loss"})
-        else:
-            # Виграш, але win_value < найдешевшого NFT — конвертуємо в TON
-            p["balance"] = round(p.get("balance", 0) + win_value, 4)
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_to_ton"})
-
-        await broadcast({"t": "co", "uid": uid, "win": win_value, "mx": mult, "pl": players_list(), "now": time.time()})
-        if uid in clients:
-            try:
-                await clients[uid].send_text(json.dumps({
-                    "t": "your_co", "win": win_value, "mx": mult,
-                    "bal": p.get("balance", 0), "nft": win_nft
-                }))
-            except: pass
-        save_players()
-
+    # Звичайна TON ставка
+    win = round(bet["amount"] * mult, 4)
+    bet["win"] = win
+    
+    # NFT падає якщо виграш >= ціни найдешевшого NFT і множник >= 1.1
+    min_nft_price = min((float(n.get("price") or n.get("floor") or 999) for n in NFT_CATALOG), default=999)
+    nft = get_nft_for_rocket_win(win) if (win >= min_nft_price and mult >= 1.1) else None
+    
+    bet["nft"] = nft
+    if nft:
+        nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
+        p.setdefault("nfts", []).append(nft_entry)
+        nft = nft_entry
+        add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": nft.get("name"), "nft_floor": nft.get("floor")})
     else:
-        # Звичайна TON ставка
-        win = round(bet["amount"] * mult, 4)
-        bet["win"] = win
-        
-        # NFT падає якщо виграш >= ціни найдешевшого NFT і множник >= 1.1
-        min_nft_price = min((float(n.get("price") or n.get("floor") or 999) for n in NFT_CATALOG), default=999)
-        nft = get_nft_for_rocket_win(win) if (win >= min_nft_price and mult >= 1.1) else None
-        
-        bet["nft"] = nft
-        if nft:
-            nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
-            p.setdefault("nfts", []).append(nft_entry)
-            nft = nft_entry
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": nft.get("name"), "nft_floor": nft.get("floor")})
-        else:
-            p["balance"] = round(p.get("balance", 0) + win, 4)
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": None})
-        await broadcast({"t": "co", "uid": uid, "win": win, "mx": mult, "pl": players_list(), "now": time.time()})
-        if uid in clients:
-            try:
-                await clients[uid].send_text(json.dumps({"t": "your_co", "win": win, "mx": mult, "bal": p.get("balance", 0), "nft": nft}))
-            except: pass
-        save_players()
+        p["balance"] = round(p.get("balance", 0) + win, 4)
+        add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": bet["amount"], "win": win, "mult": mult, "nft": None})
+    await broadcast({"t": "co", "uid": uid, "win": win, "mx": mult, "pl": players_list(), "now": time.time()})
+    if uid in clients:
+        try:
+            await clients[uid].send_text(json.dumps({"t": "your_co", "win": win, "mx": mult, "bal": p.get("balance", 0), "nft": nft}))
+        except: pass
+    save_players()
 
 async def game_loop():
     while True:
@@ -995,18 +955,6 @@ async def game_loop():
         for uid, bet in bets.items():
             if not bet.get("cashed"):
                 bet["lost"] = True
-                # NFT ставка програла — повертаємо NFT гравцю
-                if bet.get("is_nft") and bet.get("nft_data"):
-                    p = players.get(uid)
-                    if p:
-                        p.setdefault("nfts", []).append(bet["nft_data"])
-                    if uid in clients:
-                        try:
-                            await clients[uid].send_text(json.dumps({
-                                "t": "nft_returned",
-                                "nft": bet["nft_data"]
-                            }))
-                        except: pass
         save_players()
         await broadcast({"t": "cr", "ca": g.crash_at, "rid": g.round_id, "h": g.history, "pl": players_list(), "now": time.time()})
         await asyncio.sleep(3)
@@ -1079,47 +1027,18 @@ async def ws_ep(ws: WebSocket, uid: int):
             elif a == "bet":
                 if g.phase != "waiting": continue
                 amt = float(d.get("amt", 0))
-                nft_bet = d.get("nft_bet")  # {'nft_id':..., 'nft_price':..., 'nft_name':...}
                 bal = players.get(uid, {}).get("balance", 0)
 
-                if nft_bet:
-                    # NFT ставка — не знімаємо TON
-                    nft_price = float(nft_bet.get("nft_price", 0))
-                    if nft_price <= 0:
-                        await ws.send_text(json.dumps({"t": "err", "msg": "Невірна ціна NFT"}))
-                        continue
-                    p = players.get(uid, {})
-                    nft_id = nft_bet.get("nft_id")
-                    found = None; new_nfts = []; removed = False
-                    for n in p.get("nfts", []):
-                        if n.get("id") == nft_id and not removed:
-                            found = n; removed = True
-                        else:
-                            new_nfts.append(n)
-                    if found:
-                        p["nfts"] = new_nfts
-                    nft_data = found or {"id": nft_id, "name": nft_bet.get("nft_name", "NFT"), "price": nft_price, "floor": nft_price}
-                    bets[uid] = {
-                        "amount": nft_price, "auto_cashout": d.get("ac"),
-                        "cashed": False, "lost": False,
-                        "is_nft": True, "nft_data": nft_data
-                    }
-                    add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": nft_price, "round_id": g.round_id, "nft": nft_bet.get("nft_name")})
-                    save_players()
-                    await ws.send_text(json.dumps({"t": "bet_ok", "amt": nft_price, "bal": players[uid].get("balance", 0)}))
-                    await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
-
-                else:
-                    # Звичайна TON ставка
-                    if amt < 0.1 or amt > bal:
-                        await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо TON"}))
-                        continue
-                    players[uid]["balance"] = round(bal - amt, 4)
-                    bets[uid] = {"amount": amt, "auto_cashout": d.get("ac"), "cashed": False, "lost": False, "is_nft": False}
-                    add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt, "round_id": g.round_id})
-                    save_players()
-                    await ws.send_text(json.dumps({"t": "bet_ok", "amt": amt, "bal": players[uid]["balance"]}))
-                    await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
+                # Звичайна TON ставка
+                if amt < 0.1 or amt > bal:
+                    await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо TON"}))
+                    continue
+                players[uid]["balance"] = round(bal - amt, 4)
+                bets[uid] = {"amount": amt, "auto_cashout": d.get("ac"), "cashed": False, "lost": False}
+                add_log("bets", {"uid": uid, "name": players[uid].get("name", "?"), "amount": amt, "round_id": g.round_id})
+                save_players()
+                await ws.send_text(json.dumps({"t": "bet_ok", "amt": amt, "bal": players[uid]["balance"]}))
+                await broadcast({"t": "newbet", "pl": players_list(), "now": time.time()})
 
             elif a == "cashout":
                 if g.phase == "flying" and uid in bets:
