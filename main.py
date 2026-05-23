@@ -1216,20 +1216,40 @@ async def ws_ep(ws: WebSocket, uid: int):
 
             elif a == "case_opened":
                 # Списуємо баланс на сервері при відкритті кейса
+                case_id = d.get("case_id", "")
                 try:
                     case_price = float(d.get("price", 0) or 0)
                 except Exception:
                     case_price = 0
+
+                if uid not in players:
+                    players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
+
+                # ── ЗАХИСТ FREE DAILY від подвійного відкриття з різних пристроїв ──
+                if case_id == "free_daily":
+                    last_open = players[uid].get("free_daily_last_open", 0)
+                    cooldown = 86400  # 24 години
+                    elapsed = time.time() - last_open
+                    if elapsed < cooldown:
+                        hours_left = math.ceil((cooldown - elapsed) / 3600)
+                        print(f"[FREE_DAILY] {players[uid].get('name','?')} (uid:{uid}) — cooldown! {hours_left}h left")
+                        await ws.send_text(json.dumps({"t": "free_daily_cooldown", "hours_left": hours_left, "msg": f"Wait {hours_left}h before opening again"}))
+                        continue
+                    # Записуємо час відкриття на сервері — до спіну
+                    players[uid]["free_daily_last_open"] = time.time()
+                    save_players()
+                    print(f"[FREE_DAILY] {players[uid].get('name','?')} (uid:{uid}) — opened, cooldown set")
+                    await ws.send_text(json.dumps({"t": "case_opened", "bal": players[uid].get("balance", 0), "case_id": "free_daily"}))
+                    continue
+
                 if case_price > 0:
-                    if uid not in players:
-                        players[uid] = {"balance": 0, "nfts": [], "name": "Player", "nick": ""}
                     server_bal = players[uid].get("balance", 0)
                     if server_bal < case_price:
                         await ws.send_text(json.dumps({"t": "err", "msg": "Недостатньо коштів"}))
                         continue
                     players[uid]["balance"] = round(server_bal - case_price, 4)
                     save_players()
-                    print(f"[CASE] {players[uid].get('name','?')} (uid:{uid}) відкрив кейс '{d.get('case_name','')}' за {case_price} TON | Баланс: {server_bal} -> {players[uid]["balance"]}")
+                    print(f"[CASE] {players[uid].get('name','?')} (uid:{uid}) відкрив кейс '{d.get('case_name','')}' за {case_price} TON | Баланс: {server_bal} -> {players[uid]['balance']}")
                     await ws.send_text(json.dumps({"t": "case_opened", "bal": players[uid]["balance"]}))
 
             elif a == "case_win_keep":
@@ -1807,47 +1827,6 @@ async def root():
             continue
     return HTMLResponse("<h1>Game loading...</h1><p>index file not found. Please check deployment.</p>", status_code=500)
 
-_tonconnect_js_cache: bytes | None = None
-
-@app.get("/static/tonconnect-ui.min.js")
-async def serve_tonconnect_js():
-    """Роздаємо TonConnect UI — спочатку з локального файлу, потім з CDN"""
-    global _tonconnect_js_cache
-    from fastapi.responses import Response
-    headers = {"Cache-Control": "public, max-age=86400", "Access-Control-Allow-Origin": "*"}
-
-    # 1. Якщо вже є в пам'яті — віддаємо одразу
-    if _tonconnect_js_cache:
-        return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
-
-    # 2. Спробуємо прочитати локальний файл (його треба покласти в корінь проєкту)
-    for local_path in ("tonconnect-ui.min.js", "static/tonconnect-ui.min.js"):
-        if os.path.exists(local_path):
-            with open(local_path, "rb") as f:
-                _tonconnect_js_cache = f.read()
-            print(f"✅ TonConnect JS loaded from local file: {local_path} ({len(_tonconnect_js_cache)} bytes)")
-            return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
-
-    # 3. Fallback — завантажуємо з CDN (Railway має до нього доступ)
-    urls = [
-        "https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js",
-        "https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js",
-        "https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js",
-    ]
-    async with httpx.AsyncClient(timeout=20) as client:
-        for url in urls:
-            try:
-                r = await client.get(url, follow_redirects=True)
-                if r.status_code == 200 and len(r.content) > 10000:
-                    _tonconnect_js_cache = r.content
-                    print(f"✅ TonConnect JS cached from CDN: {url} ({len(r.content)} bytes)")
-                    return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
-            except Exception as e:
-                print(f"❌ Failed to fetch TonConnect from {url}: {e}")
-
-    return Response(content="console.error('TonConnect failed to load from all sources');",
-                    media_type="application/javascript", status_code=503)
-
 @app.get("/tonconnect-manifest.json")
 async def tonconnect_manifest():
     return JSONResponse({
@@ -1855,6 +1834,35 @@ async def tonconnect_manifest():
         "name": "Rocket Casino",
         "iconUrl": "https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/pepe-flower.png"
     }, headers={"Access-Control-Allow-Origin": "*"})
+
+# Кеш для TonConnect JS бібліотеки
+_tonconnect_js_cache: bytes = None
+
+@app.get("/static/tonconnect-ui.min.js")
+async def serve_tonconnect_js():
+    global _tonconnect_js_cache
+    # Спробуємо прочитати з файлу (якщо є в репозиторії)
+    for fname in ["tonconnect-ui.min.js", "tonconnnnect-ui.min.js", "static/tonconnect-ui.min.js"]:
+        if os.path.exists(fname):
+            with open(fname, "rb") as f:
+                content = f.read()
+            return Response(content=content, media_type="application/javascript",
+                          headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=86400"})
+    # Якщо файлу немає — беремо з CDN і кешуємо в пам'яті
+    if _tonconnect_js_cache:
+        return Response(content=_tonconnect_js_cache, media_type="application/javascript",
+                      headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600"})
+    import httpx
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get("https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js")
+            if r.status_code == 200:
+                _tonconnect_js_cache = r.content
+                return Response(content=_tonconnect_js_cache, media_type="application/javascript",
+                              headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600"})
+    except Exception as e:
+        print(f"Failed to fetch TonConnect from CDN: {e}")
+    return Response(content=b"// TonConnect not available", media_type="application/javascript", status_code=503)
 
 @app.get("/api/status")
 async def api_status():
