@@ -2991,8 +2991,8 @@ function connect(){
       if(pendingBet && !hasBet){
         pendingBet = false;
         const amt = betAmt;
-        // SECURITY: повторна перевірка балансу лише якщо синхронізований
-        if(serverBalanceSynced && amt > balance){
+        // SECURITY: повторна перевірка балансу перед відправкою
+        if(amt > balance){
           BB().disabled=false; BB().className=''; BB().innerHTML=t('place_bet');
           showToast(t('not_enough'));
         } else {
@@ -3152,17 +3152,17 @@ function handleBet(){
   if(now-lastBetAction<300)return;
   lastBetAction=now;
 
+  // SECURITY: в Telegram блокуємо до синхронізації балансу з сервером
+  if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
+
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
-    // SECURITY: блокуємо кешаут до синхронізації балансу з сервером
-    if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
     return;
   }
   const amt = parseFloat(document.getElementById('bi').value) || 0.1;
   if(amt < 0.1){showToast(t('min_ton')); return;}
-  // SECURITY: перевіряємо баланс лише якщо він вже синхронізований
-  if(serverBalanceSynced && amt > balance){showToast(t('not_enough')); return;}
+  if(amt > balance){showToast(t('not_enough')); return;}
 
   // Валідація авто-кешауту
   const ac = autoOn ? parseFloat(document.getElementById('av').value) || null : null;
@@ -3442,7 +3442,7 @@ function triggerBigWin(mx){
 const LANGS = {
   en: {
     game:'Game', inv:'Backpack', invite:'Invite', settings:'Settings',
-    place_bet:'PLACE BET', bet_nft:'BET NFT', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
+    place_bet:'PLACE BET', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
     bet_label:'BET TON', auto_label:'AUTO CASHOUT', auto:'Auto',
     nft_hint:'Win ≥2.8 TON at ≥1.1× → get', players:'PLAYERS',
     lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'Withdraw',
@@ -3513,7 +3513,7 @@ const LANGS = {
   },
   ru: {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
-    place_bet:'ПОСТАВИТЬ', bet_nft:'ПОСТАВИТЬ NFT', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
+    place_bet:'ПОСТАВИТЬ', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
     bet_label:'СТАВКА TON', auto_label:'АВТО-ВЫВОД', auto:'Авто',
     nft_hint:'Выигрыш ≥2.8 TON при ≥1.1× → получишь', players:'ИГРОКИ',
     lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'Вывести',
@@ -4666,6 +4666,42 @@ function continueSpinCase(){
   if(IS_TELEGRAM && !serverBalanceSynced && curCase.price > 0){showToast(t('not_enough'));return;}
   if(curCase.price > 0 && balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
+
+  // FREE DAILY: надсилаємо на сервер і ЧЕКАЄМО підтвердження (захист від 2 пристроїв)
+  if(curCase.id === 'free_daily'){
+    if(!wsReady){showToast('No connection');return;}
+    document.getElementById('spin-btn').disabled=true;
+    document.getElementById('spin-btn').textContent='⏳...';
+    const handler = (e) => {
+      try{
+        const d=JSON.parse(e.data);
+        if(d.t==='case_opened' && d.case_id==='free_daily'){
+          ws.removeEventListener('message',handler);
+          // Сервер підтвердив — оновлюємо localStorage і крутимо
+          const storageKey='free_case_last_open_'+userId;
+          localStorage.setItem(storageKey,Date.now().toString());
+          _doActualSpin();
+        } else if(d.t==='free_daily_cooldown'){
+          ws.removeEventListener('message',handler);
+          document.getElementById('spin-btn').disabled=false;
+          document.getElementById('spin-btn').textContent=t('spin_btn')||'Spin';
+          showToast(d.msg||'Come back later');
+          // Оновлюємо localStorage щоб UI теж показав cooldown
+          const storageKey='free_case_last_open_'+userId;
+          localStorage.setItem(storageKey,(Date.now()-86400000+d.hours_left*3600000).toString());
+        }
+      }catch(err){}
+    };
+    ws.addEventListener('message',handler);
+    setTimeout(()=>{
+      ws.removeEventListener('message',handler);
+      document.getElementById('spin-btn').disabled=false;
+      document.getElementById('spin-btn').textContent=t('spin_btn')||'Spin';
+    },8000);
+    ws.send(JSON.stringify({a:'case_opened',case_id:'free_daily',case_name:curCase.name,price:0}));
+    return;
+  }
+
   caseWinProcessed=false; // SECURITY: скидаємо прапор для нового спіну
   playSpinSound();
   
@@ -4688,6 +4724,12 @@ function continueSpinCase(){
       }));
     }
   }
+  _doActualSpin();
+}
+
+function _doActualSpin(){
+  caseWinProcessed=false;
+  playSpinSound();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
 
