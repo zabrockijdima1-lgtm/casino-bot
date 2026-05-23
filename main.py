@@ -290,6 +290,8 @@ def get_nft_for_win(win: float):
     return ok[-1]  # Fallback
 
 def get_nft_for_rocket_win(win: float):
+    """Повертає NFT тільки якщо win >= ціни найдешевшого NFT в каталозі.
+    Інакше повертає None (падає TON замість NFT)."""
     if win < 0.1:
         return None
     sync_nft_prices()
@@ -298,20 +300,16 @@ def get_nft_for_rocket_win(win: float):
     available = [n for n in NFT_CATALOG if float(n.get("price") or n.get("floor") or 0) <= win]
     
     if available:
-        # ВИПРАВЛЕНО: вибираємо NFT з НАЙБЛИЖЧОЮ ціною до win
-        # Сортуємо по ціні (від найдорожчих до найдешевших)
+        # Вибираємо NFT з НАЙБЛИЖЧОЮ ціною до win (найдорожчий з доступних)
         available_sorted = sorted(
             available, 
             key=lambda n: float(n.get("price") or n.get("floor") or 0),
             reverse=True
         )
-        
-        # Беремо найдорожчий NFT (найближчий до win)
         return available_sorted[0]
     
-    # Якщо нічого не підходить - дамо один з 5 найдешевших
-    cheap = sorted(NFT_CATALOG, key=lambda n: float(n.get("price") or n.get("floor") or 999999))
-    return random.choice(cheap[:5]) if cheap else None
+    # Якщо win менше найдешевшого NFT — повертаємо None (падає TON)
+    return None
 
 sync_nft_prices(force=True)
 
@@ -899,26 +897,32 @@ async def do_cashout(uid, mult):
     p = players.get(uid, {})
 
     if bet.get("is_nft"):
-        # NFT ставка: виграш = nft_price * mult -> даємо NFT з каталогу відповідної вартості
+        # NFT ставка: виграш = nft_price * mult
         nft_price = bet["amount"]
         win_value = round(nft_price * mult, 4)
         bet["win"] = win_value
 
+        # Пробуємо дати NFT якщо множник >= 1.1
         win_nft = get_nft_for_rocket_win(win_value) if mult >= 1.1 else None
         bet["nft"] = win_nft
 
         if win_nft:
+            # Падає NFT з каталогу
             nft_entry = {**win_nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win_value, "ts": time.time()}
             p.setdefault("nfts", []).append(nft_entry)
             win_nft = nft_entry
             add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": win_nft.get("name"), "nft_floor": win_nft.get("floor"), "type": "nft_bet"})
-        else:
-            # mult < 1.1 або немає дорожчого NFT — повертаємо оригінальний NFT
+        elif mult < 1.1:
+            # Програш (mult < 1.1) — повертаємо оригінальний NFT назад
             orig = bet.get("nft_data")
             if orig:
                 p.setdefault("nfts", []).append(orig)
                 win_nft = orig
-            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_low"})
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_loss"})
+        else:
+            # Виграш, але win_value < найдешевшого NFT — конвертуємо в TON
+            p["balance"] = round(p.get("balance", 0) + win_value, 4)
+            add_log("cashouts", {"uid": uid, "name": p.get("name","?"), "bet": nft_price, "win": win_value, "mult": mult, "nft": None, "type": "nft_bet_to_ton"})
 
         await broadcast({"t": "co", "uid": uid, "win": win_value, "mx": mult, "pl": players_list(), "now": time.time()})
         if uid in clients:
@@ -934,8 +938,11 @@ async def do_cashout(uid, mult):
         # Звичайна TON ставка
         win = round(bet["amount"] * mult, 4)
         bet["win"] = win
-        # NFT тільки якщо виграш >= 2.8 TON і множник >= 1.1
-        nft = get_nft_for_rocket_win(win) if (win >= 2.8 and mult >= 1.1) else None
+        
+        # NFT падає якщо виграш >= ціни найдешевшого NFT і множник >= 1.1
+        min_nft_price = min((float(n.get("price") or n.get("floor") or 999) for n in NFT_CATALOG), default=999)
+        nft = get_nft_for_rocket_win(win) if (win >= min_nft_price and mult >= 1.1) else None
+        
         bet["nft"] = nft
         if nft:
             nft_entry = {**nft, "uid": f"rocket_{uid}_{int(time.time()*1000)}_{random.randint(1000,9999)}", "won_at": mult, "win_ton": win, "ts": time.time()}
