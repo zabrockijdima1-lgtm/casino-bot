@@ -2377,6 +2377,41 @@ function closeModal(){
   if(el) el.style.display='none';
 }
 
+// Оновлює вміст інвентаря без закриття модалки
+function renderInventory(){
+  const overlay=document.getElementById('modal-overlay');
+  if(!overlay||overlay.style.display==='none') return; // Модалка закрита — нічого не робимо
+  const body=document.getElementById('modal-body');
+  if(!body) return;
+  normalizeNFTInventory();
+  if(!myNFTs.length){
+    body.innerHTML=`<div style="text-align:center;color:#334;padding:40px;font-size:13px">${t('no_nfts')}<br><small style="color:#223">${t('win_nft')}</small></div>`;
+    return;
+  }
+  body.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${
+    myNFTs.slice().reverse().map((nft,i)=>{
+      const realIndex = myNFTs.length - 1 - i;
+      const ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id])||null;
+      const imgHtml=ph
+        ?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:12px 12px 0 0">`
+        :`<div style="font-size:40px;display:flex;align-items:center;justify-content:center;width:100%;height:100%">${nft.emoji||'🎁'}</div>`;
+      return `
+      <div class="inv-card">
+        <div style="width:100%;aspect-ratio:0.9;background:${nft.color||'#1a1a2e'};border-radius:12px 12px 0 0;overflow:hidden;position:relative">
+          ${imgHtml}
+        </div>
+        <div class="inv-body">
+          <div class="inv-name">${nft.name}</div>
+          <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
+          <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
+          <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
+          <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFTByIndex(${realIndex})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
+        </div>
+      </div>`;
+    }).join('')
+  }</div>`;
+}
+
 function openModal(type){
   document.getElementById('modal-overlay').style.display='block';
   const body=document.getElementById('modal-body');
@@ -2845,8 +2880,7 @@ function sellNFTByIndex(index){
       saveNFTs();
       refreshInventoryLabel();
       creditLocalBalance(sellPrice,'nft_sell');
-      renderInventory(); // Оновлюємо відображення ПЕРЕД закриттям
-      closeModal(); // Закриваємо ПІСЛЯ оновлення
+      closeModal();
       showToast((t('nft_sold')||'Sold')+' +'+sellPrice.toFixed(2)+' TON','win');
       spawnGems(3);
       
@@ -3241,8 +3275,9 @@ function connect(){
     }
     else if(d.t==='topup'||d.t==='topup_ok'){balance=d.bal||d.balance;updBal();saveBal();showToast(`💎 +${d.credited} ${t('credited')}`,'win');spawnGems(5);spawnCoinsToBal(8);}
     else if(d.t==='nft_sold'){
-      // NFT вже видалено локально в sellNFT(), просто синхронізуємо баланс із сервером
+      // Синхронізуємо баланс із сервером (авторитетне значення)
       if(d.bal){balance=d.bal;updBal();saveBal();}
+      // Toast вже показано локально в sellNFTByIndex, не дублюємо
     }
     else if(d.t==='nft_withdrawn'){
       // Оновлюємо баланс
