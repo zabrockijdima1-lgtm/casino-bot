@@ -1206,7 +1206,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
       <input class="ai" id="av" type="number" value="2.0" min="1.1" step="0.1" oninput="if(parseFloat(this.value)<1.1&&this.value!='')this.style.borderColor='var(--red)';else this.style.borderColor=''">
     </div>
     <button id="bb" onclick="handleBet()">PLACE BET</button>
-    <button id="bb-nft" onclick="openNFTBetPicker()" style="grid-column:1/-1;display:none;background:linear-gradient(135deg,#1a0a2e,#2e1060,#1a0a2e);border:1.5px solid rgba(192,132,252,0.5);border-radius:20px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:15px;padding:11px;cursor:pointer;align-items:center;justify-content:center;gap:8px;">BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
+    <button id="bb-nft" onclick="openNFTBetPicker()" style="grid-column:1/-1;display:flex;background:linear-gradient(135deg,#1a0a2e,#2e1060,#1a0a2e);border:1.5px solid rgba(192,132,252,0.5);border-radius:20px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:15px;padding:11px;cursor:pointer;align-items:center;justify-content:center;gap:8px;">BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
   </div>
 
   <div id="nft-hint" style="display:none;"></div>
@@ -1357,13 +1357,18 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
     <div id="wp-mult"></div>
     <div id="wp-val"></div>
     <div id="wp-sub"></div>
+    <!-- Елегантні кнопки без емодзі -->
+    <div style="display:flex;gap:8px;margin-top:16px;width:100%">
+      <button id="wp-keep-btn" onclick="document.getElementById('wp').className=''" style="flex:1;background:linear-gradient(135deg,#1a2a44,#0f1a3a);border:1px solid rgba(77,143,255,0.3);border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:12px;cursor:pointer;transition:all .15s">Keep</button>
+      <button id="wp-withdraw-btn" onclick="withdrawNFTFromWinPopup()" style="flex:1;background:linear-gradient(135deg,#4d8fff,#3366cc);border:1px solid rgba(77,143,255,0.5);border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:12px;cursor:pointer;box-shadow:0 0 16px rgba(77,143,255,0.3);transition:all .15s">Withdraw</button>
+    </div>
   </div>
   <div id="wp-ton-section" style="display:none">
     <div id="wp-ton-mult"></div>
     <div id="wp-ton-val"></div>
     <div id="wp-credited-lbl" style="font-size:11px;color:#445;margin-top:6px">Credited to balance</div>
+    <button id="wp-close" onclick="document.getElementById('wp').className=''" style="margin-top:16px;background:linear-gradient(135deg,#1a2a44,#0f1a3a);border:1px solid rgba(77,143,255,0.3);border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:12px;cursor:pointer;width:100%">Close</button>
   </div>
-  <button id="wp-close" onclick="document.getElementById('wp').className=''">Close</button>
 </div>
 
 <!-- CASES LIST SCREEN -->
@@ -2290,16 +2295,57 @@ function showWinPopup(mx,win,nft){
     document.getElementById('wp-mult').textContent=`${(+mx).toFixed(2)}×`;
     document.getElementById('wp-val').textContent=`≈${(+win).toFixed(2)} TON → Gift`;
     document.getElementById('wp-sub').textContent=`floor ${nft.floor} TON`;
+    
+    // Локалізація кнопок
+    document.getElementById('wp-keep-btn').textContent = t('keep_btn');
+    document.getElementById('wp-withdraw-btn').textContent = t('withdraw_btn');
+    
+    // Зберігаємо останній виграний NFT для кнопки Withdraw
+    window._lastWonNFT = nft;
+    
     spawnGems(5,'🎁');
   }else{
     document.getElementById('wp-nft-section').style.display='none';
     document.getElementById('wp-ton-section').style.display='block';
     document.getElementById('wp-ton-mult').textContent=`${(+mx).toFixed(2)}×`;
     document.getElementById('wp-ton-val').textContent=`+${(+win).toFixed(3)} TON`;
+    
+    // Локалізація кнопки Close для TON виграшу
+    const closeBtn = document.querySelector('#wp-ton-section button');
+    if(closeBtn) closeBtn.textContent = 'Close';
+    
     spawnGems(Math.min(10,Math.floor(win*3)));
   }
   wp.className='show';
   setTimeout(()=>wp.className='',5000);
+}
+
+function withdrawNFTFromWinPopup(){
+  // Знаходимо останній виграний NFT в інвентарі
+  if(!window._lastWonNFT){
+    showToast('NFT not found');
+    return;
+  }
+  
+  const nftId = window._lastWonNFT.id;
+  const nftName = window._lastWonNFT.name;
+  const nftFloor = window._lastWonNFT.floor || window._lastWonNFT.price || 0;
+  
+  // Знаходимо індекс останнього NFT з таким id
+  const index = myNFTs.findIndex(n => n.id === nftId && !n._withdrawn);
+  if(index === -1){
+    showToast('NFT already withdrawn or not found');
+    return;
+  }
+  
+  // Закриваємо popup і відкриваємо withdraw
+  document.getElementById('wp').className='';
+  
+  // Викликаємо withdrawal
+  withdrawNFTByIndex(index);
+  
+  // Очищаємо
+  window._lastWonNFT = null;
 }
 
 function addNFTToInventory(nft,winTon,mx){
@@ -2353,7 +2399,7 @@ function openModal(type){
             <div class="inv-name">${nft.name}</div>
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
-            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
+            <button class="inv-btn" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
           </div>
         </div>`;
       }).join('')
@@ -3550,7 +3596,7 @@ function triggerBigWin(mx){
 const LANGS = {
   en: {
     game:'Game', inv:'Backpack', invite:'Invite', settings:'Settings',
-    place_bet:'PLACE BET', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
+    place_bet:'PLACE BET', bet_nft:'BET NFT', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
     bet_label:'BET TON', auto_label:'AUTO CASHOUT', auto:'Auto',
     nft_hint:'Win ≥2.8 TON at ≥1.1× → get', players:'PLAYERS',
     lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'📤 Withdraw',
@@ -3565,7 +3611,7 @@ const LANGS = {
     cancelled:'Cancelled', error:'Error', credited:'💎 credited!',
     link_copied:'Link copied! 🔗', no_nfts:'Your NFTs will appear here',
     win_nft:'Win ≥2.8 TON', my_nfts:'🎁 My NFT Gifts',
-    sell_btn:'Sell for', withdraw_btn:'📤 Withdraw',
+    sell_btn:'Sell for', withdraw_btn:'Withdraw', keep_btn:'Keep',
     invite_earn:'Earn', invite_from:'by inviting referrals',
     invite_btn:'🔗 Invite Friends', copy_btn:'📋 Copy Link',
     total_earned_lbl:'Total earned', my_invites_lbl:'My Invites',
@@ -3621,7 +3667,7 @@ const LANGS = {
   },
   ru: {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
-    place_bet:'ПОСТАВИТЬ', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
+    place_bet:'ПОСТАВИТЬ', bet_nft:'ПОСТАВИТЬ NFT', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
     bet_label:'СТАВКА TON', auto_label:'АВТО-ВЫВОД', auto:'Авто',
     nft_hint:'Выигрыш ≥2.8 TON при ≥1.1× → получишь', players:'ИГРОКИ',
     lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'📤 Вывести',
@@ -3636,7 +3682,7 @@ const LANGS = {
     cancelled:'Отменено', error:'Ошибка', credited:'💎 зачислено!',
     link_copied:'Ссылка скопирована! 🔗', no_nfts:'Здесь будут твои NFT',
     win_nft:'Выиграй ≥2.8 TON', my_nfts:'🎁 Мои NFT Gifts',
-    sell_btn:'Продать за', withdraw_btn:'📤 Вывести',
+    sell_btn:'Продать за', withdraw_btn:'Вывести', keep_btn:'Оставить',
     invite_earn:'Зарабатывай', invite_from:'приглашая рефералов',
     invite_btn:'🔗 Пригласить друзей', copy_btn:'📋 Копировать ссылку',
     total_earned_lbl:'Всего заработано', my_invites_lbl:'Мои рефералы',
@@ -3825,7 +3871,7 @@ if(ADMIN_IDS_CLIENT.has(userId) && IS_TELEGRAM){
   adminBtn.onclick = () => {
     // SECURITY: передаємо initData — сервер верифікує підпис Telegram
     const initDataEncoded = encodeURIComponent(tg?.initData||'');
-    const url = `https://casino-bot-production-16e6.up.railway.app/admin?uid=${userId}&initData=${initDataEncoded}`;
+    const url = `https://casino-bot-production-5113.up.railway.app/admin?uid=${userId}`;
     if(tg?.openLink) tg.openLink(url);
     else window.open(url,'_blank');
   };
