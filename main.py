@@ -885,7 +885,10 @@ def players_list():
         {"uid": uid, "name": players.get(uid, {}).get("name", "?"), "nick": players.get(uid, {}).get("nick", ""),
          "photo": players.get(uid, {}).get("photo", ""), "bet": b["amount"],
          "cashed": b.get("cashed", False), "win": b.get("win"), "mult": b.get("mult"),
-         "lost": b.get("lost", False), "nft": b.get("nft"), "is_nft": b.get("is_nft", False)}
+         "lost": b.get("lost", False),
+         # NFT показуємо тільки після кешауту (не під час польоту)
+         "nft": b.get("nft") if b.get("cashed") else None,
+         "is_nft": b.get("is_nft", False)}
         for uid, b in bets.items()
     ]
 
@@ -1210,14 +1213,25 @@ async def ws_ep(ws: WebSocket, uid: int):
                     nfts = players[uid].get("nfts", [])
                     print(f"🔍 Player has {len(nfts)} NFTs: {[n.get('id') for n in nfts]}")
                     found_nft = None; new_nfts = []; removed = False
+                    # Спочатку шукаємо точний збіг по uid
                     for n in nfts:
                         same_id = n.get("id") == nft_id
                         same_uid = not nft_uid or n.get("uid") == nft_uid
                         if same_id and same_uid and not removed:
                             found_nft = n; removed = True
-                            print(f"✅ Found NFT: {n.get('name')} (id: {n.get('id')})")
+                            print(f"✅ Found NFT (uid match): {n.get('name')} (id: {n.get('id')})")
                         else:
                             new_nfts.append(n)
+                    # Якщо не знайдено по uid — шукаємо тільки по id (клієнт міг генерувати локальний uid)
+                    if not found_nft:
+                        new_nfts = []; removed = False
+                        print(f"🔄 uid mismatch, searching by id only: nft_id={nft_id}")
+                        for n in nfts:
+                            if n.get("id") == nft_id and not removed:
+                                found_nft = n; removed = True
+                                print(f"✅ Found NFT (id only): {n.get('name')} (id: {n.get('id')})")
+                            else:
+                                new_nfts.append(n)
                     if found_nft:
                         name = players[uid].get("name", "?")
                         nick = players[uid].get("nick", "")
