@@ -2249,7 +2249,7 @@ function renderPlayers(list){
     const m=p.mult&&+p.mult>0?' ×'+(+p.mult).toFixed(2):'';
     const betTag=p.bet?(p.is_nft?'<span class="pr-bet">🎁 NFT'+m+'</span>':`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`):'';
     let right='';
-    if(p.cashed&&p.nft){
+    if(p.cashed&&p.nft&&p.nft.id){
       const np=getPhotoById(p.nft);
       const ni=np?`<img class="pr-nft" src="${np}">`:'<span style="font-size:22px">🎁</span>';
       right=`<span class="pr-win">${TSVG} ${(+p.win).toFixed(2)}</span> ${ni}`;
@@ -2350,9 +2350,11 @@ function withdrawNFTFromWinPopup(){
 
 function addNFTToInventory(nft,winTon,mx){
   const photo=getPhotoById(nft);
+  // Зберігаємо серверний uid якщо він є (щоб продаж/вивід працював)
+  const serverUid = nft.uid || ('rocket_nft_' + nft.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9));
   const entry={
-    uid:'rocket_nft_' + nft.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9),
-    localId:'rocket_nft_' + nft.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2,9),
+    uid: serverUid,
+    localId: serverUid,
     id:nft.id,
     name:nft.name,
     emoji:nft.emoji||'🎁',
@@ -2848,7 +2850,7 @@ function sellNFTByIndex(index){
       showToast((t('nft_sold')||'Sold')+' +'+sellPrice.toFixed(2)+' TON','win');
       spawnGems(3);
       
-      if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removed.id,nft_uid:removed.uid||removed.localId,name:removed.name,price:sellPrice,type:'sell'}));
+      if(wsReady) ws.send(JSON.stringify({a:'nft_sell_local',nft_id:removed.id,nft_uid:removed.uid||removed.localId||null,name:removed.name,price:sellPrice,type:'sell'}));
     }
   });
 }
@@ -3228,7 +3230,11 @@ function connect(){
       const _oldBetPill2=document.querySelector('.hbet');if(_oldBetPill2)_oldBetPill2.remove();
       playCashoutSound();
       const nftAllowed = d.nft && (+d.mx) >= 1.1;
-      if(nftAllowed)addNFTToInventory(d.nft,d.win,d.mx);
+      if(nftAllowed){
+        // Перевіряємо чи NFT вже є в інвентарі (уникаємо дублікату)
+        const alreadyHas = d.nft.uid && myNFTs.some(n => n.uid === d.nft.uid);
+        if(!alreadyHas) addNFTToInventory(d.nft, d.win, d.mx);
+      }
       showWinPopup(d.mx,d.win,nftAllowed?d.nft:null);
       triggerBigWin(+d.mx);
       BB().className='';BB().innerHTML=t('place_bet');
