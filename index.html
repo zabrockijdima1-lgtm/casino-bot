@@ -2991,8 +2991,8 @@ function connect(){
       if(pendingBet && !hasBet){
         pendingBet = false;
         const amt = betAmt;
-        // SECURITY: повторна перевірка балансу перед відправкою
-        if(amt > balance){
+        // SECURITY: повторна перевірка балансу лише якщо синхронізований
+        if(serverBalanceSynced && amt > balance){
           BB().disabled=false; BB().className=''; BB().innerHTML=t('place_bet');
           showToast(t('not_enough'));
         } else {
@@ -3152,17 +3152,17 @@ function handleBet(){
   if(now-lastBetAction<300)return;
   lastBetAction=now;
 
-  // SECURITY: в Telegram блокуємо до синхронізації балансу з сервером
-  if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
-
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
+    // SECURITY: блокуємо кешаут до синхронізації балансу з сервером
+    if(IS_TELEGRAM && !serverBalanceSynced){showToast(t('not_enough'));return;}
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
     return;
   }
   const amt = parseFloat(document.getElementById('bi').value) || 0.1;
   if(amt < 0.1){showToast(t('min_ton')); return;}
-  if(amt > balance){showToast(t('not_enough')); return;}
+  // SECURITY: перевіряємо баланс лише якщо він вже синхронізований
+  if(serverBalanceSynced && amt > balance){showToast(t('not_enough')); return;}
 
   // Валідація авто-кешауту
   const ac = autoOn ? parseFloat(document.getElementById('av').value) || null : null;
