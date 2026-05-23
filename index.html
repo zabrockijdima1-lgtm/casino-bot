@@ -6,7 +6,7 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<!-- TonConnect через Telegram SDK - БЕЗ CDN -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -3281,36 +3281,71 @@ function x2B(){document.getElementById('bi').value=((parseFloat(document.getElem
 function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=autoOn?'tog on':'tog';}
 
 let tonUI=null,tonConnected=false;
+let walletAddress = null;
+
 function initTon(){
   try{
-    // Чекаємо поки бібліотека завантажиться
-    if(!window.TonConnectUI){
-      console.log('TonConnectUI not ready yet, retrying...');
-      setTimeout(initTon, 500);
+    const tg = window.Telegram?.WebApp;
+    
+    if(!tg){
+      console.log('⚠️ Not in Telegram WebApp - TonConnect disabled');
       return;
     }
     
-    console.log('✅ TonConnectUI loaded, initializing...');
+    console.log('✅ Telegram WebApp detected');
+    console.log('Platform:', tg.platform, 'Version:', tg.version);
     
-    tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://raw.githubusercontent.com/zabrockijdima1-lgtm/casino-bot/main/tonconnect-manifest.json'
-    });
-    
-    tonUI.onStatusChange(w => {
-      tonConnected = !!w;
+    // Перевіряємо чи є збережена адреса
+    const saved = localStorage.getItem('ton_wallet_address');
+    if(saved){
+      walletAddress = saved;
+      tonConnected = true;
       updateWalletUI();
-      if(w) {
-        console.log('✅ Wallet connected:', w.account.address);
-        showToast(t('wallet_connected'),'win');
-      }
-    });
+      console.log('✅ Wallet restored:', walletAddress);
+    }
     
-    console.log('✅ TON Connect initialized successfully');
+    console.log('✅ TON Connect initialized (Telegram native)');
   }catch(e){
     console.error('❌ TON Connect init error:', e);
-    // Retry after 1 second
-    setTimeout(initTon, 1000);
   }
+}
+
+// Підключення гаманця через Telegram
+function connectTonWallet(){
+  const tg = window.Telegram?.WebApp;
+  
+  if(!tg){
+    showToast('Open in Telegram to connect wallet', 'error');
+    return;
+  }
+  
+  // Відкриваємо Tonkeeper/TON Space через Telegram
+  const connectUrl = 'https://app.tonkeeper.com/';
+  
+  showToast('Opening wallet...', 'info');
+  
+  // Після підключення користувач має ввести адресу вручну
+  // (тимчасове рішення поки CDN не працює)
+  setTimeout(() => {
+    const address = prompt('Paste your TON wallet address:');
+    if(address && address.length > 20){
+      walletAddress = address;
+      tonConnected = true;
+      localStorage.setItem('ton_wallet_address', address);
+      updateWalletUI();
+      showToast('Wallet connected!', 'win');
+      console.log('✅ Wallet connected:', address);
+    }
+  }, 1000);
+}
+
+// Відключення
+function disconnectTonWallet(){
+  walletAddress = null;
+  tonConnected = false;
+  localStorage.removeItem('ton_wallet_address');
+  updateWalletUI();
+  showToast('Wallet disconnected', 'info');
 }
 function updateWalletUI(){
   const dot=document.getElementById('ws-dot'),txt=document.getElementById('ws-text'),btn=document.getElementById('ws-btn');
@@ -3341,25 +3376,15 @@ async function doTonPayment(){
   if(!amount||amount<0.1){showToast(t('min_ton'));return;}
   lastPayAmount=amount;
   
-  // Перевірка чи TON Connect готовий
-  if(!tonUI){
-    showToast('⚠️ TON Connect is loading... Please wait or refresh the page.','error');
-    console.error('TON Connect UI not initialized');
-    // Спробуємо ініціалізувати знову
-    initTon();
-    return;
-  }
-  
   if(!tonConnected){
-    try{
-      await tonUI.openModal();
-    }catch(e){
-      console.error('Failed to open TON Connect modal:', e);
-      showToast('Failed to open wallet. Please refresh the page.','error');
-    }
+    // Підключаємо гаманець
+    connectTonWallet();
     return;
   }
   
+  showToast('Deposit feature coming soon! Wallet: ' + walletAddress.slice(0,8) + '...', 'info');
+  
+  /* ОРИГІНАЛЬНИЙ КОД ЗАКОМЕНТОВАНО - ПОКИ CDN НЕ ПРАЦЮЄ
   try{
     // Відправляємо на сервер
     if(wsReady)ws.send(JSON.stringify({a:'topup_start',amount}));
@@ -3374,6 +3399,14 @@ async function doTonPayment(){
         amount:Math.floor(amount*1e9).toString()
       }]
     });
+    
+    showToast('Transaction sent! Waiting for confirmation...','win');
+  }catch(e){
+    console.error('Transaction error:', e);
+    showToast('Transaction failed: '+e.message,'error');
+  }
+  */
+}
     
     closeTopup();
     showToast(t('sent'),'info');
