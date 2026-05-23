@@ -6,28 +6,6 @@
 <title>🚀 Rocket v3</title>
 <meta name="app-version" content="3">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-(function(){
-  // Спробуємо завантажити TonConnect з кількох CDN по черзі
-  var cdns = [
-    'https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
-    'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js',
-    'https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js'
-  ];
-  var idx = 0;
-  function tryLoad(){
-    if(idx >= cdns.length) return;
-    var s = document.createElement('script');
-    s.src = cdns[idx];
-    s.crossOrigin = 'anonymous';
-    s.onerror = function(){ idx++; tryLoad(); };
-    s.onload = function(){ console.log('✅ TonConnect loaded from:', cdns[idx-1] || cdns[0]); };
-    document.head.appendChild(s);
-    idx++;
-  }
-  tryLoad();
-})();
-</script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -3193,131 +3171,77 @@ function x2B(){document.getElementById('bi').value=((parseFloat(document.getElem
 function toggleAuto(){autoOn=!autoOn;document.getElementById('atog').className=autoOn?'tog on':'tog';}
 
 let tonUI=null,tonConnected=false;
-function initTon(){
-  try{
-    if(!window.TonConnectUI){
-      console.log('TonConnectUI not ready yet, retrying...');
-      setTimeout(initTon, 500);
-      return;
-    }
-    if(tonUI) return; // вже ініціалізований
-    
-    // Створюємо невидимий контейнер для TonConnect якщо немає
-    if(!document.getElementById('ton-connect-root')){
-      const root = document.createElement('div');
-      root.id = 'ton-connect-root';
-      root.style.cssText = 'position:fixed;z-index:99999;top:0;left:0;width:100%;height:0;pointer-events:none';
-      document.body.appendChild(root);
-    }
-    
-    tonUI = new window.TonConnectUI({
-      manifestUrl: 'https://casino-bot-production-5113.up.railway.app/tonconnect-manifest.json',
-      buttonRootId: 'ton-connect-root',
-    });
-    
-    tonUI.onStatusChange(w => {
-      tonConnected = !!w;
-      updateWalletUI();
-      if(w) showToast(t('wallet_connected'),'win');
-    });
-    
-    console.log('✅ TON Connect initialized successfully');
-  }catch(e){
-    console.error('❌ TON Connect init error:', e);
-    tonUI = null;
-    setTimeout(initTon, 1000);
+
+// ── TON CONNECT через Telegram deep links (працює в TMA без SDK) ──────────
+// Адреса гаманця для отримання платежів
+const _TC_WALLET = TON_WALLET;
+
+// Генеруємо унікальний payload для ідентифікації транзакції
+function _tcPayload(amount){
+  return 'casino_' + userId + '_' + Math.floor(amount*1e9) + '_' + Date.now();
+}
+
+// Відкриваємо Tonkeeper/MyTonWallet через tg.openLink або window.open
+function _tcOpenWallet(amount){
+  const nanotons = Math.floor(amount * 1e9).toString();
+  const payload  = _tcPayload(amount);
+  const comment  = encodeURIComponent('Casino deposit ' + amount + ' TON');
+
+  // Універсальне ton:// посилання — відкривається будь-яким TON гаманцем
+  const tonLink = `ton://transfer/${_TC_WALLET}?amount=${nanotons}&text=${comment}`;
+
+  // В Telegram Mini App використовуємо openLink — він відкриє гаманець прямо в TG
+  if(window.Telegram?.WebApp?.openLink){
+    window.Telegram.WebApp.openLink(tonLink);
+  } else if(window.Telegram?.WebApp?.openTelegramLink){
+    // Tonkeeper має свій tg deep link
+    const tkLink = `https://app.tonkeeper.com/transfer/${_TC_WALLET}?amount=${nanotons}&text=${comment}`;
+    window.Telegram.WebApp.openLink(tkLink);
+  } else {
+    window.open(tonLink, '_blank');
   }
 }
+
+function initTon(){
+  // Нічого не робимо — SDK не потрібен
+  console.log('✅ TON Connect (native TMA mode) ready');
+}
+
 function updateWalletUI(){
   const dot=document.getElementById('ws-dot'),txt=document.getElementById('ws-text'),btn=document.getElementById('ws-btn');
   if(!dot)return;
-  if(tonConnected){dot.style.background='var(--green)';txt.textContent=t('wallet_connected_lbl');btn.textContent=t('wallet_disconnect');btn.style.background='#2a0d0d';btn.style.color='var(--red)';}
-  else{dot.style.background='#333';txt.textContent=t('wallet_not_connected');btn.textContent=t('wallet_connect');btn.style.background='var(--ton)';btn.style.color='#fff';}
+  // В native режимі гаманець не "підключається" постійно, просто показуємо статус
+  dot.style.background='var(--green)';
+  txt.textContent='TON wallet';
+  btn.textContent='Send via wallet';
+  btn.style.background='var(--ton)';
+  btn.style.color='#fff';
 }
+
 async function toggleWallet(){
-  if(tonConnected){try{await tonUI?.disconnect();}catch(e){} return;}
-  // Якщо tonUI ще не готовий — ініціалізуємо і чекаємо
-  if(!tonUI){
-    showToast('⏳ Connecting...','info');
-    initTon();
-    let waited=0;
-    while(!tonUI && waited<5000){await new Promise(r=>setTimeout(r,200));waited+=200;}
-  }
-  if(tonUI){
-    try{
-      await tonUI.openModal();
-    } catch(e){
-      console.error('openModal error:',e);
-      // Якщо openModal не спрацював — спробуємо перестворити tonUI
-      tonUI = null;
-      initTon();
-      let waited=0;
-      while(!tonUI && waited<3000){await new Promise(r=>setTimeout(r,200));waited+=200;}
-      if(tonUI){try{await tonUI.openModal();}catch(e2){showToast('Wallet error, refresh page','error');}}
-    }
-  } else {
-    showToast('Wallet not available, try refreshing','error');
-  }
+  // Показуємо інструкцію як надіслати TON
+  showToast('Enter amount below and tap "Send TON"','info');
+  updateWalletUI();
 }
-function openTopup(){document.getElementById('mbg').className='open';updateWalletUI();}
-function closeTopup(){document.getElementById('mbg').className='';}
-function pickT(el,n){selTon=n;document.querySelectorAll('.so').forEach(s=>s.classList.remove('sel'));el.classList.add('sel');document.getElementById('cton').value=n;}
+
 async function doTonPayment(){
   const amount=parseFloat(document.getElementById('cton').value)||selTon;
   if(!amount||amount<0.1){showToast(t('min_ton'));return;}
   lastPayAmount=amount;
-  
-  // Перевірка чи TON Connect готовий
-  if(!tonUI){
-    showToast('⏳ Initializing wallet...', 'info');
-    console.log('TON Connect UI not initialized, trying to init...');
-    initTon();
-    // Чекаємо до 5 секунд поки tonUI з'явиться
-    let waited = 0;
-    while(!tonUI && waited < 5000){ await new Promise(r=>setTimeout(r,200)); waited+=200; }
-    if(!tonUI){
-      showToast('❌ Wallet unavailable. Please refresh the page.','error');
-      console.error('TON Connect UI still not initialized after waiting');
-      return;
-    }
-  }
-  
-  if(!tonConnected){
-    try{
-      await tonUI.openModal();
-    }catch(e){
-      console.error('Failed to open TON Connect modal:', e);
-      showToast('Failed to open wallet. Please refresh the page.','error');
-    }
-    return;
-  }
-  
-  try{
-    // Відправляємо на сервер
-    if(wsReady)ws.send(JSON.stringify({a:'topup_start',amount}));
-    
-    // Показуємо що відправляємо
-    showToast('Sending transaction...','info');
-    
-    await tonUI.sendTransaction({
-      validUntil:Math.floor(Date.now()/1000)+600,
-      messages:[{
-        address:TON_WALLET,
-        amount:Math.floor(amount*1e9).toString()
-      }]
-    });
-    
-    closeTopup();
-    showToast(t('sent'),'info');
-  }catch(e){
-    console.error('Payment error:', e);
-    if(e?.message?.includes('reject')||e?.message?.includes('cancel')){
-      showToast(t('cancelled'));
-    }else{
-      showToast(t('error') + ': ' + (e?.message || 'Unknown error'));
-    }
-  }
+
+  // Повідомляємо сервер що чекаємо транзакцію
+  if(wsReady) ws.send(JSON.stringify({a:'topup_start', amount}));
+
+  // Відкриваємо гаманець з готовою транзакцією
+  _tcOpenWallet(amount);
+
+  closeTopup();
+  showToast(t('sent'),'info');
 }
+function openTopup(){document.getElementById('mbg').className='open';updateWalletUI();}
+function closeTopup(){document.getElementById('mbg').className='';}
+function pickT(el,n){selTon=n;document.querySelectorAll('.so').forEach(s=>s.classList.remove('sel'));el.classList.add('sel');document.getElementById('cton').value=n;}
+// doTonPayment визначено вище разом з initTon/toggleWallet
 
 let tT=null;
 function showToast(msg,type='crash'){
@@ -3442,7 +3366,7 @@ function triggerBigWin(mx){
 const LANGS = {
   en: {
     game:'Game', inv:'Backpack', invite:'Invite', settings:'Settings',
-    place_bet:'PLACE BET', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
+    place_bet:'PLACE BET', bet_nft:'BET NFT', cashout:'CASH OUT', bet_accepted:'✅ Bet placed',
     bet_label:'BET TON', auto_label:'AUTO CASHOUT', auto:'Auto',
     nft_hint:'Win ≥2.8 TON at ≥1.1× → get', players:'PLAYERS',
     lang_title:'Language', deposit:'Deposit', sell:'Sell for', withdraw:'Withdraw',
@@ -3513,7 +3437,7 @@ const LANGS = {
   },
   ru: {
     game:'Игра', inv:'Инвентарь', invite:'Пригласить', settings:'Настройки',
-    place_bet:'ПОСТАВИТЬ', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
+    place_bet:'ПОСТАВИТЬ', bet_nft:'ПОСТАВИТЬ NFT', cashout:'ЗАБРАТЬ', bet_accepted:'✅ Ставка принята',
     bet_label:'СТАВКА TON', auto_label:'АВТО-ВЫВОД', auto:'Авто',
     nft_hint:'Выигрыш ≥2.8 TON при ≥1.1× → получишь', players:'ИГРОКИ',
     lang_title:'Язык', deposit:'Пополнить', sell:'Продать за', withdraw:'Вывести',
@@ -4666,42 +4590,6 @@ function continueSpinCase(){
   if(IS_TELEGRAM && !serverBalanceSynced && curCase.price > 0){showToast(t('not_enough'));return;}
   if(curCase.price > 0 && balance<curCase.price){showToast(t('not_enough'));return;}
   if(spinAnim){return;}
-
-  // FREE DAILY: надсилаємо на сервер і ЧЕКАЄМО підтвердження (захист від 2 пристроїв)
-  if(curCase.id === 'free_daily'){
-    if(!wsReady){showToast('No connection');return;}
-    document.getElementById('spin-btn').disabled=true;
-    document.getElementById('spin-btn').textContent='⏳...';
-    const handler = (e) => {
-      try{
-        const d=JSON.parse(e.data);
-        if(d.t==='case_opened' && d.case_id==='free_daily'){
-          ws.removeEventListener('message',handler);
-          // Сервер підтвердив — оновлюємо localStorage і крутимо
-          const storageKey='free_case_last_open_'+userId;
-          localStorage.setItem(storageKey,Date.now().toString());
-          _doActualSpin();
-        } else if(d.t==='free_daily_cooldown'){
-          ws.removeEventListener('message',handler);
-          document.getElementById('spin-btn').disabled=false;
-          document.getElementById('spin-btn').textContent=t('spin_btn')||'Spin';
-          showToast(d.msg||'Come back later');
-          // Оновлюємо localStorage щоб UI теж показав cooldown
-          const storageKey='free_case_last_open_'+userId;
-          localStorage.setItem(storageKey,(Date.now()-86400000+d.hours_left*3600000).toString());
-        }
-      }catch(err){}
-    };
-    ws.addEventListener('message',handler);
-    setTimeout(()=>{
-      ws.removeEventListener('message',handler);
-      document.getElementById('spin-btn').disabled=false;
-      document.getElementById('spin-btn').textContent=t('spin_btn')||'Spin';
-    },8000);
-    ws.send(JSON.stringify({a:'case_opened',case_id:'free_daily',case_name:curCase.name,price:0}));
-    return;
-  }
-
   caseWinProcessed=false; // SECURITY: скидаємо прапор для нового спіну
   playSpinSound();
   
@@ -4724,12 +4612,6 @@ function continueSpinCase(){
       }));
     }
   }
-  _doActualSpin();
-}
-
-function _doActualSpin(){
-  caseWinProcessed=false;
-  playSpinSound();
   document.getElementById('spin-bal-display').textContent=balance.toFixed(2)+' TON';
   document.getElementById('spin-btn').disabled=true;
 
