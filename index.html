@@ -2399,7 +2399,8 @@ function openModal(type){
             <div class="inv-name">${nft.name}</div>
             <span class="inv-r rare-${nft.rarity}">${nft.rarity}</span>
             <div class="inv-price">floor: ${(nft.floor||nft.price||0).toFixed(2)} TON</div>
-            <button class="inv-btn" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
+            <button class="inv-btn" style="margin-bottom:4px" onclick='withdrawNFTByIndex(${realIndex})'>${t('withdraw_btn')}</button>
+            <button class="inv-btn" style="background:linear-gradient(135deg,#1a6228,#0d4018)" onclick='sellNFTByIndex(${realIndex})'>${t('sell_btn')} ${(+(nft.price||nft.floor||0)).toFixed(2)} TON</button>
           </div>
         </div>`;
       }).join('')
@@ -3619,7 +3620,7 @@ const LANGS = {
     confirm_withdraw:'Withdraw NFT', confirm_sell:'Sell NFT',
     confirm_withdraw_desc:'Withdraw to your Telegram wallet?',
     confirm_sell_desc:'Sell for',
-    confirm_btn_withdraw:'📤 Withdraw', confirm_btn_sell:'Sell for',
+    confirm_btn_withdraw:'Withdraw', confirm_btn_sell:'Sell for',
     stars_rate:'Exchange rate', stars_auto:'Credited automatically',
     stars_amount:'Amount in Stars (10 – 10 000)',
     stars_topup:'Top Up',
@@ -3690,7 +3691,7 @@ const LANGS = {
     confirm_withdraw:'Вывод NFT', confirm_sell:'Продажа NFT',
     confirm_withdraw_desc:'Вывести в Telegram кошелёк?',
     confirm_sell_desc:'Продать за',
-    confirm_btn_withdraw:'📤 Вывести', confirm_btn_sell:'💰 Продать за',
+    confirm_btn_withdraw:'Вывести', confirm_btn_sell:'Продать за',
     stars_rate:'Курс обмена', stars_auto:'Зачисляется автоматически',
     stars_amount:'Количество Stars (10 – 10 000)',
     stars_topup:'Пополнить',
