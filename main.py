@@ -1811,12 +1811,24 @@ _tonconnect_js_cache: bytes | None = None
 
 @app.get("/static/tonconnect-ui.min.js")
 async def serve_tonconnect_js():
-    """Роздаємо TonConnect UI з кешу на сервері — обходимо блокування CDN в Telegram WebApp"""
+    """Роздаємо TonConnect UI — спочатку з локального файлу, потім з CDN"""
     global _tonconnect_js_cache
     from fastapi.responses import Response
+    headers = {"Cache-Control": "public, max-age=86400", "Access-Control-Allow-Origin": "*"}
+
+    # 1. Якщо вже є в пам'яті — віддаємо одразу
     if _tonconnect_js_cache:
-        return Response(content=_tonconnect_js_cache, media_type="application/javascript",
-                        headers={"Cache-Control": "public, max-age=86400", "Access-Control-Allow-Origin": "*"})
+        return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
+
+    # 2. Спробуємо прочитати локальний файл (його треба покласти в корінь проєкту)
+    for local_path in ("tonconnect-ui.min.js", "static/tonconnect-ui.min.js"):
+        if os.path.exists(local_path):
+            with open(local_path, "rb") as f:
+                _tonconnect_js_cache = f.read()
+            print(f"✅ TonConnect JS loaded from local file: {local_path} ({len(_tonconnect_js_cache)} bytes)")
+            return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
+
+    # 3. Fallback — завантажуємо з CDN (Railway має до нього доступ)
     urls = [
         "https://unpkg.com/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js",
         "https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.10/dist/tonconnect-ui.min.js",
@@ -1828,12 +1840,13 @@ async def serve_tonconnect_js():
                 r = await client.get(url, follow_redirects=True)
                 if r.status_code == 200 and len(r.content) > 10000:
                     _tonconnect_js_cache = r.content
-                    print(f"✅ TonConnect JS cached from {url} ({len(r.content)} bytes)")
-                    return Response(content=_tonconnect_js_cache, media_type="application/javascript",
-                                    headers={"Cache-Control": "public, max-age=86400", "Access-Control-Allow-Origin": "*"})
+                    print(f"✅ TonConnect JS cached from CDN: {url} ({len(r.content)} bytes)")
+                    return Response(content=_tonconnect_js_cache, media_type="application/javascript", headers=headers)
             except Exception as e:
                 print(f"❌ Failed to fetch TonConnect from {url}: {e}")
-    return Response(content="console.error('TonConnect failed to load');", media_type="application/javascript", status_code=503)
+
+    return Response(content="console.error('TonConnect failed to load from all sources');",
+                    media_type="application/javascript", status_code=503)
 
 @app.get("/tonconnect-manifest.json")
 async def tonconnect_manifest():
