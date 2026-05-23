@@ -142,21 +142,7 @@ body.light-theme #bb.co{
 body.light-theme #bb.co:active{transform:scale(0.98)}
 body.light-theme #bb:disabled{background:#d8d0f0;box-shadow:none;color:#9985cc}
 
-/* NFT bet picker */
-#nft-bet-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:2000;align-items:flex-end;justify-content:center;backdrop-filter:blur(8px)}
-#nft-bet-bg.open{display:flex}
-#nft-bet-sheet{background:linear-gradient(160deg,#0d0820,#160a30,#0d0820);border:1px solid rgba(192,132,252,0.25);border-radius:24px 24px 0 0;padding:0 0 20px;width:100%;max-width:480px;max-height:82vh;display:flex;flex-direction:column}
-#nft-bet-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;border-bottom:1px solid rgba(192,132,252,0.12)}
-#nft-bet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px;overflow-y:auto;flex:1;scrollbar-width:none}
-.nft-bet-card{background:var(--bg3);border:1.5px solid rgba(192,132,252,0.15);border-radius:14px;padding:10px 6px 8px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
-.nft-bet-card.sel{border-color:rgba(192,132,252,0.7);box-shadow:0 0 14px rgba(192,132,252,0.3);background:#1a0a3a}
-.nft-bet-card img{width:70px;height:70px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 6px}
-.nbt-emoji-wrap{width:70px;height:70px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:40px;background:var(--bg2)}
-.nbt-name{font-size:10px;font-weight:700;color:var(--cream);font-family:'Nunito',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.nbt-price{font-size:11px;font-family:'Fredoka One',cursive;color:var(--acc)}
-.nbt-win{position:absolute;top:10px;right:6px;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);padding:2px 6px;border-radius:6px;font-family:'Fredoka One',cursive;font-size:9px;color:#ffd700;border:1px solid rgba(255,215,0,0.25);font-weight:700}
-#nft-bet-confirm{width:calc(100% - 28px);margin:6px 14px 0;background:linear-gradient(135deg,#5b21b6,#7c3aed);border:none;border-radius:16px;color:#fff;font-family:'Fredoka One',cursive;font-size:16px;padding:15px;cursor:pointer}
-#nft-bet-confirm:disabled{opacity:.35;cursor:not-allowed}
+
 /* NFT hint */
 body.light-theme #nft-hint{color:#7c6aae}
 body.light-theme #nft-hint span{color:#7c3aed;font-weight:800}
@@ -967,7 +953,7 @@ html,body{
   box-shadow:0 0 18px rgba(93,216,255,0.24);
 }
 .tog.on::after{left:20px}
-#bb,#bb-nft{
+#bb{
   min-height:58px;
   border-radius:18px!important;
   border:1px solid rgba(125,227,255,0.48)!important;
@@ -1053,11 +1039,11 @@ html,body{
   border-color:rgba(255,255,255,0.22);
   box-shadow:0 14px 28px rgba(52,120,246,0.32),0 0 34px rgba(93,216,255,0.26),inset 0 1px 0 rgba(255,255,255,0.32);
 }
-#modal-overlay,#mbg,#nft-bet-bg,#case-win-popup,#nft-confirm-bg{
+#modal-overlay,#mbg,#case-win-popup,#nft-confirm-bg{
   background:rgba(5,8,14,0.72)!important;
   backdrop-filter:blur(18px)!important;
 }
-#modal-sheet,#mod,#nft-bet-sheet{
+#modal-sheet,#mod{
   max-width:480px;
   margin:0 auto;
   border-radius:26px 26px 0 0;
@@ -1206,7 +1192,6 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
       <input class="ai" id="av" type="number" value="2.0" min="1.1" step="0.1" oninput="if(parseFloat(this.value)<1.1&&this.value!='')this.style.borderColor='var(--red)';else this.style.borderColor=''">
     </div>
     <button id="bb" onclick="handleBet()">PLACE BET</button>
-    <button id="bb-nft" onclick="openNFTBetPicker()" style="grid-column:1/-1;display:flex;background:linear-gradient(135deg,#1a0a2e,#2e1060,#1a0a2e);border:1.5px solid rgba(192,132,252,0.5);border-radius:20px;color:var(--cream);font-family:'Fredoka One',cursive;font-size:15px;padding:11px;cursor:pointer;align-items:center;justify-content:center;gap:8px;">BET NFT <span id="bb-nft-info" style="font-size:11px;opacity:0.7"></span></button>
   </div>
 
   <div id="nft-hint" style="display:none;"></div>
@@ -1350,20 +1335,7 @@ body.light-theme #mult{color:#172033;text-shadow:0 10px 28px rgba(52,120,246,0.1
 
 <!-- WIN -->
 <div id="wp">
-  <div id="wp-nft-section">
-    <div id="wp-lottie"></div>
-    <div id="wp-nft-name"></div>
-    <span id="wp-nft-rarity"></span>
-    <div id="wp-mult"></div>
-    <div id="wp-val"></div>
-    <div id="wp-sub"></div>
-    <!-- Елегантні кнопки без емодзі -->
-    <div style="display:flex;gap:8px;margin-top:16px;width:100%">
-      <button id="wp-keep-btn" onclick="document.getElementById('wp').className=''" style="flex:1;background:linear-gradient(135deg,#1a2a44,#0f1a3a);border:1px solid rgba(77,143,255,0.3);border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:12px;cursor:pointer;transition:all .15s">Keep</button>
-      <button id="wp-withdraw-btn" onclick="withdrawNFTFromWinPopup()" style="flex:1;background:linear-gradient(135deg,#4d8fff,#3366cc);border:1px solid rgba(77,143,255,0.5);border-radius:12px;color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:12px;cursor:pointer;box-shadow:0 0 16px rgba(77,143,255,0.3);transition:all .15s">Withdraw</button>
-    </div>
-  </div>
-  <div id="wp-ton-section" style="display:none">
+  <div id="wp-ton-section">
     <div id="wp-ton-mult"></div>
     <div id="wp-ton-val"></div>
     <div id="wp-credited-lbl" style="font-size:11px;color:#445;margin-top:6px">Credited to balance</div>
@@ -2198,16 +2170,7 @@ function startClientAnim(){
     if(hasBet){
       BB().disabled=false;
       BB().className='co';
-      if(window._activeNFTBet){
-        var _nw=getNFTSafe(betAmt*mult,mult);
-        if(_nw){
-          BB().innerHTML=`<span style="font-size:11px;opacity:.8">CASH OUT</span><span style="font-size:14px;font-weight:900"> ${_nw.name}</span><span style="font-size:11px;opacity:0.7"> (${(betAmt*mult).toFixed(2)})</span>`;
-        }else{
-          BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
-        }
-      }else{
-        BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
-      }
+      BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${(betAmt*mult).toFixed(2)} TON</span>`;
     }
     drawGraph(false);
     loopId=requestAnimationFrame(tick);
@@ -2247,7 +2210,7 @@ function renderPlayers(list){
     const ava=p.photo?`<img src="${p.photo}">`:`<span>${(p.name||'?').slice(0,2).toUpperCase()}</span>`;
     let rowCls='pr'+(isMe?' me':'')+(p.cashed?' won':p.lost?' lost':'');
     const m=p.mult&&+p.mult>0?' ×'+(+p.mult).toFixed(2):'';
-    const betTag=p.bet?(p.is_nft?'<span class="pr-bet">🎁 NFT'+m+'</span>':`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`):'';
+    const betTag=p.bet?`<span class="pr-bet">${TSVG} ${(+p.bet).toFixed(2)}${m}</span>`:'';
     let right='';
     if(p.cashed&&p.nft&&p.nft.id){
       const np=getPhotoById(p.nft);
@@ -2283,69 +2246,11 @@ function renderPlayers(list){
 
 function showWinPopup(mx,win,nft){
   const wp=document.getElementById('wp');
-  if(nft){
-    document.getElementById('wp-nft-section').style.display='block';
-    document.getElementById('wp-ton-section').style.display='none';
-    const lc=document.getElementById('wp-lottie');
-    const ph=getPhotoById(nft);
-    lc.innerHTML=ph?`<img src="${ph}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px">🎁</div>';
-    document.getElementById('wp-nft-name').textContent=nft.name;
-    document.getElementById('wp-nft-rarity').textContent=nft.rarity;
-    document.getElementById('wp-nft-rarity').className=`rare-${nft.rarity}`;
-    document.getElementById('wp-mult').textContent=`${(+mx).toFixed(2)}×`;
-    document.getElementById('wp-val').textContent=`≈${(+win).toFixed(2)} TON → Gift`;
-    document.getElementById('wp-sub').textContent=`floor ${nft.floor} TON`;
-    
-    // Локалізація кнопок
-    document.getElementById('wp-keep-btn').textContent = t('keep_btn');
-    document.getElementById('wp-withdraw-btn').textContent = t('withdraw_btn');
-    
-    // Зберігаємо останній виграний NFT для кнопки Withdraw
-    window._lastWonNFT = nft;
-    
-    spawnGems(5,'🎁');
-  }else{
-    document.getElementById('wp-nft-section').style.display='none';
-    document.getElementById('wp-ton-section').style.display='block';
-    document.getElementById('wp-ton-mult').textContent=`${(+mx).toFixed(2)}×`;
-    document.getElementById('wp-ton-val').textContent=`+${(+win).toFixed(3)} TON`;
-    
-    // Локалізація кнопки Close для TON виграшу
-    const closeBtn = document.querySelector('#wp-ton-section button');
-    if(closeBtn) closeBtn.textContent = 'Close';
-    
-    spawnGems(Math.min(10,Math.floor(win*3)));
-  }
+  document.getElementById('wp-ton-mult').textContent=`${(+mx).toFixed(2)}×`;
+  document.getElementById('wp-ton-val').textContent=`+${(+win).toFixed(3)} TON`;
+  spawnGems(Math.min(10,Math.floor(win*3)));
   wp.className='show';
   setTimeout(()=>wp.className='',5000);
-}
-
-function withdrawNFTFromWinPopup(){
-  // Знаходимо останній виграний NFT в інвентарі
-  if(!window._lastWonNFT){
-    showToast('NFT not found');
-    return;
-  }
-  
-  const nftId = window._lastWonNFT.id;
-  const nftName = window._lastWonNFT.name;
-  const nftFloor = window._lastWonNFT.floor || window._lastWonNFT.price || 0;
-  
-  // Знаходимо індекс останнього NFT з таким id
-  const index = myNFTs.findIndex(n => n.id === nftId && !n._withdrawn);
-  if(index === -1){
-    showToast('NFT already withdrawn or not found');
-    return;
-  }
-  
-  // Закриваємо popup і відкриваємо withdraw
-  document.getElementById('wp').className='';
-  
-  // Викликаємо withdrawal
-  withdrawNFTByIndex(index);
-  
-  // Очищаємо
-  window._lastWonNFT = null;
 }
 
 function addNFTToInventory(nft,winTon,mx){
@@ -2596,87 +2501,6 @@ function openPepeSender(){
 }
 
 // ============ КРАСИВА МОДАЛКА ВИГРАШУ NFT З РАКЕТИ ============
-function showRocketNFTWin(nft, mult){
-  const modal = document.getElementById('gen-modal');
-  const title = document.getElementById('gen-modal-title');
-  const body = document.getElementById('gen-modal-body');
-  
-  title.innerHTML = '';
-  title.style.display = 'none';
-  
-  const photo = (typeof NFT_PHOTOS !== 'undefined' && NFT_PHOTOS && NFT_PHOTOS[nft.id]) || null;
-  
-  body.innerHTML = `
-    <div style="text-align:center;padding:30px 20px">
-      <div style="font-size:16px;font-weight:600;color:#fff;margin-bottom:25px">🚀 Rocket NFT Win</div>
-      
-      ${photo 
-        ? `<img src="${photo}" style="width:120px;height:120px;border-radius:16px;object-fit:cover;border:3px solid #ffd600;margin-bottom:20px">`
-        : `<div style="font-size:80px;margin-bottom:20px">${nft.emoji || '🎁'}</div>`
-      }
-      
-      <div style="font-size:22px;font-weight:700;color:#ffd600;margin-bottom:8px">${nft.name}</div>
-      <div style="font-size:14px;color:#aab;margin-bottom:6px">💎 ${nft.price.toFixed(2)} TON floor</div>
-      <div style="font-size:13px;color:#8b5cff;margin-bottom:25px">${mult.toFixed(2)}× multiplier</div>
-      
-      <button onclick="rocketNFTSell()" style="width:100%;background:linear-gradient(135deg,#ff4d6d,#ff758c);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:15px;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 15px rgba(255,77,109,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        💰 Sell for ${nft.price.toFixed(2)} TON
-      </button>
-      
-      <button onclick="rocketNFTKeep()" style="width:100%;background:linear-gradient(135deg,#6c4fff,#8b5cff);border:none;border-radius:14px;color:white;font-family:'Fredoka One',cursive;font-size:15px;padding:15px;cursor:pointer;box-shadow:0 4px 15px rgba(108,76,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-        ✅ Keep NFT
-      </button>
-    </div>
-  `;
-  
-  // Зберігаємо NFT для обробників
-  window._tempRocketNFT = nft;
-  
-  openModal('gen-modal');
-  playCaseWinSound();
-  spawnGems(5,'🎁');
-}
-
-function rocketNFTSell(){
-  const nft = window._tempRocketNFT;
-  if(!nft) return;
-  
-  // Видаляємо NFT з інвентаря
-  const index = myNFTs.findIndex(n => n.id === nft.id && n.uid && n.uid.includes('rocket'));
-  if(index !== -1){
-    myNFTs.splice(index, 1);
-    saveNFTs();
-    refreshInventoryLabel();
-  }
-  
-  // Додаємо TON
-  creditLocalBalance(nft.price, 'rocket_nft_sell');
-  
-  // Повідомляємо сервер
-  if(wsReady) ws.send(JSON.stringify({
-    a:'rocket_nft_sell',
-    nft_id:nft.id,
-    price:nft.price
-  }));
-  
-  showToast(`✅ Sold for ${nft.price.toFixed(2)} TON`,'win');
-  closeModal();
-  document.getElementById('gen-modal-title').style.display = '';
-  window._tempRocketNFT = null;
-}
-
-function rocketNFTKeep(){
-  const nft = window._tempRocketNFT;
-  if(!nft) return;
-  
-  showToast(`✅ ${nft.name} added to inventory`,'win');
-  closeModal();
-  document.getElementById('gen-modal-title').style.display = '';
-  window._tempRocketNFT = null;
-  
-  // NFT вже в інвентарі через addNFTToInventory
-}
-
 const NFT_WITHDRAW_STARS = 25;
 
 function withdrawNFT(id,name,floor){
@@ -3212,7 +3036,7 @@ function connect(){
       }
       
       ME().className='';ME().textContent='1.00×';points=[];startClientAnim();
-      if(hasBet){BB().disabled=false;BB().className='co';if(window._activeNFTBet){BB().innerHTML='<span style="font-size:11px;opacity:.8">CASH OUT NFT</span>';}else{BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;}startFlightTicks();}
+      if(hasBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8;letter-spacing:.5px">${t('cashout')}</span><span style="font-size:18px;font-weight:900;letter-spacing:.5px"> ${betAmt.toFixed(2)} TON</span>`;startFlightTicks();}
       else{BB().disabled=true;BB().innerHTML=t('place_bet');}
     }
     else if(d.t==='tick'){
@@ -3256,7 +3080,7 @@ function connect(){
       renderPlayers(d.pl);
     }
     else if(d.t==='newbet'||d.t==='co'){renderPlayers(d.pl);}
-    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();if(window._activeNFTBet){BB().disabled=false;BB().className='co';BB().innerHTML=`<span style="font-size:11px;opacity:.8">NFT: ${window._activeNFTBet.name}</span>`;}else{BB().disabled=true;BB().innerHTML=t('bet_accepted');}}
+    else if(d.t==='bet_ok'){hasBet=true;betAmt=d.amt;balance=d.bal;updBal();saveBal();addBetIndicator();BB().disabled=true;BB().innerHTML=t('bet_accepted');}
     else if(d.t==='your_co'){
       if(phase==='crashed'){console.warn('[your_co] ignored — round already crashed');return;}
       hasBet=false;betAmt=0;balance=d.bal;updBal();saveBal();
@@ -3349,10 +3173,6 @@ function handleBet(){
 
   // Якщо летимо і є ставка — кешаут
   if(phase==='flying' && hasBet){
-    if(window._activeNFTBet&&typeof cashoutActiveNFTBetLocal==='function'){
-      cashoutActiveNFTBetLocal();
-      return;
-    }
     if(wsReady) ws.send(JSON.stringify({a:'cashout'}));
     return;
   }
@@ -6132,18 +5952,6 @@ loadNFTPrices()
   });
 </script>
 
-<!-- NFT BET PICKER -->
-<div id="nft-bet-bg">
-  <div id="nft-bet-sheet">
-    <div id="nft-bet-header">
-      <div style="font-family:'Fredoka One',cursive;font-size:18px;color:#c084fc">&#127873; Bet NFT on Rocket</div>
-      <button onclick="closeNFTBetPicker()" style="background:#ffffff15;border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px">x</button>
-    </div>
-    <div style="padding:8px 14px 2px;font-size:11px;color:#8866aa;font-family:'Nunito',sans-serif;font-weight:700">NFT price x multiplier = new NFT value. Cash out in time!</div>
-    <div id="nft-bet-grid"></div>
-    <button id="nft-bet-confirm" disabled onclick="confirmNFTBet()">Pick an NFT to bet</button>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -6160,135 +5968,15 @@ loadNFTPrices()
           return;
         }
         if(d.t==='st'){if(typeof resetReactCounts==='function')resetReactCounts();var rb=document.getElementById('react-bar');if(rb)rb.classList.add('visible');}
-        if(d.t==='cr'||d.t==='cd'){var rb2=document.getElementById('react-bar');if(rb2)rb2.classList.remove('visible');if(d.t==='cr'&&window._activeNFTBet){window._activeNFTBet=null;window._pendingNFTBet=null;var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';}}
-        if(d.t==='bet_ok'&&window._pendingNFTBet){
-          var p=window._pendingNFTBet,removed=false;
-          if(typeof myNFTs!=='undefined'&&Array.isArray(myNFTs)){
-            if(Number.isInteger(p.idx)&&myNFTs[p.idx]&&myNFTs[p.idx].id===p.nft.id){myNFTs.splice(p.idx,1);removed=true;}
-            else{myNFTs=myNFTs.filter(function(n){if(!removed&&n.id===p.nft.id){removed=true;return false;}return true;});}
-            if(removed&&typeof saveNFTs==='function')saveNFTs();
-            var il=document.getElementById('inv-tab-lbl');
-            if(il)il.textContent=myNFTs.length?(typeof t==='function'?t('inv'):'Backpack')+' ('+myNFTs.length+')':(typeof t==='function'?t('inv'):'Backpack');
-          }
-          window._pendingNFTBet=null;
-        }
-                if(d.t==='admin_user_found'&&d.user)_adminShowUserCard(d.user);
+        if(d.t==='cr'||d.t==='cd'){var rb2=document.getElementById('react-bar');if(rb2)rb2.classList.remove('visible');}
+        if(d.t==='admin_user_found'&&d.user)_adminShowUserCard(d.user);
         if(d.t==='admin_user_not_found'){var c=document.getElementById('admin-user-card');if(c)c.style.display='none';var nf=document.getElementById('admin-user-not-found');if(nf)nf.style.display='';}
-        if(d.t==='win_nft_rocket'&&d.nft){if(typeof addNFTToInventory==='function')addNFTToInventory(d.nft,d.nft.price,d.mult||1);if(typeof showRocketNFTWin==='function')showRocketNFTWin(d.nft,d.mult||1);}
       }catch(err){}
       if(_orig)_orig.call(ws,e);
     };
   };
   setTimeout(_patch,800);
 })();
-
-setInterval(function(){
-  var btn=document.getElementById('bb-nft');
-  if(!btn)return;
-  btn.style.display=(typeof phase!=='undefined'&&phase==='waiting'&&typeof myNFTs!=='undefined'&&myNFTs.length>0&&typeof hasBet!=='undefined'&&!hasBet)?'flex':'none';
-},400);
-
-var _nftBetIdx=null;
-function openNFTBetPicker(){
-  if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
-  if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
-  var grid=document.getElementById('nft-bet-grid'),btn=document.getElementById('nft-bet-confirm');
-  if(!myNFTs||!myNFTs.length){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:#7755aa;font-family:Nunito,sans-serif;font-weight:700">No NFTs - open a Case first!</div>';
-    btn.disabled=true;btn.textContent='No NFTs';
-  }else{
-    grid.innerHTML=myNFTs.map(function(nft,i){
-      var ph=nft.photo||(typeof NFT_PHOTOS!=='undefined'&&NFT_PHOTOS&&NFT_PHOTOS[nft.id]);
-      var img=ph?'<img src="'+ph+'">':'<div class="nbt-emoji-wrap">'+(nft.emoji||'&#x1F381;')+'</div>';
-      var winTon=(+(nft.winTon||nft.price||nft.floor||0)).toFixed(2);
-      return'<div class="nft-bet-card" data-idx="'+i+'">'+img+'<div class="nbt-win">'+winTon+'</div><div class="nbt-name">'+nft.name+'</div><div class="nbt-price">&#9661; '+(+(nft.price||nft.floor||0)).toFixed(2)+'</div></div>';
-    }).join('');
-    grid.querySelectorAll('.nft-bet-card').forEach(function(c){c.onclick=function(){selectNFTBet(parseInt(this.dataset.idx));};});
-    btn.disabled=true;btn.textContent='Pick an NFT to bet';
-  }
-  _nftBetIdx=null;
-  document.getElementById('nft-bet-bg').classList.add('open');
-}
-function closeNFTBetPicker(){document.getElementById('nft-bet-bg').classList.remove('open');}
-function selectNFTBet(idx){
-  _nftBetIdx=idx;
-  document.querySelectorAll('.nft-bet-card').forEach(function(c,i){c.classList.toggle('sel',i===idx);});
-  var nft=myNFTs[idx],btn=document.getElementById('nft-bet-confirm');
-  btn.disabled=false;btn.textContent='Bet '+nft.name+' ('+(+(nft.price||nft.floor||0)).toFixed(2)+')';
-}
-function cashoutActiveNFTBetLocal(){
-  var active=window._activeNFTBet;
-  if(!active)return;
-  var cur=typeof mult!=='undefined'?+mult:1;
-  var base=+(active.price||active.floor||betAmt||0);
-  var winValue=+(base*cur).toFixed(2);
-  
-  // Перевіряємо чи є NFT на цю суму
-  var winNFT=(typeof getNFTSafe==='function'&&getNFTSafe(winValue,cur));
-  
-  if(winNFT){
-    // Є NFT - додаємо його
-    winNFT.price=+(winNFT.price||winNFT.floor||winValue);
-    winNFT.floor=+(winNFT.floor||winNFT.price||winValue);
-    addNFTToInventory(winNFT,winValue,cur);
-    showWinPopup(cur,winValue,winNFT);
-    if(typeof showToast==='function')showToast('NFT cashout '+cur.toFixed(2)+'x','win');
-    if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_local',nft_id:active.id,win_nft_id:winNFT.id,win_value:winValue,mult:cur,is_nft:true}));
-  }else{
-    // Немає NFT - видаємо TON
-    creditLocalBalance(winValue,'nft_bet_ton_cashout');
-    showWinPopup(cur,winValue,null); // null = TON виграш
-    if(typeof showToast==='function')showToast('Cashed out '+winValue.toFixed(2)+' TON','win');
-    if(wsReady&&window.ws)ws.send(JSON.stringify({a:'nft_cashout_ton',nft_id:active.id,win_value:winValue,mult:cur,is_nft:false}));
-  }
-  
-  window._activeNFTBet=null;
-  window._pendingNFTBet=null;
-  hasBet=false;
-  betAmt=0;
-  var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='';
-  var bb=document.getElementById('bb');if(bb){bb.className='bet';bb.innerHTML=(typeof t==='function'?t('bet'):'Bet');bb.disabled=true;}
-}
-function confirmNFTBet(){
-  if(_nftBetIdx===null)return;
-  if(typeof phase==='undefined'||phase!=='waiting'){if(typeof showToast==='function')showToast('Wait for next round');return;}
-  if(typeof hasBet!=='undefined'&&hasBet){if(typeof showToast==='function')showToast('Already placed a bet');return;}
-  var nft=myNFTs[_nftBetIdx];
-  if(!nft){
-    console.error('[NFT BET] NFT not found at index', _nftBetIdx);
-    if(typeof showToast==='function')showToast('NFT not found');
-    return;
-  }
-  console.log('[NFT BET] Selected NFT:', nft);
-  var nftKey=ensureNFTUid(nft);
-  console.log('[NFT BET] NFT key:', nftKey);
-  var removedNFT=removeNFTByKey(nftKey);
-  if(!removedNFT){
-    console.error('[NFT BET] Failed to remove NFT with key:', nftKey);
-    console.error('[NFT BET] Current inventory:', myNFTs);
-    // Пробуємо знайти NFT напряму
-    removedNFT = myNFTs.splice(_nftBetIdx, 1)[0];
-    if(!removedNFT){
-      if(typeof showToast==='function')showToast('NFT not found');
-      return;
-    }
-    console.log('[NFT BET] Removed directly from index:', removedNFT);
-  }
-  saveNFTs();
-  refreshInventoryLabel();
-  closeNFTBetPicker();
-  window._activeNFTBet=Object.assign({},removedNFT);
-  window._pendingNFTBet=null;
-  var inf=document.getElementById('bb-nft-info');if(inf)inf.textContent='- '+nft.name;
-  var nftPrice=+(nft.price||nft.floor||0);
-  betAmt=nftPrice;
-  hasBet=true;
-  if(wsReady&&window.ws)ws.send(JSON.stringify({a:'bet',amt:nftPrice,ac:null,nft_bet:{nft_id:removedNFT.id,nft_uid:removedNFT.uid,nft_price:nftPrice,nft_name:removedNFT.name}}));
-  var bb=document.getElementById('bb');
-  if(bb){bb.innerHTML='<span style="font-size:11px;opacity:.8">NFT: '+nft.name+'</span>';bb.disabled=false;bb.className='co';}
-  if(typeof showToast==='function')showToast('NFT bet placed!','win');
-  if(navigator.vibrate)navigator.vibrate([30,15,60]);
-}
 
 var _crashN=0,_crashLastBig=0,_crashLastMid=0;
 window._smartCrashPoint=function(activeBets){
